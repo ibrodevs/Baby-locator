@@ -12,6 +12,7 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=16, choices=ROLE_CHOICES, default=ROLE_PARENT)
     display_name = models.CharField(max_length=120, blank=True)
+    avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     parent = models.ForeignKey(
         "self",
         null=True,

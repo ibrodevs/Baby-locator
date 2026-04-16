@@ -13,6 +13,7 @@ class SessionUser {
     required this.role,
     required this.displayName,
     this.parentId,
+    this.avatarUrl,
   });
 
   final int id;
@@ -20,6 +21,7 @@ class SessionUser {
   final UserRole role;
   final String displayName;
   final int? parentId;
+  final String? avatarUrl;
 
   factory SessionUser.fromJson(Map<String, dynamic> j) => SessionUser(
         id: j['id'] as int,
@@ -27,6 +29,21 @@ class SessionUser {
         role: _roleFrom(j['role'] as String?),
         displayName: (j['display_name'] as String?) ?? '',
         parentId: j['parent'] as int?,
+        avatarUrl: j['avatar_url'] as String?,
+      );
+
+  SessionUser copyWith({
+    String? username,
+    String? displayName,
+    String? avatarUrl,
+  }) =>
+      SessionUser(
+        id: id,
+        username: username ?? this.username,
+        role: role,
+        displayName: displayName ?? this.displayName,
+        parentId: parentId,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
       );
 
   static UserRole _roleFrom(String? r) {
@@ -47,7 +64,11 @@ class SessionState {
   final bool loading;
   final String? error;
 
-  SessionState copyWith({SessionUser? user, bool? loading, String? error, bool clearUser = false}) =>
+  SessionState copyWith(
+          {SessionUser? user,
+          bool? loading,
+          String? error,
+          bool clearUser = false}) =>
       SessionState(
         user: clearUser ? null : user ?? this.user,
         loading: loading ?? this.loading,
@@ -107,14 +128,43 @@ class SessionNotifier extends StateNotifier<SessionState> {
     }
   }
 
+  void updateAvatar(String url) {
+    if (state.user != null) {
+      state = state.copyWith(user: state.user!.copyWith(avatarUrl: url));
+    }
+  }
+
+  void updateUser(SessionUser user) {
+    state = state.copyWith(user: user);
+  }
+
+  Future<void> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    if (state.user == null) return;
+    state = state.copyWith(loading: true, error: null);
+    try {
+      final data = await ApiClient.instance.updateProfile(
+        username: username,
+        displayName: displayName,
+      );
+      state = SessionState(
+        user: SessionUser.fromJson(data),
+      );
+    } catch (e) {
+      state = state.copyWith(loading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     await ApiClient.instance.logout();
     state = SessionState();
   }
 }
 
-final sessionProvider =
-    StateNotifierProvider<SessionNotifier, SessionState>(
+final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>(
   (ref) => SessionNotifier(),
 );
 
@@ -129,6 +179,8 @@ class ChildLocation {
     required this.battery,
     required this.updatedAt,
     required this.active,
+    this.childId,
+    this.avatarUrl,
   });
 
   final String name;
@@ -138,6 +190,8 @@ class ChildLocation {
   final int battery;
   final DateTime updatedAt;
   final bool active;
+  final int? childId;
+  final String? avatarUrl;
 
   ChildLocation copyWith({
     String? name,
@@ -147,6 +201,8 @@ class ChildLocation {
     int? battery,
     DateTime? updatedAt,
     bool? active,
+    int? childId,
+    String? avatarUrl,
   }) =>
       ChildLocation(
         name: name ?? this.name,
@@ -156,22 +212,27 @@ class ChildLocation {
         battery: battery ?? this.battery,
         updatedAt: updatedAt ?? this.updatedAt,
         active: active ?? this.active,
+        childId: childId ?? this.childId,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
       );
 }
 
 class ChildLocationNotifier extends StateNotifier<ChildLocation?> {
   ChildLocationNotifier() : super(null);
 
-  void setFromApi(Map<String, dynamic> j, {String name = 'Child'}) {
+  void setFromApi(Map<String, dynamic> j,
+      {String name = 'Child', int? childId, String? avatarUrl}) {
     state = ChildLocation(
       name: name,
       lat: (j['lat'] as num).toDouble(),
       lng: (j['lng'] as num).toDouble(),
       address: (j['address'] as String?) ?? '',
       battery: (j['battery'] as int?) ?? 0,
-      updatedAt: DateTime.tryParse(j['created_at'] as String? ?? '') ??
-          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(j['created_at'] as String? ?? '') ?? DateTime.now(),
       active: (j['active'] as bool?) ?? true,
+      childId: childId,
+      avatarUrl: avatarUrl,
     );
   }
 
@@ -204,3 +265,40 @@ final childLocationProvider =
 
 // Selected child for parent map
 final selectedChildIdProvider = StateProvider<int?>((_) => null);
+
+// All children locations for the map (list of ChildLocation)
+class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
+  AllChildrenLocationsNotifier() : super([]);
+
+  void setFromApi(List<dynamic> data) {
+    final list = <ChildLocation>[];
+    for (final entry in data) {
+      final childData = entry['child'] as Map<String, dynamic>;
+      final locData = entry['location'] as Map<String, dynamic>?;
+      if (locData == null) continue;
+      final name = ((childData['display_name'] as String?)?.isNotEmpty ?? false)
+          ? childData['display_name'] as String
+          : childData['username'] as String;
+      list.add(ChildLocation(
+        name: name,
+        lat: (locData['lat'] as num).toDouble(),
+        lng: (locData['lng'] as num).toDouble(),
+        address: (locData['address'] as String?) ?? '',
+        battery: (locData['battery'] as int?) ?? 0,
+        updatedAt: DateTime.tryParse(locData['created_at'] as String? ?? '') ??
+            DateTime.now(),
+        active: (locData['active'] as bool?) ?? true,
+        childId: childData['id'] as int,
+        avatarUrl: childData['avatar_url'] as String?,
+      ));
+    }
+    state = list;
+  }
+
+  void clear() => state = [];
+}
+
+final allChildrenLocationsProvider =
+    StateNotifierProvider<AllChildrenLocationsNotifier, List<ChildLocation>>(
+  (ref) => AllChildrenLocationsNotifier(),
+);

@@ -1,0 +1,704 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for German (`de`).
+class SDe extends S {
+  SDe([String locale = 'de']) : super(locale);
+
+  @override
+  String get appName => 'Kid Security';
+
+  @override
+  String get signInOrCreate => 'Anmelden oder Elternkonto erstellen';
+
+  @override
+  String get signIn => 'Anmelden';
+
+  @override
+  String get createParentAccount => 'Elternkonto erstellen';
+
+  @override
+  String get childrenSignInHint =>
+      'Kinder melden sich mit den Zugangsdaten an, die von ihrem Elternteil erstellt wurden.';
+
+  @override
+  String get createAccount => 'Konto erstellen';
+
+  @override
+  String get displayName => 'Anzeigename';
+
+  @override
+  String get username => 'Benutzername';
+
+  @override
+  String get password => 'Passwort';
+
+  @override
+  String get navMap => 'Karte';
+
+  @override
+  String get navActivity => 'Aktivität';
+
+  @override
+  String get navChat => 'Chat';
+
+  @override
+  String get navStats => 'Statistik';
+
+  @override
+  String get navHome => 'Startseite';
+
+  @override
+  String get waitingForLocation =>
+      'Warte darauf, dass Kinder ihren Standort teilen...';
+
+  @override
+  String get addChildToTrack => 'Kind hinzufügen, um die Verfolgung zu starten';
+
+  @override
+  String get manageChildren => 'Kinder verwalten';
+
+  @override
+  String get loud => 'LAUT';
+
+  @override
+  String get around => 'IN DER NÄHE';
+
+  @override
+  String get currentLocation => 'AKTUELLER STANDORT';
+
+  @override
+  String messageChild(String childName) {
+    return 'Nachricht an $childName';
+  }
+
+  @override
+  String get history => 'Verlauf';
+
+  @override
+  String lastUpdated(String time) {
+    return 'Zuletzt aktualisiert: $time';
+  }
+
+  @override
+  String get statusActive => 'AKTIV';
+
+  @override
+  String get statusPaused => 'PAUSIERT';
+
+  @override
+  String get statusOffline => 'OFFLINE';
+
+  @override
+  String get justNow => 'Gerade eben';
+
+  @override
+  String minutesAgo(int minutes) {
+    return 'Vor $minutes Min.';
+  }
+
+  @override
+  String hoursAgo(int hours) {
+    return 'Vor $hours Std.';
+  }
+
+  @override
+  String get active => 'Aktiv';
+
+  @override
+  String get inactive => 'Inaktiv';
+
+  @override
+  String get addChildToSeeActivity =>
+      'Kind hinzufügen, um Aktivitäten zu sehen';
+
+  @override
+  String get activity => 'Aktivität';
+
+  @override
+  String get today => 'Heute';
+
+  @override
+  String get leftArea => 'Bereich verlassen';
+
+  @override
+  String get arrivedAtLocation => 'Am Ort angekommen';
+
+  @override
+  String get phoneCharging => 'Telefon wird geladen';
+
+  @override
+  String batteryReached(int battery) {
+    return 'Akku bei $battery%';
+  }
+
+  @override
+  String get batteryLow => 'Akku schwach';
+
+  @override
+  String batteryDropped(int battery) {
+    return 'Akku auf $battery% gesunken';
+  }
+
+  @override
+  String get currentLocationTitle => 'Aktueller Standort';
+
+  @override
+  String get locationShared => 'Standort geteilt';
+
+  @override
+  String get batteryStatus => 'Akkustatus';
+
+  @override
+  String batteryAt(int battery) {
+    return 'Akku bei $battery%';
+  }
+
+  @override
+  String noActivityYet(String childName) {
+    return 'Noch keine Aktivität. Ereignisse werden angezeigt, sobald $childName seinen Standort teilt.';
+  }
+
+  @override
+  String get safeZones => 'Sicherzonen';
+
+  @override
+  String get addNew => 'Neu hinzufügen';
+
+  @override
+  String get noSafeZonesYet => 'Noch keine Sicherzonen';
+
+  @override
+  String zone(String zoneName) {
+    return 'Zone: $zoneName';
+  }
+
+  @override
+  String get editZone => 'Zone bearbeiten';
+
+  @override
+  String get activeToday => 'HEUTE AKTIV';
+
+  @override
+  String get inactiveToday => 'HEUTE INAKTIV';
+
+  @override
+  String get disabled => 'DEAKTIVIERT';
+
+  @override
+  String get dailySafetyScore => 'Täglicher Sicherheitsscore';
+
+  @override
+  String get noLocationUpdatesYet =>
+      'Heute noch keine Standortaktualisierungen';
+
+  @override
+  String safetyScoreDetails(int inZoneUpdates, int totalUpdates) {
+    return '$inZoneUpdates von $totalUpdates Aktualisierungen waren heute in Sicherzonen';
+  }
+
+  @override
+  String coverage(int percent) {
+    return 'Abdeckung: $percent%';
+  }
+
+  @override
+  String currentZone(String zoneName) {
+    return 'Aktuelle Zone: $zoneName';
+  }
+
+  @override
+  String get addSafeZone => 'Sicherzone hinzufügen';
+
+  @override
+  String get editSafeZone => 'Sicherzone bearbeiten';
+
+  @override
+  String get deleteZoneTitle => 'Zone löschen?';
+
+  @override
+  String get deleteZoneMessage =>
+      'Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get cancel => 'Abbrechen';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get zoneEnabled => 'ZONE AKTIVIERT';
+
+  @override
+  String get zoneName => 'ZONENNAME';
+
+  @override
+  String get zoneNameHint => 'z. B. Zuhause, Schule';
+
+  @override
+  String get activeWhen => 'AKTIV WANN';
+
+  @override
+  String get always => 'Immer';
+
+  @override
+  String get daysOfWeek => 'Wochentage';
+
+  @override
+  String get chooseAtLeastOneDay =>
+      'Wählen Sie mindestens einen Tag für diesen Zeitplan.';
+
+  @override
+  String get radius => 'RADIUS';
+
+  @override
+  String get locationMoveMap =>
+      'STANDORT (Karte verschieben, um Pin zu zentrieren)';
+
+  @override
+  String get moveMapToSetCenter =>
+      'Karte verschieben, um Zonenmittelpunkt festzulegen';
+
+  @override
+  String get createSafeZone => 'Sicherzone erstellen';
+
+  @override
+  String get updateSafeZone => 'Sicherzone aktualisieren';
+
+  @override
+  String get pleaseEnterZoneName => 'Bitte geben Sie einen Zonennamen ein';
+
+  @override
+  String get chooseAtLeastOneDayError =>
+      'Wählen Sie mindestens einen aktiven Tag';
+
+  @override
+  String get addChildToChat => 'Kind hinzufügen, um zu chatten';
+
+  @override
+  String get noMessagesYet => 'Noch keine Nachrichten. Sagen Sie Hallo!';
+
+  @override
+  String get sendMessage => 'Nachricht senden...';
+
+  @override
+  String failedToSend(String error) {
+    return 'Senden fehlgeschlagen: $error';
+  }
+
+  @override
+  String helloUser(String name) {
+    return 'Hallo, $name!';
+  }
+
+  @override
+  String get kidMode => 'Kindermodus';
+
+  @override
+  String get myLocation => 'Mein Standort';
+
+  @override
+  String get waitingForGps => 'Warte auf GPS...';
+
+  @override
+  String sharedWithParent(String time) {
+    return 'Mit Elternteil geteilt · $time';
+  }
+
+  @override
+  String get notSharedYet => 'Noch nicht geteilt';
+
+  @override
+  String get imSafe => 'Ich bin sicher';
+
+  @override
+  String get sos => 'SOS';
+
+  @override
+  String get sentImSafe => '\"Ich bin sicher\" an Ihr Elternteil gesendet';
+
+  @override
+  String get sosMessage => 'SOS! Ich brauche Hilfe!';
+
+  @override
+  String sosLocation(String address) {
+    return ' Standort: $address';
+  }
+
+  @override
+  String get sosSent => 'SOS gesendet — Elternteil wird benachrichtigt';
+
+  @override
+  String get allowUsageAccess => 'Nutzungszugriff erlauben';
+
+  @override
+  String get usageAccessDescription =>
+      'Damit kann das Eltern-Dashboard echte Bildschirmzeit-Daten und App-Limits von diesem Telefon anzeigen.';
+
+  @override
+  String get openUsageAccess => 'Nutzungszugriff öffnen';
+
+  @override
+  String syncError(String error) {
+    return 'Synchronisierungsfehler: $error';
+  }
+
+  @override
+  String get iphoneLimitation => 'iPhone-Einschränkung';
+
+  @override
+  String get iphoneUsageDescription =>
+      'Auf dem iPhone gibt es keinen Android-artigen Nutzungszugriffsbildschirm. Echte App-Bildschirmzeit und direktes App-Sperren benötigen Apple Screen Time-APIs und spezielle Berechtigungen, daher funktioniert diese Schaltfläche nicht auf iOS.';
+
+  @override
+  String get turnOnLocation => 'Ortungsdienste einschalten';
+
+  @override
+  String get locationIsOff =>
+      'Standort ist deaktiviert. Aktivieren Sie ihn, um mit dem Elternteil zu teilen.';
+
+  @override
+  String get openLocationSettings => 'Standorteinstellungen öffnen';
+
+  @override
+  String get locationBlocked => 'Standortberechtigung gesperrt';
+
+  @override
+  String get enableLocationAccess =>
+      'Standortzugriff in den Systemeinstellungen aktivieren.';
+
+  @override
+  String get openAppSettings => 'App-Einstellungen öffnen';
+
+  @override
+  String get allowLocationToShare => 'Standort zum Teilen erlauben';
+
+  @override
+  String get grantLocationPermission =>
+      'Berechtigung erteilen, damit Ihr Elternteil sehen kann, wo Sie sind.';
+
+  @override
+  String get allowLocation => 'Standort erlauben';
+
+  @override
+  String get myChildren => 'Meine Kinder';
+
+  @override
+  String get addChild => 'Kind hinzufügen';
+
+  @override
+  String get noChildrenYet =>
+      'Noch keine Kinder. Tippen Sie auf \"Kind hinzufügen\", um eines zu erstellen.';
+
+  @override
+  String get parentAccount => 'Elternkonto';
+
+  @override
+  String get changePhoto => 'Foto ändern';
+
+  @override
+  String get deleteChildTitle => 'Kind löschen?';
+
+  @override
+  String deleteChildMessage(String childName) {
+    return '$childName und den gesamten verknüpften Aktivitätsverlauf löschen?';
+  }
+
+  @override
+  String childDeleted(String childName) {
+    return '$childName gelöscht';
+  }
+
+  @override
+  String failedToDeleteChild(String error) {
+    return 'Kind konnte nicht gelöscht werden: $error';
+  }
+
+  @override
+  String get avatarUpdated => 'Avatar aktualisiert';
+
+  @override
+  String failedGeneric(String error) {
+    return 'Fehlgeschlagen: $error';
+  }
+
+  @override
+  String get createChildAccount => 'Kindkonto erstellen';
+
+  @override
+  String get childSignInHint =>
+      'Ihr Kind meldet sich mit diesen Zugangsdaten auf seinem Gerät an.';
+
+  @override
+  String get displayNameHint => 'Anzeigename (z. B. Alex)';
+
+  @override
+  String get create => 'Erstellen';
+
+  @override
+  String get editChildProfile => 'Kindprofil bearbeiten';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get deleteChild => 'Kind löschen';
+
+  @override
+  String get track => 'Verfolgen';
+
+  @override
+  String get edit => 'Bearbeiten';
+
+  @override
+  String get settings => 'Einstellungen';
+
+  @override
+  String get parent => 'ELTERNTEIL';
+
+  @override
+  String get child => 'KIND';
+
+  @override
+  String get editProfileDetails => 'Profildetails bearbeiten';
+
+  @override
+  String get account => 'Konto';
+
+  @override
+  String get manageChildrenMenu => 'Kinder verwalten';
+
+  @override
+  String get editProfile => 'Profil bearbeiten';
+
+  @override
+  String get notifications => 'Benachrichtigungen';
+
+  @override
+  String get pushNotifications => 'Push-Benachrichtigungen';
+
+  @override
+  String get locationAlerts => 'Standortbenachrichtigungen';
+
+  @override
+  String get batteryAlerts => 'Akkubenachrichtigungen';
+
+  @override
+  String get safeZoneAlerts => 'Sicherzonenbenachrichtigungen';
+
+  @override
+  String get notificationPermissionRequired =>
+      'Benachrichtigungsberechtigung ist erforderlich, um Benachrichtigungen zu senden';
+
+  @override
+  String get general => 'Allgemein';
+
+  @override
+  String get language => 'Sprache';
+
+  @override
+  String get systemDefault => 'Systemstandard';
+
+  @override
+  String get helpAndSupport => 'Hilfe & Support';
+
+  @override
+  String get about => 'Über';
+
+  @override
+  String get privacyPolicy => 'Datenschutzrichtlinie';
+
+  @override
+  String get signOut => 'Abmelden';
+
+  @override
+  String get appVersion => 'Kid Security v1.0.0';
+
+  @override
+  String get editProfileTitle => 'Profil bearbeiten';
+
+  @override
+  String get updateProfileHint =>
+      'Aktualisieren Sie Ihren Anzeigenamen und Benutzernamen.';
+
+  @override
+  String get saveChanges => 'Änderungen speichern';
+
+  @override
+  String get usernameCannotBeEmpty => 'Benutzername darf nicht leer sein';
+
+  @override
+  String get profileUpdated => 'Profil aktualisiert';
+
+  @override
+  String failedToUploadAvatar(String error) {
+    return 'Avatar-Upload fehlgeschlagen: $error';
+  }
+
+  @override
+  String get parentProfile => 'Elternprofil';
+
+  @override
+  String get addChildForStats =>
+      'Fügen Sie zuerst ein Kindkonto hinzu, um Live-Statistiken zu sehen.';
+
+  @override
+  String get insights => 'EINBLICKE';
+
+  @override
+  String childStats(String childName) {
+    return 'Statistiken von $childName';
+  }
+
+  @override
+  String get deviceStatus => 'Gerätestatus';
+
+  @override
+  String batteryPercent(int battery) {
+    return '$battery% Akku';
+  }
+
+  @override
+  String get batteryUnknown => 'Akku unbekannt';
+
+  @override
+  String synced(String time) {
+    return 'Synchronisiert $time';
+  }
+
+  @override
+  String get noDeviceSyncYet => 'Noch keine Gerätesynchronisierung';
+
+  @override
+  String get usageAccessGranted => 'Nutzungszugriff gewährt';
+
+  @override
+  String get usageAccessNeeded => 'Nutzungszugriff erforderlich';
+
+  @override
+  String get iosUsageAccessNote =>
+      'Dieses Kindergerät ist ein iPhone. iOS bietet keinen Android-Nutzungszugriff, daher kann diese App diesen Berechtigungsbildschirm nicht öffnen. Echte iPhone-Bildschirmzeit und App-Sperren benötigen Apple Screen Time-Berechtigungen und eine separate native Integration.';
+
+  @override
+  String get androidUsageAccessNote =>
+      'Öffnen Sie die Kinder-App auf dem Telefon und erlauben Sie den Nutzungszugriff. Danach werden Bildschirmzeit, App-Limits und der Kalender automatisch synchronisiert.';
+
+  @override
+  String get dailyUsage => 'Tägliche Nutzung';
+
+  @override
+  String usageOfLimit(String total, String limit) {
+    return '$total von $limit genutzt';
+  }
+
+  @override
+  String usageOnDate(String total, String date) {
+    return '$total am $date genutzt';
+  }
+
+  @override
+  String get allLimitsInRange => 'Alle aktivierten Limits sind im Bereich';
+
+  @override
+  String appLimitExceeded(int count) {
+    return '$count App-Limit heute überschritten';
+  }
+
+  @override
+  String get setAppLimitsHint =>
+      'Legen Sie unten App-Limits fest, um daraus ein echtes Ziel zu machen.';
+
+  @override
+  String get weeklyUsage => 'Wöchentliche Nutzung';
+
+  @override
+  String get usageCalendar => 'Nutzungskalender';
+
+  @override
+  String get noAppUsageData => 'Noch keine App-Nutzungsdaten für diesen Tag.';
+
+  @override
+  String get grantUsageAccessHint =>
+      'Gewähren Sie Nutzungszugriff auf dem Kindertelefon, um echte App-Daten zu sehen und Limits zu verwalten.';
+
+  @override
+  String get iosAppLimitsUnavailable =>
+      'Dieses Kindertelefon ist ein iPhone. Die aktuelle App-Version hat noch keine Apple Screen Time-Integration, daher sind echte App-Nutzung und direkte App-Limits auf iOS nicht verfügbar.';
+
+  @override
+  String get enableDailyLimit => 'Tageslimit aktivieren';
+
+  @override
+  String get dailyLimit => 'Tageslimit';
+
+  @override
+  String get saveLimit => 'Limit speichern';
+
+  @override
+  String get manageAppLimits => 'App-Limits verwalten';
+
+  @override
+  String appUsedOnDate(String appName, String date) {
+    return '$appName am $date genutzt';
+  }
+
+  @override
+  String limitMinutes(String time) {
+    return 'Limit $time';
+  }
+
+  @override
+  String get noLimit => 'Kein Limit';
+
+  @override
+  String usageTodayOverLimit(String time) {
+    return '$time heute · Limit überschritten';
+  }
+
+  @override
+  String usageToday(String time) {
+    return '$time heute';
+  }
+
+  @override
+  String limitSavedFor(String appName) {
+    return 'Limit für $appName gespeichert';
+  }
+
+  @override
+  String limitDisabledFor(String appName) {
+    return 'Limit für $appName deaktiviert';
+  }
+
+  @override
+  String couldNotSaveLimit(String error) {
+    return 'Limit konnte nicht gespeichert werden: $error';
+  }
+
+  @override
+  String get mon => 'MO';
+
+  @override
+  String get tue => 'DI';
+
+  @override
+  String get wed => 'MI';
+
+  @override
+  String get thu => 'DO';
+
+  @override
+  String get fri => 'FR';
+
+  @override
+  String get sat => 'SA';
+
+  @override
+  String get sun => 'SO';
+
+  @override
+  String get over => 'ÜBERSCHRITTEN';
+}

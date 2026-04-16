@@ -1,13 +1,17 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import '../activity/activity_screen.dart';
+import '../chat/chat_screen.dart';
 import '../parent/children_list_screen.dart';
+import '../settings/settings_screen.dart';
 import 'adaptive_map.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -18,9 +22,8 @@ class MapScreen extends ConsumerStatefulWidget {
 
 class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _poll;
-  String _childName = 'Child';
   String? _err;
-  List<Map<String, dynamic>> _children = [];
+  int? _selectedIdx;
 
   @override
   void initState() {
@@ -30,14 +33,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   Future<void> _init() async {
     try {
-      final list = (await ApiClient.instance.listChildren())
-          .cast<Map<String, dynamic>>();
-      if (!mounted) return;
-      setState(() => _children = list);
-      if (list.isNotEmpty && ref.read(selectedChildIdProvider) == null) {
-        ref.read(selectedChildIdProvider.notifier).state =
-            list.first['id'] as int;
-      }
+      await _fetchAll();
       _startPolling();
     } catch (e) {
       if (mounted) setState(() => _err = e.toString());
@@ -46,30 +42,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   void _startPolling() {
     _poll?.cancel();
-    _fetch();
-    _poll = Timer.periodic(const Duration(seconds: 5), (_) => _fetch());
+    _poll = Timer.periodic(const Duration(seconds: 5), (_) => _fetchAll());
   }
 
-  Future<void> _fetch() async {
-    final id = ref.read(selectedChildIdProvider);
-    if (id == null) return;
-    final child = _children.firstWhere(
-      (c) => c['id'] == id,
-      orElse: () => {'display_name': 'Child', 'username': 'child'},
-    );
-    final name = ((child['display_name'] as String?)?.isNotEmpty ?? false)
-        ? child['display_name'] as String
-        : child['username'] as String;
-    _childName = name;
+  Future<void> _fetchAll() async {
     try {
-      final loc = await ApiClient.instance.childLatest(id);
+      final data = await ApiClient.instance.allChildrenLocations();
       if (!mounted) return;
-      if (loc != null) {
-        ref.read(childLocationProvider.notifier).setFromApi(loc, name: name);
-        setState(() => _err = null);
-      } else {
-        setState(() => _err = 'Child has not shared location yet');
-      }
+      ref.read(allChildrenLocationsProvider.notifier).setFromApi(data);
+      setState(() => _err = null);
     } catch (e) {
       if (mounted) setState(() => _err = e.toString());
     }
@@ -83,16 +64,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(selectedChildIdProvider, (_, __) => _fetch());
-    final loc = ref.watch(childLocationProvider);
-    final hasData = loc != null;
+    final t = S.of(context);
+    final session = ref.watch(sessionProvider);
+    final children = ref.watch(allChildrenLocationsProvider);
+    final hasChildren = children.isNotEmpty;
+    final selected = _selectedIdx != null && _selectedIdx! < children.length
+        ? children[_selectedIdx!]
+        : null;
+
+    final mapChild = selected ?? (hasChildren ? children.first : null);
+
     return SafeArea(
       child: Column(
         children: [
           BrandHeader(
-            leading: const AvatarCircle(
-                initials: 'P', color: AppColors.primary, size: 36),
+            leading: AvatarCircle(
+              initials: (session.user?.displayName.isNotEmpty ?? false)
+                  ? session.user!.displayName[0].toUpperCase()
+                  : 'P',
+              color: AppColors.primary,
+              size: 36,
+              image: session.user?.avatarUrl != null
+                  ? NetworkImage(session.user!.avatarUrl!)
+                  : null,
+            ),
             trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.people_alt_outlined,
@@ -100,14 +97,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   onPressed: () async {
                     await Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const ChildrenListScreen()));
-                    _init();
+                    _fetchAll();
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.logout_rounded,
-                      color: AppColors.textPrimaryLight),
-                  onPressed: () =>
-                      ref.read(sessionProvider.notifier).logout(),
+                GearButton(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
                 ),
               ],
             ),
@@ -115,99 +111,250 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           Expanded(
             child: Stack(
               children: [
+                // Map
                 Positioned.fill(
-                  child: hasData
+                  child: hasChildren && mapChild != null
                       ? AdaptiveMap(
-                          latitude: loc.lat,
-                          longitude: loc.lng,
-                          label: loc.name.isNotEmpty ? loc.name[0] : '?',
+                          latitude: mapChild.lat,
+                          longitude: mapChild.lng,
+                          children: children,
+                          selectedIndex: _selectedIdx,
+                          onChildTapped: (idx) {
+                            setState(() => _selectedIdx = idx);
+                          },
                         )
-                      : Container(
-                          color: AppColors.chipGrey,
-                          alignment: Alignment.center,
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.location_searching,
-                                    size: 48,
-                                    color: AppColors.textSecondaryLight),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _children.isEmpty
-                                      ? 'Add a child to start tracking'
-                                      : 'Waiting for child to share location…',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                      fontSize: 15,
-                                      color:
-                                          AppColors.textSecondaryLight),
-                                ),
-                                if (_err != null) ...[
-                                  const SizedBox(height: 8),
-                                  Text(_err!,
-                                      style: const TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.danger)),
-                                ],
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  onPressed: () async {
-                                    await Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              const ChildrenListScreen()),
-                                    );
-                                    _init();
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  icon: const Icon(Icons.people),
-                                  label: const Text('Manage children'),
-                                ),
-                              ],
-                            ),
-                          ),
+                      : _EmptyMapPlaceholder(
+                          hasChildren: hasChildren,
+                          error: _err,
+                          onManage: () async {
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                  builder: (_) => const ChildrenListScreen()),
+                            );
+                            _fetchAll();
+                          },
                         ),
                 ),
-                if (hasData)
+                // Action buttons (LOUD / AROUND)
+                if (hasChildren)
                   Positioned(
                     right: 16,
                     top: 20,
                     child: Column(
                       children: [
                         _MapActionButton(
-                          icon: Icons.refresh,
-                          label: 'SYNC',
+                          icon: Icons.volume_up_rounded,
+                          label: t.loud,
                           color: AppColors.primary,
-                          onTap: _fetch,
+                          onTap: () {
+                            // TODO: implement loud signal
+                          },
                         ),
                         const SizedBox(height: 12),
                         _MapActionButton(
-                          icon: Icons.track_changes_rounded,
-                          label: 'AROUND',
+                          icon: Icons.radar_rounded,
+                          label: t.around,
                           color: AppColors.success,
-                          onTap: () => ScaffoldMessenger.of(context)
-                              .showSnackBar(const SnackBar(
-                                  content: Text('Scanning nearby'))),
+                          onTap: () => setState(() => _selectedIdx = null),
                         ),
                       ],
                     ),
                   ),
-                if (hasData)
+                // Bottom child info card
+                if (hasChildren)
                   Positioned(
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    child: _ChildInfoCard(loc: loc, name: _childName),
+                    child: selected != null
+                        ? _ChildInfoCard(
+                            loc: selected,
+                            onClose: () => setState(() => _selectedIdx = null),
+                            onMessage: () => _openChat(context, selected),
+                            onHistory: () => _openActivity(context, selected),
+                          )
+                        : _ChildCarousel(
+                            children: children,
+                            onSelect: (idx) =>
+                                setState(() => _selectedIdx = idx),
+                          ),
                   ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openChat(BuildContext context, ChildLocation loc) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(initialSelectedChildId: loc.childId),
+      ),
+    );
+  }
+
+  void _openActivity(BuildContext context, ChildLocation loc) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ActivityScreen(initialSelectedChildId: loc.childId),
+      ),
+    );
+  }
+}
+
+class _EmptyMapPlaceholder extends StatelessWidget {
+  const _EmptyMapPlaceholder({
+    required this.hasChildren,
+    this.error,
+    required this.onManage,
+  });
+  final bool hasChildren;
+  final String? error;
+  final VoidCallback onManage;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      color: AppColors.chipGrey,
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.location_searching,
+                size: 48, color: AppColors.textSecondaryLight),
+            const SizedBox(height: 12),
+            Text(
+              hasChildren ? t.waitingForLocation : t.addChildToTrack,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 15, color: AppColors.textSecondaryLight),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 8),
+              Text(error!,
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.danger)),
+            ],
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onManage,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              icon: const Icon(Icons.people),
+              label: Text(t.manageChildren),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChildCarousel extends StatelessWidget {
+  const _ChildCarousel({required this.children, required this.onSelect});
+  final List<ChildLocation> children;
+  final ValueChanged<int> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      height: 120,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.white70, Colors.white],
+          stops: [0.0, 0.3, 1.0],
+        ),
+      ),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+        itemCount: children.length,
+        itemBuilder: (_, i) {
+          final c = children[i];
+          return GestureDetector(
+            onTap: () => onSelect(i),
+            child: Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      AvatarCircle(
+                        initials:
+                            c.name.isNotEmpty ? c.name[0].toUpperCase() : '?',
+                        size: 32,
+                        color: AppColors.primary,
+                        image: c.avatarUrl != null
+                            ? NetworkImage(c.avatarUrl!)
+                            : null,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          c.name,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w800),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Icon(
+                        c.active ? Icons.check_circle : Icons.error,
+                        size: 12,
+                        color: c.active ? AppColors.success : AppColors.danger,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        c.active ? t.active : t.inactive,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color:
+                              c.active ? AppColors.success : AppColors.danger,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.battery_full,
+                          size: 12, color: AppColors.success),
+                      const SizedBox(width: 2),
+                      Text('${c.battery}%',
+                          style: const TextStyle(
+                              fontSize: 11, fontWeight: FontWeight.w700)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -257,14 +404,22 @@ class _MapActionButton extends StatelessWidget {
 }
 
 class _ChildInfoCard extends StatelessWidget {
-  const _ChildInfoCard({required this.loc, required this.name});
+  const _ChildInfoCard({
+    required this.loc,
+    this.onClose,
+    this.onMessage,
+    this.onHistory,
+  });
   final ChildLocation loc;
-  final String name;
+  final VoidCallback? onClose;
+  final VoidCallback? onMessage;
+  final VoidCallback? onHistory;
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Container(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -277,17 +432,27 @@ class _ChildInfoCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Name + battery + close
           Row(
             children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimaryLight,
+              AvatarCircle(
+                initials: loc.name.isNotEmpty ? loc.name[0].toUpperCase() : '?',
+                size: 48,
+                color: AppColors.primary,
+                image:
+                    loc.avatarUrl != null ? NetworkImage(loc.avatarUrl!) : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  loc.name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimaryLight,
+                  ),
                 ),
               ),
-              const Spacer(),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -298,8 +463,11 @@ class _ChildInfoCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.battery_full,
-                        size: 14, color: AppColors.success),
+                    Icon(
+                      _batteryIcon(loc.battery),
+                      size: 14,
+                      color: _batteryColor(loc.battery),
+                    ),
                     const SizedBox(width: 4),
                     Text('${loc.battery}%',
                         style: const TextStyle(
@@ -309,9 +477,15 @@ class _ChildInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onClose != null)
+                IconButton(
+                  icon: const Icon(Icons.close, size: 20),
+                  onPressed: onClose,
+                ),
             ],
           ),
           const SizedBox(height: 8),
+          // Status row
           Row(
             children: [
               Icon(
@@ -321,7 +495,7 @@ class _ChildInfoCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                'Last updated: ${_ago(loc.updatedAt)}',
+                t.lastUpdated(_ago(context, loc.updatedAt)),
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textPrimaryLight,
@@ -330,7 +504,7 @@ class _ChildInfoCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                loc.active ? 'ACTIVE' : 'PAUSED',
+                loc.active ? t.statusActive : t.statusPaused,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
@@ -340,20 +514,20 @@ class _ChildInfoCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
+          // Current location
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on,
-                  color: AppColors.primary, size: 20),
+              const Icon(Icons.location_on, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'CURRENT LOCATION',
-                      style: TextStyle(
+                    Text(
+                      t.currentLocation,
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,
@@ -376,15 +550,71 @@ class _ChildInfoCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          // Action buttons: Message + History
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onMessage,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    t.messageChild(loc.name),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onHistory,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.textPrimaryLight,
+                    side: const BorderSide(color: AppColors.dividerLight),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    t.history,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  String _ago(DateTime t) {
+  IconData _batteryIcon(int level) {
+    if (level > 80) return Icons.battery_full;
+    if (level > 50) return Icons.battery_5_bar;
+    if (level > 20) return Icons.battery_3_bar;
+    return Icons.battery_1_bar;
+  }
+
+  Color _batteryColor(int level) {
+    if (level > 50) return AppColors.success;
+    if (level > 20) return AppColors.warning;
+    return AppColors.danger;
+  }
+
+  static String _ago(BuildContext context, DateTime t) {
+    final tr = S.of(context);
     final d = DateTime.now().difference(t);
-    if (d.inSeconds < 60) return 'Just now';
-    if (d.inMinutes < 60) return '${d.inMinutes}m ago';
-    return '${d.inHours}h ago';
+    if (d.inSeconds < 60) return tr.justNow;
+    if (d.inMinutes < 60) return tr.minutesAgo(d.inMinutes);
+    return tr.hoursAgo(d.inHours);
   }
 }

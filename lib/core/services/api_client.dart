@@ -1,23 +1,21 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'dart:io' show File, Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Base URL for the Django backend.
-/// - iOS simulator & macOS/desktop: localhost works.
-/// - Android emulator: 10.0.2.2 maps to host.
-/// Override with --dart-define=API_BASE=http://192.168.x.x:8000
 class ApiConfig {
   static const String _defineBase =
       String.fromEnvironment('API_BASE', defaultValue: '');
+  static const String _defaultBase = 'https://backend21.pythonanywhere.com';
 
   static String get baseUrl {
     if (_defineBase.isNotEmpty) return _defineBase;
-    if (kIsWeb) return 'http://localhost:8000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
-    return 'http://localhost:8000';
+    if (kIsWeb) return _defaultBase;
+    if (Platform.isAndroid) return _defaultBase;
+    return _defaultBase;
   }
 }
 
@@ -60,10 +58,23 @@ class ApiClient {
 
   Uri _u(String path) => Uri.parse('${ApiConfig.baseUrl}$path');
 
-  Future<Map<String, dynamic>> _post(String path, Map<String, dynamic> body) async {
-    final r = await http.post(_u(path),
-        headers: _headers(), body: jsonEncode(body));
-    return _decode(r);
+  Future<Map<String, dynamic>> _post(
+      String path, Map<String, dynamic> body) async {
+    final r =
+        await http.post(_u(path), headers: _headers(), body: jsonEncode(body));
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> _patch(
+      String path, Map<String, dynamic> body) async {
+    final r =
+        await http.patch(_u(path), headers: _headers(), body: jsonEncode(body));
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<void> _delete(String path) async {
+    final r = await http.delete(_u(path), headers: _headers(json: false));
+    _decode(r);
   }
 
   Future<dynamic> _get(String path) async {
@@ -115,6 +126,16 @@ class ApiClient {
     return (await _get('/api/auth/me/')) as Map<String, dynamic>;
   }
 
+  Future<Map<String, dynamic>> updateProfile({
+    String? username,
+    String? displayName,
+  }) async {
+    final body = <String, dynamic>{};
+    if (username != null) body['username'] = username;
+    if (displayName != null) body['display_name'] = displayName;
+    return await _patch('/api/auth/me/', body);
+  }
+
   Future<void> logout() async {
     await _saveToken(null);
   }
@@ -134,6 +155,51 @@ class ApiClient {
       'password': password,
       if (displayName != null) 'display_name': displayName,
     });
+  }
+
+  Future<Map<String, dynamic>> updateChild(int childId,
+      {String? displayName}) async {
+    final body = <String, dynamic>{};
+    if (displayName != null) body['display_name'] = displayName;
+    final r = await http.patch(
+      _u('/api/auth/children/$childId/'),
+      headers: _headers(),
+      body: jsonEncode(body),
+    );
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<void> deleteChild(int childId) async {
+    await _delete('/api/auth/children/$childId/');
+  }
+
+  Future<Map<String, dynamic>> uploadChildAvatar(
+      int childId, File imageFile) async {
+    final request = http.MultipartRequest(
+        'POST', _u('/api/auth/children/$childId/avatar/'));
+    if (_token != null) {
+      request.headers['Authorization'] = 'Token $_token';
+    }
+    request.files.add(
+      await http.MultipartFile.fromPath('avatar', imageFile.path),
+    );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    return _decode(response) as Map<String, dynamic>;
+  }
+
+  // === Avatar ===
+  Future<Map<String, dynamic>> uploadAvatar(File imageFile) async {
+    final request = http.MultipartRequest('POST', _u('/api/auth/avatar/'));
+    if (_token != null) {
+      request.headers['Authorization'] = 'Token $_token';
+    }
+    request.files.add(
+      await http.MultipartFile.fromPath('avatar', imageFile.path),
+    );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    return _decode(response) as Map<String, dynamic>;
   }
 
   // === Location ===
@@ -161,5 +227,126 @@ class ApiClient {
       if (e.statusCode == 404) return null;
       rethrow;
     }
+  }
+
+  Future<List<dynamic>> childHistory(int childId) async {
+    return (await _get('/api/children/$childId/history/')) as List<dynamic>;
+  }
+
+  /// Get latest location for ALL children in one call (parent only).
+  Future<List<dynamic>> allChildrenLocations() async {
+    return (await _get('/api/children/locations/')) as List<dynamic>;
+  }
+
+  // === Safe Zones ===
+  Future<List<dynamic>> listSafeZones() async {
+    return (await _get('/api/safe-zones/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createSafeZone({
+    required String name,
+    required double lat,
+    required double lng,
+    required double radius,
+    bool active = true,
+    String scheduleType = 'always',
+    List<int> activeDays = const [],
+  }) async {
+    return await _post('/api/safe-zones/', {
+      'name': name,
+      'lat': lat,
+      'lng': lng,
+      'radius': radius,
+      'active': active,
+      'schedule_type': scheduleType,
+      'active_days': activeDays,
+    });
+  }
+
+  Future<Map<String, dynamic>> updateSafeZone(
+    int id, {
+    String? name,
+    double? lat,
+    double? lng,
+    double? radius,
+    bool? active,
+    String? scheduleType,
+    List<int>? activeDays,
+  }) async {
+    final body = <String, dynamic>{
+      if (name != null) 'name': name,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+      if (radius != null) 'radius': radius,
+      if (active != null) 'active': active,
+      if (scheduleType != null) 'schedule_type': scheduleType,
+      if (activeDays != null) 'active_days': activeDays,
+    };
+    return await _patch('/api/safe-zones/$id/', body);
+  }
+
+  Future<void> deleteSafeZone(int id) async {
+    await _delete('/api/safe-zones/$id/');
+  }
+
+  // === Activity & Safety ===
+  Future<List<dynamic>> childActivity(int childId) async {
+    return (await _get('/api/children/$childId/activity/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> childSafetyScore(int childId) async {
+    return (await _get('/api/children/$childId/safety-score/'))
+        as Map<String, dynamic>;
+  }
+
+  // === Device Stats ===
+  Future<Map<String, dynamic>> syncDeviceStats(
+      Map<String, dynamic> payload) async {
+    return await _post('/api/device-stats/sync/', payload);
+  }
+
+  Future<Map<String, dynamic>> childStatsSummary(
+    int childId, {
+    DateTime? date,
+    DateTime? month,
+  }) async {
+    final params = <String, String>{};
+    if (date != null) {
+      params['date'] = date.toIso8601String().split('T').first;
+    }
+    if (month != null) {
+      final monthString =
+          '${month.year.toString().padLeft(4, '0')}-${month.month.toString().padLeft(2, '0')}';
+      params['month'] = monthString;
+    }
+    final uri = _u('/api/children/$childId/stats/').replace(
+      queryParameters: params.isEmpty ? null : params,
+    );
+    final r = await http.get(uri, headers: _headers(json: false));
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> setChildAppLimit({
+    required int childId,
+    required String packageName,
+    required String appName,
+    required int dailyLimitMinutes,
+    required bool enabled,
+  }) async {
+    return await _post('/api/children/$childId/app-limits/', {
+      'package_name': packageName,
+      'app_name': appName,
+      'daily_limit_minutes': dailyLimitMinutes,
+      'enabled': enabled,
+    });
+  }
+
+  // === Chat ===
+  Future<List<dynamic>> getMessages(int childId) async {
+    return (await _get('/api/chat/$childId/messages/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> sendMessage(int childId, String text) async {
+    return await _post('/api/chat/$childId/messages/', {'text': text});
   }
 }

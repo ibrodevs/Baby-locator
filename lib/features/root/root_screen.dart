@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../activity/activity_screen.dart';
@@ -42,11 +43,12 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final items = <(IconData, String)>[
-      (Icons.location_on_outlined, 'Map'),
-      (Icons.notifications_none_rounded, 'Activity'),
-      (Icons.chat_bubble_outline_rounded, 'Chat'),
-      (Icons.bar_chart_rounded, 'Stats'),
+      (Icons.location_on_outlined, t.navMap),
+      (Icons.notifications_none_rounded, t.navActivity),
+      (Icons.chat_bubble_outline_rounded, t.navChat),
+      (Icons.bar_chart_rounded, t.navStats),
     ];
     return Container(
       decoration: const BoxDecoration(

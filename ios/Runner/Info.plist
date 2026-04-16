@@ -57,6 +57,10 @@
 	<string>Kid Security uses your location to share with your family.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Kid Security uses your location in the background to keep your family informed.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Kid Security needs access to your photo library to set a profile picture.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Kid Security needs camera access to take a profile picture.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>UISupportedInterfaceOrientations</key>

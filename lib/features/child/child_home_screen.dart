@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
@@ -19,15 +22,55 @@ class ChildHomeScreen extends ConsumerStatefulWidget {
 
 class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   final _svc = LocationService();
+  final _battery = Battery();
+  final _deviceStats = const DeviceStatsService();
   StreamSubscription<LocationFix>? _sub;
+  StreamSubscription<BatteryState>? _batterySub;
   LocationPermissionStatus? _status;
   bool _starting = false;
+  bool _syncingStats = false;
   String? _apiError;
+  int _batteryLevel = 100;
+  BatteryState _batteryState = BatteryState.unknown;
+  bool? _usageAccessGranted;
+  Timer? _statsTimer;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _readBattery();
+      _start();
+      _syncDeviceStats();
+      _statsTimer = Timer.periodic(
+        const Duration(minutes: 5),
+        (_) => _syncDeviceStats(),
+      );
+    });
+  }
+
+  Future<void> _readBattery() async {
+    try {
+      final level = await _battery.batteryLevel;
+      final state = await _battery.batteryState;
+      if (mounted) {
+        setState(() {
+          _batteryLevel = level;
+          _batteryState = state;
+        });
+      }
+    } catch (_) {}
+    _batterySub = _battery.onBatteryStateChanged.listen((state) async {
+      try {
+        final level = await _battery.batteryLevel;
+        if (mounted) {
+          setState(() {
+            _batteryLevel = level;
+            _batteryState = state;
+          });
+        }
+      } catch (_) {}
+    });
   }
 
   Future<void> _start() async {
@@ -59,6 +102,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
           lat: fix.lat,
           lng: fix.lng,
           address: fix.address,
+          battery: _batteryLevel,
           active: true,
           name: ref.read(sessionProvider).user?.displayName ?? 'Me',
         );
@@ -70,6 +114,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         lat: fix.lat,
         lng: fix.lng,
         address: fix.address,
+        battery: _batteryLevel,
+        active: true,
       );
       if (_apiError != null && mounted) setState(() => _apiError = null);
     } catch (e) {
@@ -77,15 +123,38 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     }
   }
 
+  Future<void> _syncDeviceStats() async {
+    if (_syncingStats) return;
+    _syncingStats = true;
+    try {
+      final payload = await _deviceStats.readPayload(
+        battery: _batteryLevel,
+        charging: _batteryState == BatteryState.charging ||
+            _batteryState == BatteryState.full,
+      );
+      if (mounted) {
+        setState(() => _usageAccessGranted = payload.usageAccessGranted);
+      }
+      await ApiClient.instance.syncDeviceStats(payload.toJson());
+    } catch (e) {
+      if (mounted) setState(() => _apiError = e.toString());
+    } finally {
+      _syncingStats = false;
+    }
+  }
+
   @override
   void dispose() {
     _sub?.cancel();
+    _batterySub?.cancel();
+    _statsTimer?.cancel();
     _svc.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final loc = ref.watch(childLocationProvider);
     final user = ref.watch(sessionProvider).user;
     return Scaffold(
@@ -98,26 +167,50 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
               child: Row(
                 children: [
                   AvatarCircle(
-                      initials: (user?.displayName.isNotEmpty ?? false)
-                          ? user!.displayName[0].toUpperCase()
-                          : 'C',
-                      color: AppColors.primary,
-                      size: 40),
+                    initials: (user?.displayName.isNotEmpty ?? false)
+                        ? user!.displayName[0].toUpperCase()
+                        : 'C',
+                    color: AppColors.primary,
+                    size: 40,
+                    image: user?.avatarUrl != null
+                        ? NetworkImage(user!.avatarUrl!)
+                        : null,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Hello, ${user?.displayName ?? user?.username ?? 'friend'}!',
+                        Text(
+                            t.helloUser(user?.displayName ??
+                                user?.username ??
+                                'friend'),
                             style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimaryLight)),
-                        const Text('Kid mode',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textSecondaryLight,
-                                fontWeight: FontWeight.w600)),
+                        Row(
+                          children: [
+                            Text(t.kidMode,
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textSecondaryLight,
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(width: 8),
+                            Icon(
+                              _batteryIcon(_batteryLevel),
+                              size: 14,
+                              color: _batteryColor(_batteryLevel),
+                            ),
+                            const SizedBox(width: 2),
+                            Text('$_batteryLevel%',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: _batteryColor(_batteryLevel),
+                                )),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -139,8 +232,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                     _PermissionBanner(
                       status: _status!,
                       onRetry: _start,
-                      onOpenSettings: () async =>
-                          Geolocator.openAppSettings(),
+                      onOpenSettings: () async => Geolocator.openAppSettings(),
                       onOpenLocation: () async =>
                           Geolocator.openLocationSettings(),
                     ),
@@ -148,11 +240,24 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Text(
-                        'Sync error: $_apiError',
+                        t.syncError(_apiError!),
                         style: const TextStyle(
                             color: AppColors.danger, fontSize: 12),
                       ),
                     ),
+                  if (_usageAccessGranted == false &&
+                      _deviceStats.supportsUsageAccess)
+                    _UsageAccessBanner(
+                      onOpenSettings: () async {
+                        await _deviceStats.openUsageAccessSettings();
+                        if (!mounted) return;
+                        await Future<void>.delayed(const Duration(seconds: 1));
+                        await _syncDeviceStats();
+                      },
+                    ),
+                  if (_usageAccessGranted == false &&
+                      !_deviceStats.supportsUsageAccess)
+                    const _UsageAccessUnsupportedBanner(),
                   AppCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -166,7 +271,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                             child: AdaptiveMap(
                               latitude: loc?.lat ?? 0,
                               longitude: loc?.lng ?? 0,
-                              label: 'You',
+                              children: loc != null ? [loc] : [],
                             ),
                           ),
                         ),
@@ -175,29 +280,27 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('My Location',
-                                  style: TextStyle(
+                              Text(t.myLocation,
+                                  style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w800,
-                                      color:
-                                          AppColors.textPrimaryLight)),
+                                      color: AppColors.textPrimaryLight)),
                               const SizedBox(height: 6),
-                              Text(loc?.address ?? 'Waiting for GPS…',
+                              Text(loc?.address ?? t.waitingForGps,
                                   style: const TextStyle(
                                       fontSize: 14,
-                                      color:
-                                          AppColors.textSecondaryLight)),
+                                      color: AppColors.textSecondaryLight)),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
                                   const Icon(Icons.check_circle,
-                                      size: 16,
-                                      color: AppColors.success),
+                                      size: 16, color: AppColors.success),
                                   const SizedBox(width: 6),
                                   Text(
                                     loc != null
-                                        ? 'Shared with parent · ${_ago(loc.updatedAt)}'
-                                        : 'Not shared yet',
+                                        ? t.sharedWithParent(
+                                            _ago(loc.updatedAt))
+                                        : t.notSharedYet,
                                     style: const TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w700,
@@ -217,13 +320,22 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                       Expanded(
                         child: _BigActionTile(
                           icon: Icons.notifications_active,
-                          label: "I'm Safe",
+                          label: t.imSafe,
                           color: AppColors.success,
-                          onTap: () {
+                          onTap: () async {
+                            // Send "I'm safe" message to parent
+                            final user = ref.read(sessionProvider).user;
+                            if (user != null) {
+                              try {
+                                await ApiClient.instance.sendMessage(
+                                  user.id,
+                                  '${t.imSafe}! \u2705',
+                                );
+                              } catch (_) {}
+                            }
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Sent "I\'m safe" to your parent')),
+                              SnackBar(content: Text(S.of(context).sentImSafe)),
                             );
                           },
                         ),
@@ -232,13 +344,26 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                       Expanded(
                         child: _BigActionTile(
                           icon: Icons.emergency,
-                          label: 'SOS',
+                          label: t.sos,
                           color: AppColors.danger,
-                          onTap: () {
+                          onTap: () async {
+                            final user = ref.read(sessionProvider).user;
+                            if (user != null) {
+                              final loc = ref.read(childLocationProvider);
+                              final locationText = loc != null
+                                  ? S.of(context).sosLocation(loc.address)
+                                  : '';
+                              try {
+                                await ApiClient.instance.sendMessage(
+                                  user.id,
+                                  '${S.of(context).sosMessage}$locationText',
+                                );
+                              } catch (_) {}
+                            }
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'SOS sent — parent will be notified'),
+                              SnackBar(
+                                content: Text(S.of(context).sosSent),
                                 backgroundColor: AppColors.danger,
                               ),
                             );
@@ -256,11 +381,137 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     );
   }
 
+  IconData _batteryIcon(int level) {
+    if (level > 80) return Icons.battery_full;
+    if (level > 50) return Icons.battery_5_bar;
+    if (level > 20) return Icons.battery_3_bar;
+    return Icons.battery_1_bar;
+  }
+
+  Color _batteryColor(int level) {
+    if (level > 50) return AppColors.success;
+    if (level > 20) return AppColors.warning;
+    return AppColors.danger;
+  }
+
   String _ago(DateTime t) {
     final d = DateTime.now().difference(t);
-    if (d.inSeconds < 60) return 'just now';
-    if (d.inMinutes < 60) return '${d.inMinutes}m ago';
-    return '${d.inHours}h ago';
+    if (d.inSeconds < 60) return S.of(context).justNow;
+    if (d.inMinutes < 60) return S.of(context).minutesAgo(d.inMinutes);
+    return S.of(context).hoursAgo(d.inHours);
+  }
+}
+
+class _UsageAccessBanner extends StatelessWidget {
+  const _UsageAccessBanner({required this.onOpenSettings});
+
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.hourglass_top_rounded,
+                  color: AppColors.warning, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.allowUsageAccess,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.usageAccessDescription,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onOpenSettings,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                t.openUsageAccess,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UsageAccessUnsupportedBanner extends StatelessWidget {
+  const _UsageAccessUnsupportedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline,
+                  color: AppColors.warning, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.iphoneLimitation,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.iphoneUsageDescription,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -315,27 +566,28 @@ class _PermissionBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     late final String title;
     late final String body;
     late final String button;
     late final VoidCallback action;
     switch (status) {
       case LocationPermissionStatus.serviceOff:
-        title = 'Turn on Location Services';
-        body = 'Location is off. Enable it to share with parent.';
-        button = 'Open Location Settings';
+        title = t.turnOnLocation;
+        body = t.locationIsOff;
+        button = t.openLocationSettings;
         action = onOpenLocation;
         break;
       case LocationPermissionStatus.deniedForever:
-        title = 'Location permission blocked';
-        body = 'Enable location access in system settings.';
-        button = 'Open App Settings';
+        title = t.locationBlocked;
+        body = t.enableLocationAccess;
+        button = t.openAppSettings;
         action = onOpenSettings;
         break;
       case LocationPermissionStatus.denied:
-        title = 'Allow location to share';
-        body = 'Grant permission so your parent can see where you are.';
-        button = 'Allow Location';
+        title = t.allowLocationToShare;
+        body = t.grantLocationPermission;
+        button = t.allowLocation;
         action = onRetry;
         break;
       case LocationPermissionStatus.granted:
@@ -352,8 +604,7 @@ class _PermissionBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(children: [
-            const Icon(Icons.location_off,
-                color: AppColors.danger, size: 20),
+            const Icon(Icons.location_off, color: AppColors.danger, size: 20),
             const SizedBox(width: 8),
             Expanded(
               child: Text(title,

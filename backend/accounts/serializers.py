@@ -6,9 +6,19 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["id", "username", "role", "display_name", "parent"]
+        fields = ["id", "username", "role", "display_name", "parent", "avatar_url"]
+
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            request = self.context.get("request")
+            if request:
+                return request.build_absolute_uri(obj.avatar.url)
+            return obj.avatar.url
+        return None
 
 
 class RegisterParentSerializer(serializers.Serializer):
@@ -52,6 +62,25 @@ class CreateChildSerializer(serializers.Serializer):
         if User.objects.filter(username=v).exists():
             raise serializers.ValidationError("already taken")
         return v
+
+
+class UpdateChildSerializer(serializers.Serializer):
+    display_name = serializers.CharField(required=False, allow_blank=True)
+
+
+class UpdateProfileSerializer(serializers.Serializer):
+    username = serializers.CharField(required=False)
+    display_name = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_username(self, value):
+        user = self.context["request"].user
+        if (
+            User.objects.exclude(id=user.id)
+            .filter(username=value)
+            .exists()
+        ):
+            raise serializers.ValidationError("already taken")
+        return value
 
 
 class AuthResponseSerializer(serializers.Serializer):

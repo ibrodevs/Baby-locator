@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
@@ -9,6 +10,7 @@ class RoleSelectScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = S.of(context);
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -31,10 +33,10 @@ class RoleSelectScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Kid Security',
+              Text(
+                t.appName,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.navy,
                   fontSize: 30,
                   fontWeight: FontWeight.w900,
@@ -42,17 +44,17 @@ class RoleSelectScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Sign in or create a parent account',
+              Text(
+                t.signInOrCreate,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textSecondaryLight,
                   fontSize: 15,
                 ),
               ),
               const Spacer(),
               _ActionBtn(
-                label: 'Sign in',
+                label: t.signIn,
                 color: AppColors.primary,
                 textColor: Colors.white,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
@@ -60,17 +62,18 @@ class RoleSelectScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               _ActionBtn(
-                label: 'Create parent account',
+                label: t.createParentAccount,
                 color: Colors.white,
                 textColor: AppColors.primary,
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                     builder: (_) => const _AuthForm(isRegister: true))),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Children sign in with credentials created by their parent.',
+              Text(
+                t.childrenSignInHint,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: AppColors.textMuted),
+                style:
+                    const TextStyle(fontSize: 12, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -112,9 +115,7 @@ class _ActionBtn extends StatelessWidget {
               : null,
           child: Text(label,
               style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800)),
+                  color: textColor, fontSize: 16, fontWeight: FontWeight.w800)),
         ),
       ),
     );
@@ -163,10 +164,11 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text(widget.isRegister ? 'Create account' : 'Sign in'),
+        title: Text(widget.isRegister ? t.createAccount : t.signIn),
       ),
       body: SafeArea(
         child: Padding(
@@ -175,12 +177,11 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (widget.isRegister)
-                _Field(controller: _name, label: 'Display name'),
+                _Field(controller: _name, label: t.displayName),
               if (widget.isRegister) const SizedBox(height: 12),
-              _Field(controller: _username, label: 'Username'),
+              _Field(controller: _username, label: t.username),
               const SizedBox(height: 12),
-              _Field(
-                  controller: _password, label: 'Password', obscure: true),
+              _Field(controller: _password, label: t.password, obscure: true),
               const SizedBox(height: 20),
               if (_err != null)
                 Padding(
@@ -205,8 +206,7 @@ class _AuthFormState extends ConsumerState<_AuthForm> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : Text(
-                        widget.isRegister ? 'Create account' : 'Sign in',
+                    : Text(widget.isRegister ? t.createAccount : t.signIn,
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w800)),
               ),
