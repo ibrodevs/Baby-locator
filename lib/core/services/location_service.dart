@@ -57,8 +57,7 @@ class LocationService {
     String address = '${p.latitude.toStringAsFixed(4)}, '
         '${p.longitude.toStringAsFixed(4)}';
     try {
-      final places =
-          await placemarkFromCoordinates(p.latitude, p.longitude);
+      final places = await placemarkFromCoordinates(p.latitude, p.longitude);
       if (places.isNotEmpty) {
         final pl = places.first;
         final parts = [

@@ -79,8 +79,8 @@ class DeviceNotificationService {
   static const _androidChannelName = 'Kid Security Alerts';
   static const _androidChannelDescription =
       'Notifications about children activity, battery, and safe zones.';
-  static const _seenEventsKey = 'notification_seen_activity_signatures';
-  static const _maxStoredSignatures = 250;
+  static const _shownAlertsKey = 'notification_shown_alert_ids';
+  static const _maxStoredIds = 200;
 
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -88,7 +88,6 @@ class DeviceNotificationService {
   NotificationSettingsModel _settings = NotificationSettingsModel.defaults;
   Timer? _pollingTimer;
   bool _initialized = false;
-  bool _baselineReady = false;
   bool _pollInFlight = false;
   int? _activeParentId;
 
@@ -165,13 +164,14 @@ class DeviceNotificationService {
     _activeParentId = parentId;
 
     if (parentChanged || _pollingTimer == null) {
-      _baselineReady = false;
-      await _poll(showNotifications: false);
       _cancelTimer();
+      // Poll every 30 seconds for near-real-time alerts.
       _pollingTimer = Timer.periodic(
-        const Duration(minutes: 1),
-        (_) => _poll(showNotifications: true),
+        const Duration(seconds: 30),
+        (_) => _poll(),
       );
+      // Run immediately on start.
+      unawaited(_poll());
     }
   }
 
@@ -180,7 +180,7 @@ class DeviceNotificationService {
     await initialize();
     _settings = await NotificationSettingsStore.load();
     if (!_settings.pushEnabled) return;
-    await _poll(showNotifications: _baselineReady);
+    await _poll();
   }
 
   void stop() {
@@ -193,130 +193,72 @@ class DeviceNotificationService {
     _pollingTimer = null;
   }
 
-  Future<void> _poll({required bool showNotifications}) async {
+  Future<void> _poll() async {
     if (_pollInFlight || _activeParentId == null) return;
     _pollInFlight = true;
     try {
-      final children = (await ApiClient.instance.listChildren())
+      final alerts = (await ApiClient.instance.getAlerts())
           .cast<Map<String, dynamic>>();
-      final seenSignatures = await _loadSeenSignatures();
-      final freshSignatures = <String>{};
-      final notifications = <_PendingNotification>[];
+      if (alerts.isEmpty) return;
 
-      for (final child in children) {
-        final childId = child['id'] as int;
-        final childName =
-            ((child['display_name'] as String?)?.isNotEmpty ?? false)
-                ? child['display_name'] as String
-                : child['username'] as String;
+      final shownIds = await _loadShownIds();
+      final markReadIds = <int>[];
 
+      for (final alert in alerts) {
+        final id = alert['id'] as int;
+        final alertType = alert['alert_type'] as String? ?? '';
+        final childName = alert['child_name'] as String? ?? '';
+        final title = alert['title'] as String? ?? '';
+        final message = alert['message'] as String? ?? '';
+
+        // Always mark server alerts as read so they don't pile up.
+        markReadIds.add(id);
+
+        // Skip if already shown locally.
+        if (shownIds.contains(id.toString())) continue;
+
+        // Check user settings.
+        if (!_shouldShow(alertType)) continue;
+
+        await _showNotification(
+          id: id,
+          title: title,
+          body: message.isNotEmpty ? message : childName,
+        );
+      }
+
+      // Persist shown IDs.
+      final allShown = {...shownIds, ...markReadIds.map((id) => id.toString())};
+      await _saveShownIds(allShown);
+
+      // Mark read on server.
+      for (final id in markReadIds) {
         try {
-          final events = (await ApiClient.instance.childActivity(childId))
-              .cast<Map<String, dynamic>>();
-          for (final event in events) {
-            final signature = _signatureFor(childId, event);
-            freshSignatures.add(signature);
-
-            if (!showNotifications || seenSignatures.contains(signature)) {
-              continue;
-            }
-            if (!_shouldNotify(event)) {
-              continue;
-            }
-
-            notifications.add(
-              _PendingNotification(
-                childName: childName,
-                title: event['title'] as String? ?? 'Activity update',
-                subtitle: event['subtitle'] as String? ?? '',
-                zoneName: event['zone_name'] as String?,
-                signature: signature,
-                timestamp: DateTime.tryParse(event['time'] as String? ?? ''),
-              ),
-            );
-          }
-        } catch (_) {
-          // Skip one child if their activity request fails.
-        }
+          await ApiClient.instance.markAlertRead(id);
+        } catch (_) {}
       }
-
-      await _saveSeenSignatures(freshSignatures.toList()..sort());
-      notifications.sort((a, b) {
-        final aTime = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bTime = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
-        return aTime.compareTo(bTime);
-      });
-
-      for (final notification in notifications.take(5)) {
-        await _showNotification(notification);
-      }
-
-      _baselineReady = true;
+    } catch (_) {
+      // Network error – will retry on next poll.
     } finally {
       _pollInFlight = false;
     }
   }
 
-  bool _shouldNotify(Map<String, dynamic> event) {
-    final type = (event['type'] as String?) ?? '';
-    final hasZone = ((event['zone_name'] as String?)?.isNotEmpty ?? false);
-
-    if (_settings.safeZoneAlerts &&
-        hasZone &&
-        (type == 'arrived' || type == 'left')) {
-      return true;
-    }
-
-    if (_settings.batteryAlerts &&
-        (type == 'battery_low' || type == 'battery')) {
-      return true;
-    }
-
-    if (_settings.locationAlerts &&
-        (type == 'moved' ||
-            type == 'current' ||
-            (!hasZone && type == 'arrived') ||
-            (!hasZone && type == 'left'))) {
-      return true;
-    }
-
-    return false;
+  bool _shouldShow(String alertType) {
+    if (alertType == 'battery_low') return _settings.batteryAlerts;
+    if (alertType == 'safe_zone_exit') return _settings.safeZoneAlerts;
+    return _settings.locationAlerts;
   }
 
-  String _signatureFor(int childId, Map<String, dynamic> event) {
-    return [
-      childId,
-      event['type'] ?? '',
-      event['title'] ?? '',
-      event['time'] ?? '',
-      event['zone_name'] ?? '',
-    ].join('|');
-  }
-
-  Future<Set<String>> _loadSeenSignatures() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_seenEventsKey) ?? const []).toSet();
-  }
-
-  Future<void> _saveSeenSignatures(List<String> signatures) async {
-    final prefs = await SharedPreferences.getInstance();
-    final trimmed = signatures.length > _maxStoredSignatures
-        ? signatures.sublist(signatures.length - _maxStoredSignatures)
-        : signatures;
-    await prefs.setStringList(_seenEventsKey, trimmed);
-  }
-
-  Future<void> _showNotification(_PendingNotification notification) async {
-    final bodyParts = <String>[
-      if ((notification.zoneName?.isNotEmpty ?? false))
-        'Zone: ${notification.zoneName}',
-      if (notification.subtitle.isNotEmpty) notification.subtitle,
-    ];
-
+  Future<void> _showNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
     await _plugin.show(
-      notification.signature.hashCode & 0x7fffffff,
-      '${notification.childName}: ${notification.title}',
-      bodyParts.join(' · '),
+      id & 0x7fffffff,
+      title,
+      body,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannelId,
@@ -333,22 +275,17 @@ class DeviceNotificationService {
       ),
     );
   }
-}
 
-class _PendingNotification {
-  const _PendingNotification({
-    required this.childName,
-    required this.title,
-    required this.subtitle,
-    required this.zoneName,
-    required this.signature,
-    required this.timestamp,
-  });
+  Future<Set<String>> _loadShownIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    return (prefs.getStringList(_shownAlertsKey) ?? const []).toSet();
+  }
 
-  final String childName;
-  final String title;
-  final String subtitle;
-  final String? zoneName;
-  final String signature;
-  final DateTime? timestamp;
+  Future<void> _saveShownIds(Set<String> ids) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = ids.toList()..sort();
+    final trimmed =
+        list.length > _maxStoredIds ? list.sublist(list.length - _maxStoredIds) : list;
+    await prefs.setStringList(_shownAlertsKey, trimmed);
+  }
 }

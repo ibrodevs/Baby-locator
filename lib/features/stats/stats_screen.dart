@@ -44,9 +44,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       if (!mounted) return;
       setState(() => _children = list);
       if (list.isNotEmpty) {
-        _selectedChildId = list.first['id'] as int;
+        final selectedChildId = _resolveInitialChildId(list);
+        ref.read(selectedChildIdProvider.notifier).state = selectedChildId;
+        _selectedChildId = selectedChildId;
         await _fetchChildData(showLoader: true);
       } else {
+        ref.read(selectedChildIdProvider.notifier).state = null;
         setState(() => _loading = false);
       }
     } catch (e) {
@@ -62,6 +65,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       const Duration(seconds: 15),
       (_) => _fetchChildData(),
     );
+  }
+
+  int _resolveInitialChildId(List<Map<String, dynamic>> list) {
+    final providerChildId = ref.read(selectedChildIdProvider);
+    final preferredIds = [providerChildId].whereType<int>();
+    for (final id in preferredIds) {
+      if (list.any((child) => child['id'] == id)) {
+        return id;
+      }
+    }
+    return list.first['id'] as int;
   }
 
   Future<void> _fetchChildData({bool showLoader = false}) async {
@@ -114,6 +128,18 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _setSelectedChild(int id) async {
+    ref.read(selectedChildIdProvider.notifier).state = id;
+    await _applySelectedChild(id, syncProvider: false);
+  }
+
+  Future<void> _applySelectedChild(
+    int id, {
+    bool syncProvider = true,
+  }) async {
+    if (_selectedChildId == id) return;
+    if (syncProvider) {
+      ref.read(selectedChildIdProvider.notifier).state = id;
+    }
     setState(() {
       _selectedChildId = id;
       _stats = null;
@@ -372,6 +398,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<int?>(selectedChildIdProvider, (previous, next) {
+      if (!mounted || next == null || next == _selectedChildId) return;
+      if (_children.any((child) => child['id'] == next)) {
+        _applySelectedChild(next, syncProvider: false);
+      }
+    });
     final t = S.of(context);
     final session = ref.watch(sessionProvider);
     final selectedDateLabel =
@@ -1130,6 +1162,11 @@ class _UsageCalendar extends StatelessWidget {
         final baseColor = hasData
             ? AppColors.primary.withValues(alpha: 0.12 + (0.28 * intensity))
             : Colors.white;
+        final textColor =
+            isSelected ? Colors.white : AppColors.textPrimaryLight;
+        final secondaryTextColor = isSelected
+            ? Colors.white.withValues(alpha: 0.92)
+            : AppColors.textSecondaryLight;
 
         return InkWell(
           onTap: () => onSelectDate(date),
@@ -1139,24 +1176,47 @@ class _UsageCalendar extends StatelessWidget {
             decoration: BoxDecoration(
               color: isSelected ? AppColors.primary : baseColor,
               borderRadius: BorderRadius.circular(14),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.28),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
               border: Border.all(
-                color: isToday
+                color: isSelected
                     ? AppColors.primary
-                    : overLimit
-                        ? AppColors.danger.withValues(alpha: 0.35)
-                        : AppColors.dividerLight,
+                    : isToday
+                        ? AppColors.primary
+                        : overLimit
+                            ? AppColors.danger.withValues(alpha: 0.35)
+                            : AppColors.dividerLight,
+                width: isSelected ? 1.8 : 1,
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${day['day'] ?? date.day}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color:
-                        isSelected ? Colors.white : AppColors.textPrimaryLight,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.18)
+                        : isToday
+                            ? AppColors.primary.withValues(alpha: 0.10)
+                            : Colors.transparent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${day['day'] ?? date.day}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
+                    ),
                   ),
                 ),
                 const Spacer(),
@@ -1168,9 +1228,7 @@ class _UsageCalendar extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: isSelected
-                          ? Colors.white
-                          : AppColors.textSecondaryLight,
+                      color: secondaryTextColor,
                     ),
                   ),
                 if (overLimit)

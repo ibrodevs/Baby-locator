@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +24,8 @@ class MapScreen extends ConsumerStatefulWidget {
 class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _poll;
   String? _err;
-  int? _selectedIdx;
+  bool _sendingLoud = false;
+  int? _startingAroundChildId;
 
   @override
   void initState() {
@@ -50,9 +52,82 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       final data = await ApiClient.instance.allChildrenLocations();
       if (!mounted) return;
       ref.read(allChildrenLocationsProvider.notifier).setFromApi(data);
+      final children = ref.read(allChildrenLocationsProvider);
+      final selectedChildId = ref.read(selectedChildIdProvider);
+      final hasSelectedChild = selectedChildId != null &&
+          children.any((child) => child.childId == selectedChildId);
+      if (children.isEmpty) {
+        ref.read(selectedChildIdProvider.notifier).state = null;
+      } else if (!hasSelectedChild) {
+        ref.read(selectedChildIdProvider.notifier).state =
+            children.first.childId;
+      }
       setState(() => _err = null);
     } catch (e) {
       if (mounted) setState(() => _err = e.toString());
+    }
+  }
+
+  void _selectChild(int? childId) {
+    ref.read(selectedChildIdProvider.notifier).state = childId;
+  }
+
+  Future<void> _triggerLoud(ChildLocation child) async {
+    if (_sendingLoud) return;
+    final childId = child.childId;
+    if (childId == null) return;
+    setState(() => _sendingLoud = true);
+    try {
+      await ApiClient.instance.triggerLoud(childId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Loud signal sent to ${child.name}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send loud signal: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _sendingLoud = false);
+    }
+  }
+
+  Future<void> _openAround(ChildLocation child) async {
+    final childId = child.childId;
+    if (childId == null || _startingAroundChildId == childId) return;
+    setState(() => _startingAroundChildId = childId);
+    String? sessionToken;
+    try {
+      final command = await ApiClient.instance.startAround(childId);
+      sessionToken =
+          ((command['payload'] as Map?)?['session_token'] as String?) ?? '';
+      if (!mounted) return;
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => _AroundListenSheet(
+          childId: childId,
+          childName: child.name,
+          sessionToken: sessionToken ?? '',
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to start Around: $e')),
+      );
+    } finally {
+      if (sessionToken != null && sessionToken.isNotEmpty) {
+        try {
+          await ApiClient.instance.stopAround(
+            childId,
+            sessionToken: sessionToken,
+          );
+        } catch (_) {}
+      }
+      if (mounted) setState(() => _startingAroundChildId = null);
     }
   }
 
@@ -67,12 +142,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final t = S.of(context);
     final session = ref.watch(sessionProvider);
     final children = ref.watch(allChildrenLocationsProvider);
+    final selectedChildId = ref.watch(selectedChildIdProvider);
     final hasChildren = children.isNotEmpty;
-    final selected = _selectedIdx != null && _selectedIdx! < children.length
-        ? children[_selectedIdx!]
-        : null;
-
-    final mapChild = selected ?? (hasChildren ? children.first : null);
+    final selectedIndex =
+        children.indexWhere((child) => child.childId == selectedChildId);
+    final selected = selectedIndex >= 0
+        ? children[selectedIndex]
+        : (hasChildren ? children.first : null);
+    final mapChild = selected;
 
     return SafeArea(
       child: Column(
@@ -118,9 +195,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           latitude: mapChild.lat,
                           longitude: mapChild.lng,
                           children: children,
-                          selectedIndex: _selectedIdx,
+                          selectedIndex:
+                              selectedIndex >= 0 ? selectedIndex : null,
                           onChildTapped: (idx) {
-                            setState(() => _selectedIdx = idx);
+                            _selectChild(children[idx].childId);
                           },
                         )
                       : _EmptyMapPlaceholder(
@@ -146,16 +224,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           icon: Icons.volume_up_rounded,
                           label: t.loud,
                           color: AppColors.primary,
-                          onTap: () {
-                            // TODO: implement loud signal
-                          },
+                          onTap: selected == null ||
+                                  selected.childId == null ||
+                                  _sendingLoud
+                              ? null
+                              : () => _triggerLoud(selected),
                         ),
                         const SizedBox(height: 12),
                         _MapActionButton(
                           icon: Icons.radar_rounded,
                           label: t.around,
                           color: AppColors.success,
-                          onTap: () => setState(() => _selectedIdx = null),
+                          onTap: selected == null || selected.childId == null
+                              ? null
+                              : () => _openAround(selected),
                         ),
                       ],
                     ),
@@ -169,14 +251,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     child: selected != null
                         ? _ChildInfoCard(
                             loc: selected,
-                            onClose: () => setState(() => _selectedIdx = null),
                             onMessage: () => _openChat(context, selected),
                             onHistory: () => _openActivity(context, selected),
                           )
                         : _ChildCarousel(
                             children: children,
                             onSelect: (idx) =>
-                                setState(() => _selectedIdx = idx),
+                                _selectChild(children[idx].childId),
                           ),
                   ),
               ],
@@ -370,12 +451,12 @@ class _MapActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: Colors.white.withValues(alpha: onTap == null ? 0.72 : 1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 6,
       shadowColor: Colors.black38,
@@ -387,11 +468,15 @@ class _MapActionButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Column(
             children: [
-              Icon(icon, color: color, size: 22),
+              Icon(
+                icon,
+                color: onTap == null ? AppColors.textMuted : color,
+                size: 22,
+              ),
               const SizedBox(height: 4),
               Text(label,
                   style: TextStyle(
-                      color: color,
+                      color: onTap == null ? AppColors.textMuted : color,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.6)),
@@ -403,15 +488,171 @@ class _MapActionButton extends StatelessWidget {
   }
 }
 
+class _AroundListenSheet extends StatefulWidget {
+  const _AroundListenSheet({
+    required this.childId,
+    required this.childName,
+    required this.sessionToken,
+  });
+
+  final int childId;
+  final String childName;
+  final String sessionToken;
+
+  @override
+  State<_AroundListenSheet> createState() => _AroundListenSheetState();
+}
+
+class _AroundListenSheetState extends State<_AroundListenSheet> {
+  final AudioPlayer _player = AudioPlayer();
+  Timer? _pollTimer;
+  int? _lastClipId;
+  bool _loading = true;
+  String? _error;
+  String _status = 'Waiting for audio from child phone...';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _start());
+  }
+
+  Future<void> _start() async {
+    await _pollLatestClip();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 4),
+      (_) => _pollLatestClip(),
+    );
+  }
+
+  Future<void> _pollLatestClip() async {
+    try {
+      final clip = await ApiClient.instance.latestAroundAudio(
+        widget.childId,
+        sessionToken: widget.sessionToken,
+        afterId: _lastClipId,
+      );
+      if (!mounted) return;
+      if (clip == null) {
+        setState(() {
+          _loading = false;
+          _error = null;
+        });
+        return;
+      }
+      final clipMap = Map<String, dynamic>.from(clip);
+      final clipId = clipMap['id'] as int?;
+      final url = clipMap['audio_url'] as String? ?? '';
+      if (clipId == null || url.isEmpty) return;
+      _lastClipId = clipId;
+      await _player.stop();
+      await _player.play(UrlSource(url));
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = null;
+        _status = 'Listening to ${widget.childName} surroundings';
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _player.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 24,
+              offset: Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.hearing_rounded, color: AppColors.success),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Around: ${widget.childName}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _status,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 14),
+            if (_loading)
+              const LinearProgressIndicator(
+                color: AppColors.success,
+                backgroundColor: AppColors.chipGrey,
+              ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _error!,
+                style: const TextStyle(color: AppColors.danger, fontSize: 12),
+              ),
+            ],
+            const SizedBox(height: 14),
+            const Text(
+              'The sheet stays open while the child phone keeps sending short microphone clips.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ChildInfoCard extends StatelessWidget {
   const _ChildInfoCard({
     required this.loc,
-    this.onClose,
     this.onMessage,
     this.onHistory,
   });
   final ChildLocation loc;
-  final VoidCallback? onClose;
   final VoidCallback? onMessage;
   final VoidCallback? onHistory;
 
@@ -477,11 +718,6 @@ class _ChildInfoCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (onClose != null)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: onClose,
-                ),
             ],
           ),
           const SizedBox(height: 8),

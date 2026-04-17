@@ -59,7 +59,7 @@ class _AppleMapWebState extends State<AppleMapWeb> {
             ${_generateMarkersJS()}
           }
         ''';
-      
+
       div.append(script);
       return div;
     });

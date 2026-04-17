@@ -1,11 +1,14 @@
 from rest_framework import serializers
 
 from .models import (
+    Alert,
     AppLimit,
     AppUsageSnapshot,
+    AroundAudioClip,
     DeviceDailySummary,
     DeviceStatus,
     LocationUpdate,
+    RemoteDeviceCommand,
     SafeZone,
 )
 
@@ -172,3 +175,76 @@ class DeviceStatsSyncSerializer(serializers.Serializer):
     charging = serializers.BooleanField(required=False)
     usage_access_granted = serializers.BooleanField(required=False, default=False)
     days = DeviceUsageDaySerializer(many=True, required=False)
+
+
+class RemoteDeviceCommandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RemoteDeviceCommand
+        fields = [
+            "id",
+            "child",
+            "created_by",
+            "command_type",
+            "payload",
+            "status",
+            "error_message",
+            "created_at",
+            "delivered_at",
+            "completed_at",
+        ]
+        read_only_fields = fields
+
+
+class RemoteDeviceCommandActionSerializer(serializers.Serializer):
+    command_type = serializers.ChoiceField(choices=RemoteDeviceCommand.TYPE_CHOICES)
+    payload = serializers.JSONField(required=False)
+
+
+class RemoteDeviceCommandCompleteSerializer(serializers.Serializer):
+    success = serializers.BooleanField(required=False, default=True)
+    error_message = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class AlertSerializer(serializers.ModelSerializer):
+    child_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Alert
+        fields = [
+            "id",
+            "child",
+            "parent",
+            "alert_type",
+            "title",
+            "message",
+            "read",
+            "child_name",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+    def get_child_name(self, obj):
+        return obj.child.display_name or obj.child.username
+
+
+class AroundAudioClipSerializer(serializers.ModelSerializer):
+    audio_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AroundAudioClip
+        fields = [
+            "id",
+            "child",
+            "session_token",
+            "audio_url",
+            "duration_seconds",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+    def get_audio_url(self, obj):
+        request = self.context.get("request")
+        if not obj.audio:
+            return ""
+        url = obj.audio.url
+        return request.build_absolute_uri(url) if request else url

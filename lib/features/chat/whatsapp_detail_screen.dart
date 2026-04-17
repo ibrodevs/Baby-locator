@@ -30,8 +30,7 @@ class WhatsAppDetailScreen extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  IconButton(
-                      icon: const Icon(Icons.search), onPressed: () {}),
+                  IconButton(icon: const Icon(Icons.search), onPressed: () {}),
                   IconButton(
                       icon: const Icon(Icons.settings_outlined),
                       onPressed: () {}),
@@ -44,13 +43,12 @@ class WhatsAppDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text('WhatsApp: Leo & Alex',
-                      style: TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800)),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
                   SizedBox(height: 2),
                   Text('Monitoring active · Last synced 2m ago',
                       style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondaryLight)),
+                          fontSize: 12, color: AppColors.textSecondaryLight)),
                 ],
               ),
             ),
@@ -224,8 +222,7 @@ class _ChatMsg extends StatelessWidget {
           ],
           Flexible(
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: mine ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(14),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
@@ -6,10 +7,13 @@ import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:http/http.dart' as http;
+
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
+import '../../core/services/remote_device_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import '../map/adaptive_map.dart';
@@ -24,6 +28,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   final _svc = LocationService();
   final _battery = Battery();
   final _deviceStats = const DeviceStatsService();
+  final _remoteDevice = RemoteDeviceService.instance;
   StreamSubscription<LocationFix>? _sub;
   StreamSubscription<BatteryState>? _batterySub;
   LocationPermissionStatus? _status;
@@ -42,6 +47,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
       _readBattery();
       _start();
       _syncDeviceStats();
+      _remoteDevice.start();
       _statsTimer = Timer.periodic(
         const Duration(minutes: 5),
         (_) => _syncDeviceStats(),
@@ -118,6 +124,10 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         active: true,
       );
       if (_apiError != null && mounted) setState(() => _apiError = null);
+    } on SocketException {
+      // No internet – ignore silently, will retry on next fix.
+    } on http.ClientException {
+      // Network error (wraps SocketException) – ignore silently.
     } catch (e) {
       if (mounted) setState(() => _apiError = e.toString());
     }
@@ -136,6 +146,11 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         setState(() => _usageAccessGranted = payload.usageAccessGranted);
       }
       await ApiClient.instance.syncDeviceStats(payload.toJson());
+      if (_apiError != null && mounted) setState(() => _apiError = null);
+    } on SocketException {
+      // No internet – ignore silently, will retry on next timer tick.
+    } on http.ClientException {
+      // Network error (wraps SocketException) – ignore silently.
     } catch (e) {
       if (mounted) setState(() => _apiError = e.toString());
     } finally {
@@ -148,6 +163,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     _sub?.cancel();
     _batterySub?.cancel();
     _statsTimer?.cancel();
+    _remoteDevice.stop();
     _svc.stop();
     super.dispose();
   }

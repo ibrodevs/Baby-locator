@@ -261,8 +261,7 @@ class _Intercept extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(preview,
                       style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondaryLight)),
+                          fontSize: 13, color: AppColors.textSecondaryLight)),
                   const SizedBox(height: 6),
                   StatusBadge(text: tag, color: tagColor),
                 ],

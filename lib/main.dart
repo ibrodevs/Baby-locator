@@ -5,10 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/session_providers.dart';
+import 'core/services/background_command_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
+  // Configure background service (registers the isolate entry point).
+  await initBackgroundCommandService();
+
   final container = ProviderContainer();
   await container.read(appLocaleProvider.notifier).bootstrap();
   await container.read(sessionProvider.notifier).bootstrap();

@@ -3,11 +3,12 @@ import math
 from datetime import date as dt_date
 from datetime import timedelta
 
-from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import viewsets
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -15,13 +16,28 @@ from rest_framework.views import APIView
 from accounts.models import User
 from accounts.serializers import UserSerializer
 
-from .models import AppLimit, AppUsageSnapshot, DeviceDailySummary, DeviceStatus, LocationUpdate, SafeZone
+from .models import (
+    Alert,
+    AppLimit,
+    AppUsageSnapshot,
+    AroundAudioClip,
+    DeviceDailySummary,
+    DeviceStatus,
+    LocationUpdate,
+    RemoteDeviceCommand,
+    SafeZone,
+)
 from .serializers import (
+    AlertSerializer,
     AppLimitSerializer,
     AppLimitWriteSerializer,
+    AroundAudioClipSerializer,
     DeviceStatsSyncSerializer,
     LocationInputSerializer,
     LocationSerializer,
+    RemoteDeviceCommandActionSerializer,
+    RemoteDeviceCommandCompleteSerializer,
+    RemoteDeviceCommandSerializer,
     SafeZoneSerializer,
 )
 
@@ -43,6 +59,14 @@ def _resolve_child_for_request(request, child_id):
     if request.user.role == User.ROLE_CHILD and request.user.id != child.id:
         return None
     return child
+
+
+def _ensure_parent_child_relationship(parent, child):
+    return (
+        parent.role == User.ROLE_PARENT
+        and child.role == User.ROLE_CHILD
+        and child.parent_id == parent.id
+    )
 
 
 def _parse_selected_date(raw_value, fallback):
@@ -90,8 +114,13 @@ class SafeZoneViewSet(viewsets.ModelViewSet):
 
 
 class ShareLocationView(APIView):
-    # ... (unchanged)
     """Child posts their current location."""
+
+    BATTERY_LOW_THRESHOLD = 20
+    # Suppress duplicate battery_low alerts for 30 minutes.
+    BATTERY_ALERT_COOLDOWN = timedelta(minutes=30)
+    # Suppress duplicate safe zone exit alerts for 10 minutes per zone.
+    ZONE_EXIT_COOLDOWN = timedelta(minutes=10)
 
     def post(self, request):
         if request.user.role != User.ROLE_CHILD:
@@ -106,7 +135,76 @@ class ShareLocationView(APIView):
             battery=s.validated_data.get("battery"),
             active=s.validated_data.get("active", True),
         )
+
+        # --- Generate alerts for the parent ---
+        parent = request.user.parent
+        if parent:
+            self._check_battery_alert(request.user, parent, loc)
+            self._check_zone_exit_alert(request.user, parent, loc)
+
         return Response(LocationSerializer(loc).data, status=201)
+
+    def _check_battery_alert(self, child, parent, loc):
+        if loc.battery is None or loc.battery > self.BATTERY_LOW_THRESHOLD:
+            return
+        cutoff = timezone.now() - self.BATTERY_ALERT_COOLDOWN
+        already = Alert.objects.filter(
+            child=child,
+            parent=parent,
+            alert_type=Alert.TYPE_BATTERY_LOW,
+            created_at__gte=cutoff,
+        ).exists()
+        if already:
+            return
+        child_name = child.display_name or child.username
+        Alert.objects.create(
+            child=child,
+            parent=parent,
+            alert_type=Alert.TYPE_BATTERY_LOW,
+            title=f"{child_name}: низкий заряд батареи",
+            message=f"Уровень заряда {loc.battery}%",
+        )
+
+    def _check_zone_exit_alert(self, child, parent, loc):
+        zones = list(SafeZone.objects.filter(parent=parent, active=True))
+        if not zones:
+            return
+        # Check if child is currently inside any zone
+        current_zone = _match_zone_for_location(zones, loc)
+        if current_zone is not None:
+            return  # Still inside a zone, no alert needed.
+
+        # Check previous location to see if they WERE in a zone
+        prev_loc = (
+            child.locations.filter(created_at__lt=loc.created_at)
+            .order_by("-created_at")
+            .first()
+        )
+        if prev_loc is None:
+            return
+        prev_zone = _match_zone_for_location(zones, prev_loc)
+        if prev_zone is None:
+            return  # Was not in a zone before either
+
+        # Child just left prev_zone — check cooldown
+        cutoff = timezone.now() - self.ZONE_EXIT_COOLDOWN
+        already = Alert.objects.filter(
+            child=child,
+            parent=parent,
+            alert_type=Alert.TYPE_SAFE_ZONE_EXIT,
+            message__contains=prev_zone.name,
+            created_at__gte=cutoff,
+        ).exists()
+        if already:
+            return
+        child_name = child.display_name or child.username
+        Alert.objects.create(
+            child=child,
+            parent=parent,
+            alert_type=Alert.TYPE_SAFE_ZONE_EXIT,
+            title=f"{child_name}: вышел из безопасной зоны",
+            message=f"Покинул зону «{prev_zone.name}»",
+        )
 
 
 class ChildLatestLocationView(APIView):
@@ -593,3 +691,166 @@ class ChildAppLimitView(APIView):
             },
         )
         return Response(AppLimitSerializer(app_limit).data)
+
+
+class ChildDeviceCommandCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, child_id):
+        child = get_object_or_404(User, id=child_id, role=User.ROLE_CHILD)
+        if not _ensure_parent_child_relationship(request.user, child):
+            return Response({"detail": "forbidden"}, status=403)
+
+        serializer = RemoteDeviceCommandActionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data.get("payload") or {}
+
+        if serializer.validated_data["command_type"] == RemoteDeviceCommand.TYPE_AROUND_START:
+            payload.setdefault("session_token", AroundAudioClip.new_session_token())
+
+        command = RemoteDeviceCommand.objects.create(
+            child=child,
+            created_by=request.user,
+            command_type=serializer.validated_data["command_type"],
+            payload=payload,
+        )
+        return Response(RemoteDeviceCommandSerializer(command).data, status=201)
+
+
+class PendingDeviceCommandsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != User.ROLE_CHILD:
+            return Response({"detail": "children only"}, status=403)
+
+        commands = list(
+            request.user.device_commands.filter(
+                status=RemoteDeviceCommand.STATUS_PENDING,
+            ).order_by("created_at", "id")[:10]
+        )
+        if commands:
+            now = timezone.now()
+            RemoteDeviceCommand.objects.filter(
+                id__in=[command.id for command in commands],
+                status=RemoteDeviceCommand.STATUS_PENDING,
+            ).update(
+                status=RemoteDeviceCommand.STATUS_DELIVERED,
+                delivered_at=now,
+            )
+            for command in commands:
+                command.status = RemoteDeviceCommand.STATUS_DELIVERED
+                command.delivered_at = now
+
+        return Response(RemoteDeviceCommandSerializer(commands, many=True).data)
+
+
+class CompleteDeviceCommandView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, command_id):
+        command = get_object_or_404(RemoteDeviceCommand, id=command_id)
+        if request.user.role != User.ROLE_CHILD or command.child_id != request.user.id:
+            return Response({"detail": "forbidden"}, status=403)
+
+        serializer = RemoteDeviceCommandCompleteSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        success = serializer.validated_data["success"]
+        command.status = (
+            RemoteDeviceCommand.STATUS_COMPLETED
+            if success
+            else RemoteDeviceCommand.STATUS_FAILED
+        )
+        command.error_message = serializer.validated_data.get("error_message", "")
+        command.completed_at = timezone.now()
+        command.save(update_fields=["status", "error_message", "completed_at"])
+        return Response(RemoteDeviceCommandSerializer(command).data)
+
+
+class AroundAudioUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        if request.user.role != User.ROLE_CHILD:
+            return Response({"detail": "children only"}, status=403)
+
+        session_token = (request.data.get("session_token") or "").strip()
+        if not session_token:
+            return Response({"detail": "session_token is required"}, status=400)
+
+        uploaded = request.FILES.get("audio")
+        if uploaded is None:
+            return Response({"detail": "audio file is required"}, status=400)
+
+        duration_seconds = int(request.data.get("duration_seconds") or 0)
+        clip = AroundAudioClip.objects.create(
+            child=request.user,
+            session_token=session_token,
+            audio=uploaded,
+            duration_seconds=max(duration_seconds, 0),
+        )
+        return Response(
+            AroundAudioClipSerializer(clip, context={"request": request}).data,
+            status=201,
+        )
+
+
+class LatestAroundAudioView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, child_id):
+        child = get_object_or_404(User, id=child_id, role=User.ROLE_CHILD)
+        if not _ensure_parent_child_relationship(request.user, child):
+            return Response({"detail": "forbidden"}, status=403)
+
+        session_token = (request.query_params.get("session_token") or "").strip()
+        if not session_token:
+            return Response({"detail": "session_token is required"}, status=400)
+
+        qs = child.around_audio_clips.filter(session_token=session_token)
+        after_id = request.query_params.get("after_id")
+        if after_id:
+            try:
+                qs = qs.filter(id__gt=int(after_id))
+            except (TypeError, ValueError):
+                return Response({"detail": "invalid after_id"}, status=400)
+        clip = qs.order_by("-id").first()
+        if clip is None:
+            return Response(status=204)
+        return Response(
+            AroundAudioClipSerializer(clip, context={"request": request}).data,
+        )
+
+
+class ParentAlertsView(APIView):
+    """Parent fetches unread alerts for all their children."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != User.ROLE_PARENT:
+            return Response({"detail": "parents only"}, status=403)
+        alerts = request.user.parent_alerts.filter(read=False).order_by("-created_at")[:50]
+        return Response(AlertSerializer(alerts, many=True).data)
+
+
+class AlertReadView(APIView):
+    """Mark an alert as read."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, alert_id):
+        alert = get_object_or_404(Alert, id=alert_id, parent=request.user)
+        alert.read = True
+        alert.save(update_fields=["read"])
+        return Response({"detail": "ok"})
+
+
+class AlertReadAllView(APIView):
+    """Mark all alerts as read."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != User.ROLE_PARENT:
+            return Response({"detail": "parents only"}, status=403)
+        request.user.parent_alerts.filter(read=False).update(read=True)
+        return Response({"detail": "ok"})

@@ -117,11 +117,10 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
             radius: radius - borderWidth));
       canvas.clipPath(clipPath);
 
-      final srcRect = Rect.fromLTWH(0, 0, avatarImage.width.toDouble(),
-          avatarImage.height.toDouble());
+      final srcRect = Rect.fromLTWH(
+          0, 0, avatarImage.width.toDouble(), avatarImage.height.toDouble());
       final dstRect = Rect.fromCircle(
-          center: const Offset(radius, radius),
-          radius: radius - borderWidth);
+          center: const Offset(radius, radius), radius: radius - borderWidth);
       canvas.drawImageRect(avatarImage, srcRect, dstRect, Paint());
       canvas.restore();
     } else {
@@ -144,8 +143,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       textPainter.layout();
       textPainter.paint(
         canvas,
-        Offset(
-            radius - textPainter.width / 2, radius - textPainter.height / 2),
+        Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
       );
     }
 
@@ -187,8 +185,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     );
 
     final picture = recorder.endRecording();
-    final img =
-        await picture.toImage(size.toInt(), totalHeight.toInt());
+    final img = await picture.toImage(size.toInt(), totalHeight.toInt());
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     return data!.buffer.asUint8List();
   }
@@ -437,7 +434,9 @@ class _ChildMarker extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
-                name.length > 8 ? name.substring(0, 8).toUpperCase() : name.toUpperCase(),
+                name.length > 8
+                    ? name.substring(0, 8).toUpperCase()
+                    : name.toUpperCase(),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,

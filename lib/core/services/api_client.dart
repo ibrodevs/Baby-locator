@@ -341,6 +341,96 @@ class ApiClient {
     });
   }
 
+  // === Remote Device Commands ===
+  Future<Map<String, dynamic>> triggerLoud(int childId) async {
+    return await _post('/api/children/$childId/device-commands/', {
+      'command_type': 'loud',
+    });
+  }
+
+  Future<Map<String, dynamic>> startAround(int childId) async {
+    return await _post('/api/children/$childId/device-commands/', {
+      'command_type': 'around_start',
+    });
+  }
+
+  Future<Map<String, dynamic>> stopAround(
+    int childId, {
+    required String sessionToken,
+  }) async {
+    return await _post('/api/children/$childId/device-commands/', {
+      'command_type': 'around_stop',
+      'payload': {
+        'session_token': sessionToken,
+      },
+    });
+  }
+
+  Future<List<dynamic>> pendingDeviceCommands() async {
+    return (await _get('/api/device-commands/pending/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> completeDeviceCommand(
+    int commandId, {
+    required bool success,
+    String? errorMessage,
+  }) async {
+    return await _post('/api/device-commands/$commandId/complete/', {
+      'success': success,
+      if (errorMessage != null && errorMessage.isNotEmpty)
+        'error_message': errorMessage,
+    });
+  }
+
+  Future<Map<String, dynamic>> uploadAroundAudio({
+    required File audioFile,
+    required String sessionToken,
+    int durationSeconds = 0,
+  }) async {
+    final request = http.MultipartRequest('POST', _u('/api/around-audio/'));
+    if (_token != null) {
+      request.headers['Authorization'] = 'Token $_token';
+    }
+    request.fields['session_token'] = sessionToken;
+    request.fields['duration_seconds'] = '$durationSeconds';
+    request.files.add(
+      await http.MultipartFile.fromPath('audio', audioFile.path),
+    );
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    return _decode(response) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>?> latestAroundAudio(
+    int childId, {
+    required String sessionToken,
+    int? afterId,
+  }) async {
+    final params = <String, String>{
+      'session_token': sessionToken,
+      if (afterId != null) 'after_id': '$afterId',
+    };
+    final uri = _u('/api/children/$childId/around-audio/latest/').replace(
+      queryParameters: params,
+    );
+    final r = await http.get(uri, headers: _headers(json: false));
+    if (r.statusCode == 204 || r.body.isEmpty) return null;
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  // === Alerts ===
+  Future<List<dynamic>> getAlerts() async {
+    return (await _get('/api/alerts/')) as List<dynamic>;
+  }
+
+  Future<void> markAlertRead(int alertId) async {
+    await _post('/api/alerts/$alertId/read/', {});
+  }
+
+  Future<void> markAllAlertsRead() async {
+    await _post('/api/alerts/read-all/', {});
+  }
+
   // === Chat ===
   Future<List<dynamic>> getMessages(int childId) async {
     return (await _get('/api/chat/$childId/messages/')) as List<dynamic>;
@@ -348,5 +438,76 @@ class ApiClient {
 
   Future<Map<String, dynamic>> sendMessage(int childId, String text) async {
     return await _post('/api/chat/$childId/messages/', {'text': text});
+  }
+
+  // === Tasks ===
+  Future<List<dynamic>> getTasks(int childId) async {
+    return (await _get('/api/chat/$childId/tasks/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createTask(
+    int childId, {
+    required String title,
+    String description = '',
+    int rewardStars = 0,
+  }) async {
+    return await _post('/api/chat/$childId/tasks/', {
+      'title': title,
+      'description': description,
+      'reward_stars': rewardStars,
+    });
+  }
+
+  Future<Map<String, dynamic>> completeTask(int childId, int taskId) async {
+    final r = await http.patch(
+      _u('/api/chat/$childId/tasks/$taskId/complete/'),
+      headers: _headers(),
+    );
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> approveTask(int childId, int taskId) async {
+    final r = await http.patch(
+      _u('/api/chat/$childId/tasks/$taskId/approve/'),
+      headers: _headers(),
+    );
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<void> deleteTask(int childId, int taskId) async {
+    await _delete('/api/chat/$childId/tasks/$taskId/');
+  }
+
+  // === Stars ===
+  Future<Map<String, dynamic>> getStars(int childId) async {
+    return (await _get('/api/chat/$childId/stars/')) as Map<String, dynamic>;
+  }
+
+  // === Rewards ===
+  Future<List<dynamic>> getRewards(int childId) async {
+    return (await _get('/api/chat/$childId/rewards/')) as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> createReward(
+    int childId, {
+    required String title,
+    required int requiredStars,
+  }) async {
+    return await _post('/api/chat/$childId/rewards/', {
+      'title': title,
+      'required_stars': requiredStars,
+    });
+  }
+
+  Future<Map<String, dynamic>> claimReward(int childId, int rewardId) async {
+    final r = await http.patch(
+      _u('/api/chat/$childId/rewards/$rewardId/claim/'),
+      headers: _headers(),
+    );
+    return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<void> deleteReward(int childId, int rewardId) async {
+    await _delete('/api/chat/$childId/rewards/$rewardId/');
   }
 }
