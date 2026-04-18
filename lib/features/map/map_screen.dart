@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -549,15 +548,12 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
       if (clipId == null || url.isEmpty) return;
       _lastClipId = clipId;
 
-      // Download the audio file locally first to avoid iOS streaming
-      // errors (CFHTTP err=-12938) with remote M4A URLs.
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) {
-        throw Exception('Failed to download audio clip: ${response.statusCode}');
-      }
+      // Download via authenticated API endpoint to avoid 404 on media
+      // files and iOS streaming errors with remote M4A URLs.
+      final bytes = await ApiClient.instance.downloadAroundAudio(clipId);
       final dir = await getTemporaryDirectory();
       final localFile = File('${dir.path}/around_clip_$clipId.m4a');
-      await localFile.writeAsBytes(response.bodyBytes, flush: true);
+      await localFile.writeAsBytes(bytes, flush: true);
 
       await _player.stop();
       await _player.play(DeviceFileSource(localFile.path));

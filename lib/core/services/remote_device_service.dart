@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+
 import 'background_command_service.dart';
 import 'fcm_service.dart';
 
@@ -16,13 +20,30 @@ class RemoteDeviceService {
   Future<void> start({void Function(String message)? onError}) async {
     if (_started) return;
     _started = true;
+
+    // On Android, request to disable battery optimization so the OS
+    // does not kill the foreground service.
+    if (Platform.isAndroid) {
+      try {
+        const platform = MethodChannel(
+          'id.flutter/background_service',
+        );
+        // Best-effort — some OEMs ignore this.
+        await platform
+            .invokeMethod('requestIgnoreBatteryOptimization')
+            .catchError((_) => null);
+      } catch (_) {}
+    }
+
     await startChildBackgroundService();
+
     // Register FCM token so the backend can send push notifications
     // to this child device (e.g. loud command when app is killed).
     await FcmService.instance.registerToken();
   }
 
   Future<void> stop() async {
+    if (!_started) return;
     _started = false;
     await stopChildBackgroundService();
   }

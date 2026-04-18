@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/session_providers.dart';
 import 'core/services/device_notification_service.dart';
+import 'core/services/remote_device_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/role_select_screen.dart';
 import 'features/child/child_root_screen.dart';
@@ -41,8 +42,17 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
   Future<void> _syncNotificationSession(SessionUser? user) async {
     if (user?.role == UserRole.parent) {
       await DeviceNotificationService.instance.syncParentSession(user!.id);
-    } else {
+      // Stop child background service if we switch to parent.
+      await RemoteDeviceService.instance.stop();
+    } else if (user?.role == UserRole.child) {
       DeviceNotificationService.instance.stop();
+      // Start the child background service — it must keep running even
+      // when the app is in background or the UI is disposed.
+      await RemoteDeviceService.instance.start();
+    } else {
+      // Logged out — stop everything.
+      DeviceNotificationService.instance.stop();
+      await RemoteDeviceService.instance.stop();
     }
   }
 

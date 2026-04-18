@@ -29,7 +29,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Timer? _poll;
 
   DateTime _selectedDate = DateTime.now();
-  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
   @override
   void initState() {
@@ -88,20 +87,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       final summary = await ApiClient.instance.childStatsSummary(
         _selectedChildId!,
         date: _selectedDate,
-        month: _selectedMonth,
       );
       if (!mounted) return;
 
       final apiSelectedDate = _parseDate(summary['selected_date'] as String?);
-      final apiSelectedMonth =
-          _parseMonth(summary['selected_month'] as String?) ?? _selectedMonth;
 
       setState(() {
         _stats = summary;
         _loading = false;
         _error = null;
         _selectedDate = apiSelectedDate ?? _selectedDate;
-        _selectedMonth = apiSelectedMonth;
       });
     } catch (e) {
       if (!mounted) return;
@@ -122,7 +117,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     if (picked == null || !mounted) return;
     setState(() {
       _selectedDate = picked;
-      _selectedMonth = DateTime(picked.year, picked.month);
     });
     await _fetchChildData();
   }
@@ -146,33 +140,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       _loading = true;
       _error = null;
       _selectedDate = DateTime.now();
-      _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
     });
     await _fetchChildData(showLoader: true);
-  }
-
-  Future<void> _changeMonth(int delta) async {
-    final nextMonth =
-        DateTime(_selectedMonth.year, _selectedMonth.month + delta);
-    final lastDay = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
-    final nextSelectedDate = DateTime(
-      nextMonth.year,
-      nextMonth.month,
-      math.min(_selectedDate.day, lastDay),
-    );
-    setState(() {
-      _selectedMonth = DateTime(nextMonth.year, nextMonth.month);
-      _selectedDate = nextSelectedDate;
-    });
-    await _fetchChildData();
-  }
-
-  Future<void> _selectCalendarDate(DateTime date) async {
-    setState(() {
-      _selectedDate = date;
-      _selectedMonth = DateTime(date.year, date.month);
-    });
-    await _fetchChildData();
   }
 
   Future<void> _toggleLimit(Map<String, dynamic> app, bool enabled) async {
@@ -378,7 +347,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Map<String, dynamic> get _device => _asMap(_stats?['device']);
   Map<String, dynamic> get _usage => _asMap(_stats?['usage']);
   List<Map<String, dynamic>> get _weekly => _asList(_stats?['weekly']);
-  List<Map<String, dynamic>> get _calendar => _asList(_stats?['calendar']);
   List<Map<String, dynamic>> get _apps => _asList(_stats?['apps']);
 
   int get _battery => (_device['battery'] as int?) ?? 0;
@@ -564,8 +532,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           _buildGoalCard(),
           const SizedBox(height: 12),
           _buildWeeklyCard(),
-          const SizedBox(height: 12),
-          _buildCalendarCard(),
           const SizedBox(height: 20),
           Row(
             children: [
@@ -815,47 +781,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildCalendarCard() {
-    final t = S.of(context);
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                t.usageCalendar,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.chevron_left, size: 18),
-                onPressed: () => _changeMonth(-1),
-              ),
-              Text(
-                _formatDate(context, 'MMMM yyyy', _selectedMonth),
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right, size: 18),
-                onPressed: () => _changeMonth(1),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _UsageCalendar(
-            month: _selectedMonth,
-            days: _calendar,
-            onSelectDate: _selectCalendarDate,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildAppRow(Map<String, dynamic> app) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -875,16 +800,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   DateTime? _parseDate(String? value) {
     if (value == null || value.isEmpty) return null;
     return DateTime.tryParse(value);
-  }
-
-  DateTime? _parseMonth(String? value) {
-    if (value == null || value.isEmpty) return null;
-    final parts = value.split('-');
-    if (parts.length != 2) return null;
-    final year = int.tryParse(parts[0]);
-    final month = int.tryParse(parts[1]);
-    if (year == null || month == null) return null;
-    return DateTime(year, month);
   }
 
   Map<String, dynamic> _asMap(dynamic value) {
@@ -1121,181 +1036,6 @@ class _WeeklyBars extends StatelessWidget {
           ),
         );
       }),
-    );
-  }
-}
-
-class _UsageCalendar extends StatelessWidget {
-  const _UsageCalendar({
-    required this.month,
-    required this.days,
-    required this.onSelectDate,
-  });
-
-  final DateTime month;
-  final List<Map<String, dynamic>> days;
-  final ValueChanged<DateTime> onSelectDate;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    final firstDay = DateTime(month.year, month.month);
-    final leadingEmpty = firstDay.weekday - 1;
-    final maxMinutes = days.fold<int>(
-      0,
-      (maxValue, day) =>
-          math.max(maxValue, (day['total_minutes'] as int?) ?? 0),
-    );
-
-    final cells = <Widget>[
-      ...List.generate(leadingEmpty, (_) => const SizedBox.shrink()),
-      ...days.map((day) {
-        final date =
-            DateTime.tryParse(day['date'] as String? ?? '') ?? firstDay;
-        final totalMinutes = (day['total_minutes'] as int?) ?? 0;
-        final hasData = (day['has_data'] as bool?) ?? false;
-        final isSelected = (day['is_selected'] as bool?) ?? false;
-        final isToday = (day['is_today'] as bool?) ?? false;
-        final overLimit = (day['over_limit'] as bool?) ?? false;
-
-        final intensity = maxMinutes == 0 ? 0.0 : totalMinutes / maxMinutes;
-        final baseColor = hasData
-            ? AppColors.primary.withValues(alpha: 0.12 + (0.28 * intensity))
-            : Colors.white;
-        final textColor =
-            isSelected ? Colors.white : AppColors.textPrimaryLight;
-        final secondaryTextColor = isSelected
-            ? Colors.white.withValues(alpha: 0.92)
-            : AppColors.textSecondaryLight;
-
-        return InkWell(
-          onTap: () => onSelectDate(date),
-          borderRadius: BorderRadius.circular(14),
-          child: Ink(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : baseColor,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.28),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                    ]
-                  : null,
-              border: Border.all(
-                color: isSelected
-                    ? AppColors.primary
-                    : isToday
-                        ? AppColors.primary
-                        : overLimit
-                            ? AppColors.danger.withValues(alpha: 0.35)
-                            : AppColors.dividerLight,
-                width: isSelected ? 1.8 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? Colors.white.withValues(alpha: 0.18)
-                        : isToday
-                            ? AppColors.primary.withValues(alpha: 0.10)
-                            : Colors.transparent,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    '${day['day'] ?? date.day}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                if (hasData)
-                  Text(
-                    totalMinutes >= 60
-                        ? '${totalMinutes ~/ 60}h'
-                        : '${totalMinutes}m',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: secondaryTextColor,
-                    ),
-                  ),
-                if (overLimit)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: isSelected ? Colors.white : AppColors.danger,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        );
-      }),
-    ];
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            _CalendarHeaderLabel(t.mon),
-            _CalendarHeaderLabel(t.tue),
-            _CalendarHeaderLabel(t.wed),
-            _CalendarHeaderLabel(t.thu),
-            _CalendarHeaderLabel(t.fri),
-            _CalendarHeaderLabel(t.sat),
-            _CalendarHeaderLabel(t.sun),
-          ],
-        ),
-        const SizedBox(height: 8),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 7,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 0.72,
-          children: cells,
-        ),
-      ],
-    );
-  }
-}
-
-class _CalendarHeaderLabel extends StatelessWidget {
-  const _CalendarHeaderLabel(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Center(
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textMuted,
-          ),
-        ),
-      ),
     );
   }
 }

@@ -13,7 +13,6 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
-import '../../core/services/remote_device_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import '../map/adaptive_map.dart';
@@ -28,7 +27,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   final _svc = LocationService();
   final _battery = Battery();
   final _deviceStats = const DeviceStatsService();
-  final _remoteDevice = RemoteDeviceService.instance;
   StreamSubscription<LocationFix>? _sub;
   StreamSubscription<BatteryState>? _batterySub;
   LocationPermissionStatus? _status;
@@ -47,7 +45,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
       _readBattery();
       _start();
       _syncDeviceStats();
-      _remoteDevice.start();
+      // Background service is now managed by app.dart (session lifecycle),
+      // not by this screen — so we don't start/stop it here.
       _statsTimer = Timer.periodic(
         const Duration(minutes: 5),
         (_) => _syncDeviceStats(),
@@ -163,7 +162,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     _sub?.cancel();
     _batterySub?.cancel();
     _statsTimer?.cancel();
-    _remoteDevice.stop();
+    // DO NOT stop the background service here — it must keep running
+    // even when this screen is disposed or the app goes to background.
     _svc.stop();
     super.dispose();
   }

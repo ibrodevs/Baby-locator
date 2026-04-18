@@ -4,19 +4,34 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'api_client.dart';
+import 'background_command_service.dart';
 
 /// Top-level handler — runs even when the app is killed.
 /// Must be a top-level function (not a class method).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+
   final data = message.data;
-  if (data['command_type'] == 'loud') {
-    await _playLoudAlarm();
+  final commandType = data['command_type'] ?? '';
+
+  switch (commandType) {
+    case 'loud':
+      // Play alarm directly — no need for background service.
+      await _playLoudAlarm();
+      break;
+    case 'around_start':
+    case 'around_stop':
+      // Start the background service which will poll and handle the command.
+      await startChildBackgroundService();
+      break;
   }
 }
 
@@ -124,7 +139,7 @@ class FcmService {
     // Register background handler.
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // Foreground messages — handle loud command directly.
+    // Foreground messages — handle commands directly.
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
   }
 
@@ -150,8 +165,17 @@ class FcmService {
 
   void _handleForegroundMessage(RemoteMessage message) {
     final data = message.data;
-    if (data['command_type'] == 'loud') {
-      _playLoudAlarm();
+    final commandType = data['command_type'] ?? '';
+
+    switch (commandType) {
+      case 'loud':
+        _playLoudAlarm();
+        break;
+      case 'around_start':
+      case 'around_stop':
+        // Background service is already running in foreground mode —
+        // it will pick up the command via polling.
+        break;
     }
   }
 }

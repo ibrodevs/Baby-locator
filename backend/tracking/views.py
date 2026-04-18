@@ -1,9 +1,11 @@
 import calendar
 import math
+import mimetypes
 from datetime import date as dt_date
 from datetime import timedelta
 
 from django.db import transaction
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -27,7 +29,7 @@ from .models import (
     RemoteDeviceCommand,
     SafeZone,
 )
-from .fcm import send_loud_push
+from .fcm import send_command_push
 from .serializers import (
     AlertSerializer,
     AppLimitSerializer,
@@ -716,10 +718,13 @@ class ChildDeviceCommandCreateView(APIView):
             payload=payload,
         )
 
-        # Send FCM push for loud commands so the child phone plays the alarm
-        # even if the app is closed / killed.
-        if command.command_type == RemoteDeviceCommand.TYPE_LOUD and child.fcm_token:
-            send_loud_push(child.fcm_token)
+        # Send FCM push to wake the child device even if the app is killed.
+        if child.fcm_token and command.command_type in (
+            RemoteDeviceCommand.TYPE_LOUD,
+            RemoteDeviceCommand.TYPE_AROUND_START,
+            RemoteDeviceCommand.TYPE_AROUND_STOP,
+        ):
+            send_command_push(child.fcm_token, command.command_type)
 
         return Response(RemoteDeviceCommandSerializer(command).data, status=201)
 
@@ -827,6 +832,24 @@ class LatestAroundAudioView(APIView):
             return Response(status=204)
         return Response(
             AroundAudioClipSerializer(clip, context={"request": request}).data,
+        )
+
+
+class AroundAudioStreamView(APIView):
+    """Stream the actual audio file for a clip (parent only)."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, clip_id):
+        clip = get_object_or_404(AroundAudioClip, id=clip_id)
+        child = clip.child
+        if not _ensure_parent_child_relationship(request.user, child):
+            return Response({"detail": "forbidden"}, status=403)
+        if not clip.audio:
+            return Response({"detail": "no audio"}, status=404)
+        content_type, _ = mimetypes.guess_type(clip.audio.name)
+        return FileResponse(
+            clip.audio.open("rb"),
+            content_type=content_type or "audio/mp4",
         )
 
 

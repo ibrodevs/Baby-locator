@@ -406,6 +406,18 @@ class ApiClient {
     return _decode(response) as Map<String, dynamic>;
   }
 
+  /// Downloads the raw audio bytes for an around clip.
+  Future<List<int>> downloadAroundAudio(int clipId) async {
+    final r = await http.get(
+      _u('/api/around-audio/$clipId/stream/'),
+      headers: _headers(json: false),
+    );
+    if (r.statusCode != 200) {
+      throw ApiException(r.statusCode, 'Failed to download audio clip');
+    }
+    return r.bodyBytes;
+  }
+
   Future<Map<String, dynamic>?> latestAroundAudio(
     int childId, {
     required String sessionToken,
