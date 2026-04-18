@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -545,13 +548,29 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
       final url = clipMap['audio_url'] as String? ?? '';
       if (clipId == null || url.isEmpty) return;
       _lastClipId = clipId;
+
+      // Download the audio file locally first to avoid iOS streaming
+      // errors (CFHTTP err=-12938) with remote M4A URLs.
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode != 200) {
+        throw Exception('Failed to download audio clip: ${response.statusCode}');
+      }
+      final dir = await getTemporaryDirectory();
+      final localFile = File('${dir.path}/around_clip_$clipId.m4a');
+      await localFile.writeAsBytes(response.bodyBytes, flush: true);
+
       await _player.stop();
-      await _player.play(UrlSource(url));
+      await _player.play(DeviceFileSource(localFile.path));
       if (!mounted) return;
       setState(() {
         _loading = false;
         _error = null;
         _status = 'Listening to ${widget.childName} surroundings';
+      });
+
+      // Clean up the file after playback completes.
+      _player.onPlayerComplete.first.then((_) async {
+        if (await localFile.exists()) await localFile.delete();
       });
     } catch (e) {
       if (!mounted) return;

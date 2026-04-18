@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316624003643",
+    "project_id": "kid-security-994a0",
+    "storage_bucket": "kid-security-994a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316624003643:android:2366084dfe5c62bb79b21e",
+        "android_client_info": {
+          "package_name": "com.example.kid_security"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASwa83UpkzfQx88q3-GacE3_wkuj1pSEc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

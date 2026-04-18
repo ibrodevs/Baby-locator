@@ -1,4 +1,5 @@
 import 'background_command_service.dart';
+import 'fcm_service.dart';
 
 /// Thin wrapper around the background foreground-service.
 ///
@@ -16,6 +17,9 @@ class RemoteDeviceService {
     if (_started) return;
     _started = true;
     await startChildBackgroundService();
+    // Register FCM token so the backend can send push notifications
+    // to this child device (e.g. loud command when app is killed).
+    await FcmService.instance.registerToken();
   }
 
   Future<void> stop() async {

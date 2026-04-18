@@ -1270,7 +1270,7 @@ class _UsageCalendar extends StatelessWidget {
           crossAxisCount: 7,
           mainAxisSpacing: 8,
           crossAxisSpacing: 8,
-          childAspectRatio: 0.82,
+          childAspectRatio: 0.72,
           children: cells,
         ),
       ],

@@ -341,6 +341,11 @@ class ApiClient {
     });
   }
 
+  // === FCM Token ===
+  Future<void> registerFcmToken(String fcmToken) async {
+    await _post('/api/auth/fcm-token/', {'fcm_token': fcmToken});
+  }
+
   // === Remote Device Commands ===
   Future<Map<String, dynamic>> triggerLoud(int childId) async {
     return await _post('/api/children/$childId/device-commands/', {
