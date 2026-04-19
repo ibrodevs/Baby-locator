@@ -53,7 +53,7 @@ class ChildAuthScreen extends StatelessWidget {
                         color: AppColors.primarySoft,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.15),
+                            color: AppColors.primary.withValues(alpha: 0.15),
                             blurRadius: 24,
                             offset: const Offset(0, 8),
                           ),
@@ -122,42 +122,25 @@ class _ChildAuthBody extends ConsumerStatefulWidget {
 }
 
 class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
-  bool _isRegister = false;
-
-  // Login fields
-  final _loginUsername = TextEditingController();
-  final _loginPassword = TextEditingController();
-
-  // Register fields
   final _inviteCode = TextEditingController();
   final _regName = TextEditingController();
-  final _regUsername = TextEditingController();
-  final _regPassword = TextEditingController();
   bool _codeVerified = false;
 
   bool _busy = false;
   String? _err;
 
-  Future<void> _login() async {
-    setState(() {
-      _busy = true;
-      _err = null;
-    });
-    try {
-      await ref.read(sessionProvider.notifier).login(
-            username: _loginUsername.text.trim(),
-            password: _loginPassword.text,
-          );
-      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
-    } catch (e) {
-      setState(() => _err = e.toString());
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  @override
+  void dispose() {
+    _inviteCode.dispose();
+    _regName.dispose();
+    super.dispose();
   }
 
   void _proceedWithCode() {
-    if (_inviteCode.text.trim().isEmpty) return;
+    if (_inviteCode.text.trim().isEmpty) {
+      setState(() => _err = S.of(context).invalidInviteCode);
+      return;
+    }
     setState(() {
       _codeVerified = true;
       _err = null;
@@ -172,8 +155,6 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
     try {
       await ref.read(sessionProvider.notifier).registerChild(
             code: _inviteCode.text.trim(),
-            username: _regUsername.text.trim(),
-            password: _regPassword.text,
             displayName: _regName.text.trim(),
           );
       if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
@@ -191,47 +172,7 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (!_isRegister) ...[
-            // === LOGIN MODE ===
-            _KidField(
-              controller: _loginUsername,
-              label: t.username,
-              icon: Icons.person_rounded,
-            ),
-            const SizedBox(height: 14),
-            _KidField(
-              controller: _loginPassword,
-              label: t.password,
-              icon: Icons.lock_rounded,
-              obscure: true,
-            ),
-            const SizedBox(height: 20),
-            if (_err != null) _ErrorBox(message: _err!),
-            _BigButton(
-              label: t.childSignIn,
-              icon: Icons.login_rounded,
-              busy: _busy,
-              onTap: _login,
-            ),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: () => setState(() {
-                  _isRegister = true;
-                  _err = null;
-                  _codeVerified = false;
-                }),
-                child: Text(
-                  t.dontHaveCode,
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
-          ] else if (!_codeVerified) ...[
+          if (!_codeVerified) ...[
             // === REGISTER MODE — STEP 1: ENTER CODE ===
             Text(
               t.childRegisterTitle,
@@ -246,7 +187,7 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
             Text(
               t.childRegisterSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondaryLight,
               ),
@@ -266,23 +207,6 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
               busy: _busy,
               onTap: _proceedWithCode,
             ),
-            const SizedBox(height: 16),
-            Center(
-              child: TextButton(
-                onPressed: () => setState(() {
-                  _isRegister = false;
-                  _err = null;
-                }),
-                child: Text(
-                  t.alreadyHaveAccount,
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-            ),
           ] else ...[
             // === REGISTER MODE — STEP 2: PROFILE ===
             Text(
@@ -298,7 +222,7 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
             Text(
               t.enterYourDetails,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondaryLight,
               ),
@@ -316,12 +240,12 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.vpn_key_rounded,
+                    const Icon(Icons.vpn_key_rounded,
                         size: 16, color: AppColors.primary),
                     const SizedBox(width: 6),
                     Text(
                       _inviteCode.text.trim().toUpperCase(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         color: AppColors.primary,
                         fontSize: 14,
@@ -333,7 +257,7 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
                         _codeVerified = false;
                         _err = null;
                       }),
-                      child: Icon(Icons.edit_rounded,
+                      child: const Icon(Icons.edit_rounded,
                           size: 16, color: AppColors.primary),
                     ),
                   ],
@@ -345,19 +269,6 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
               controller: _regName,
               label: t.displayNameHint,
               icon: Icons.badge_rounded,
-            ),
-            const SizedBox(height: 14),
-            _KidField(
-              controller: _regUsername,
-              label: t.username,
-              icon: Icons.person_rounded,
-            ),
-            const SizedBox(height: 14),
-            _KidField(
-              controller: _regPassword,
-              label: t.password,
-              icon: Icons.lock_rounded,
-              obscure: true,
             ),
             const SizedBox(height: 20),
             if (_err != null) _ErrorBox(message: _err!),
@@ -452,20 +363,17 @@ class _KidField extends StatelessWidget {
     required this.controller,
     required this.label,
     required this.icon,
-    this.obscure = false,
     this.textCapitalization = TextCapitalization.none,
   });
   final TextEditingController controller;
   final String label;
   final IconData icon;
-  final bool obscure;
   final TextCapitalization textCapitalization;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      obscureText: obscure,
       autocorrect: false,
       textCapitalization: textCapitalization,
       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
@@ -479,19 +387,24 @@ class _KidField extends StatelessWidget {
           margin: const EdgeInsets.only(left: 12, right: 8),
           child: Icon(icon, color: AppColors.primary, size: 22),
         ),
-        prefixIconConstraints:
-            const BoxConstraints(minWidth: 42, minHeight: 0),
+        prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 0),
         filled: true,
         fillColor: Colors.white,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.dividerLight, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.dividerLight,
+            width: 1.5,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: AppColors.dividerLight, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.dividerLight,
+            width: 1.5,
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

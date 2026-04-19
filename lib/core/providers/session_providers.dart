@@ -112,16 +112,12 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   Future<void> registerChild({
     required String code,
-    required String username,
-    required String password,
-    String? displayName,
+    required String displayName,
   }) async {
     state = state.copyWith(loading: true, error: null);
     try {
       final data = await ApiClient.instance.registerChildWithCode(
         code: code,
-        username: username,
-        password: password,
         displayName: displayName,
       );
       state = SessionState(

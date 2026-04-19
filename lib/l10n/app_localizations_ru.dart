@@ -727,7 +727,7 @@ class SRu extends S {
   String get childAuthTitle => 'Привет!';
 
   @override
-  String get childAuthSubtitle => 'Спросите у родителя данные для входа';
+  String get childAuthSubtitle => 'Попросите у родителя код приглашения';
 
   @override
   String get childNavSettings => 'Настройки';
@@ -768,7 +768,7 @@ class SRu extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code';
+    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code\n\nhttps://backend21.pythonanywhere.com/invite/$code';
   }
 
   @override
@@ -792,7 +792,7 @@ class SRu extends S {
   String get setupYourProfile => 'Настройте свой профиль';
 
   @override
-  String get enterYourDetails => 'Выберите имя, логин и пароль';
+  String get enterYourDetails => 'Введите отображаемое имя';
 
   @override
   String get register => 'Зарегистрироваться';

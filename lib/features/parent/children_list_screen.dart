@@ -271,67 +271,86 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                         final id = c['id'] as int;
                         final name =
                             (c['display_name'] as String?)?.isNotEmpty == true
-                                ? c['display_name']
-                                : c['username'];
+                                ? c['display_name'] as String
+                                : c['username'] as String;
                         final avatarUrl = c['avatar_url'] as String?;
                         return Padding(
                           padding: EdgeInsets.only(
                               bottom: i < _children.length - 1 ? 10 : 0),
                           child: AppCard(
-                            child: Row(
+                            child: Column(
                               children: [
-                                AvatarCircle(
-                                  initials: (name as String).isNotEmpty
-                                      ? name[0].toUpperCase()
-                                      : '?',
-                                  size: 40,
-                                  color: AppColors.primary,
-                                  image: avatarUrl != null
-                                      ? NetworkImage(avatarUrl)
-                                      : null,
+                                Row(
+                                  children: [
+                                    AvatarCircle(
+                                      initials: name.isNotEmpty
+                                          ? name[0].toUpperCase()
+                                          : '?',
+                                      size: 40,
+                                      color: AppColors.primary,
+                                      image: avatarUrl != null
+                                          ? NetworkImage(avatarUrl)
+                                          : null,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(name,
+                                              style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w800),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
+                                          Text('@${c['username']}',
+                                              style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors
+                                                      .textSecondaryLight),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(name,
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => _editChild(c),
+                                      icon: const Icon(Icons.edit_outlined,
+                                          color: AppColors.textSecondaryLight),
+                                      tooltip: t.edit,
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.all(8),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    IconButton(
+                                      onPressed: () => _deleteChild(c),
+                                      icon: const Icon(Icons.delete_outline,
+                                          color: AppColors.danger),
+                                      tooltip: t.delete,
+                                      constraints: const BoxConstraints(),
+                                      padding: const EdgeInsets.all(8),
+                                    ),
+                                    const Spacer(),
+                                    ElevatedButton(
+                                      onPressed: () => _selectAndClose(id),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.primary,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12)),
+                                      ),
+                                      child: Text(t.track,
                                           style: const TextStyle(
-                                              fontSize: 16,
                                               fontWeight: FontWeight.w800)),
-                                      Text('@${c['username']}',
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors
-                                                  .textSecondaryLight)),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _editChild(c),
-                                  icon: const Icon(Icons.edit_outlined,
-                                      color: AppColors.textSecondaryLight),
-                                  tooltip: t.edit,
-                                ),
-                                IconButton(
-                                  onPressed: () => _deleteChild(c),
-                                  icon: const Icon(Icons.delete_outline,
-                                      color: AppColors.danger),
-                                  tooltip: t.delete,
-                                ),
-                                ElevatedButton(
-                                  onPressed: () => _selectAndClose(id),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(12)),
-                                  ),
-                                  child: Text(t.track,
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.w800)),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),

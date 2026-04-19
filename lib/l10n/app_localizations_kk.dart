@@ -767,7 +767,7 @@ class SKk extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code';
+    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttps://backend21.pythonanywhere.com/invite/$code';
   }
 
   @override
@@ -791,7 +791,7 @@ class SKk extends S {
   String get setupYourProfile => 'Set up your profile';
 
   @override
-  String get enterYourDetails => 'Choose your name, login and password';
+  String get enterYourDetails => 'Enter your display name';
 
   @override
   String get register => 'Register';

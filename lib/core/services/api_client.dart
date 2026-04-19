@@ -151,15 +151,11 @@ class ApiClient {
 
   Future<Map<String, dynamic>> registerChildWithCode({
     required String code,
-    required String username,
-    required String password,
-    String? displayName,
+    required String displayName,
   }) async {
     final data = await _post('/api/auth/register-child/', {
       'code': code,
-      'username': username,
-      'password': password,
-      if (displayName != null) 'display_name': displayName,
+      'display_name': displayName,
     });
     await _saveToken(data['token'] as String);
     return data;

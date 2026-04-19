@@ -1384,7 +1384,7 @@ abstract class S {
   /// No description provided for @childAuthSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Ask your parent for your login details'**
+  /// **'Ask your parent for the invite code'**
   String get childAuthSubtitle;
 
   /// No description provided for @childNavSettings.
@@ -1462,7 +1462,7 @@ abstract class S {
   /// No description provided for @inviteShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my family circle in Kid Security! Use invite code: {code}'**
+  /// **'Join my family circle in Kid Security! Use invite code: {code}\n\nhttps://backend21.pythonanywhere.com/invite/{code}'**
   String inviteShareText(String code);
 
   /// No description provided for @failedToGenerateCode.
@@ -1504,7 +1504,7 @@ abstract class S {
   /// No description provided for @enterYourDetails.
   ///
   /// In en, this message translates to:
-  /// **'Choose your name, login and password'**
+  /// **'Enter your display name'**
   String get enterYourDetails;
 
   /// No description provided for @register.

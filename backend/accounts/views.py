@@ -1,5 +1,8 @@
 from datetime import timedelta
+import secrets
+import uuid
 
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -18,6 +21,13 @@ from .serializers import (
     UserSerializer,
     token_for,
 )
+
+
+def _generate_child_credentials():
+    while True:
+        username = f"child_{uuid.uuid4().hex[:12]}"
+        if not User.objects.filter(username=username).exists():
+            return username, secrets.token_urlsafe(18)
 
 
 class RegisterParentView(APIView):
@@ -224,22 +234,116 @@ class RegisterChildWithCodeView(APIView):
         s = RegisterChildWithCodeSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         code_str = s.validated_data["code"].strip().upper()
+        display_name = s.validated_data["display_name"]
         try:
             invite = InviteCode.objects.get(code=code_str)
         except InviteCode.DoesNotExist:
             return Response({"detail": "Invalid invite code"}, status=400)
-        if not invite.is_valid:
-            return Response({"detail": "Invite code expired or already used"}, status=400)
-        child = User.objects.create_user(
-            username=s.validated_data["username"],
-            password=s.validated_data["password"],
-            display_name=s.validated_data.get("display_name", ""),
-            role=User.ROLE_CHILD,
-            parent=invite.parent,
+        if invite.expires_at <= timezone.now():
+            return Response({"detail": "Invite code expired"}, status=400)
+
+        child = (
+            invite.parent.children.filter(display_name__iexact=display_name)
+            .order_by("id")
+            .first()
         )
-        invite.used_by = child
-        invite.save(update_fields=["used_by"])
+        status_code = status.HTTP_200_OK
+
+        if child is None:
+            username, password = _generate_child_credentials()
+            child = User.objects.create_user(
+                username=username,
+                password=password,
+                display_name=display_name,
+                role=User.ROLE_CHILD,
+                parent=invite.parent,
+            )
+            status_code = status.HTTP_201_CREATED
+
         return Response(
             {"token": token_for(child), "user": UserSerializer(child, context={"request": request}).data},
-            status=status.HTTP_201_CREATED,
+            status=status_code,
         )
+
+
+def invite_landing(request, code):
+    """Landing page for invite links — shows code and instructions."""
+    try:
+        invite = InviteCode.objects.get(code=code.upper())
+        valid = invite.is_valid
+        parent_name = invite.parent.display_name or invite.parent.username
+    except InviteCode.DoesNotExist:
+        valid = False
+        parent_name = ""
+
+    if valid:
+        html = f"""<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kid Security — Приглашение</title>
+<style>
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         background: #f0f4ff; display: flex; justify-content: center; align-items: center;
+         min-height: 100vh; padding: 20px; }}
+  .card {{ background: #fff; border-radius: 24px; padding: 40px 32px; max-width: 400px;
+           width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }}
+  .icon {{ width: 80px; height: 80px; background: linear-gradient(135deg, #3366FF, #1a1a4e);
+           border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center;
+           justify-content: center; font-size: 36px; }}
+  h1 {{ color: #1a1a4e; font-size: 24px; margin-bottom: 8px; }}
+  .sub {{ color: #6b7280; font-size: 14px; margin-bottom: 24px; }}
+  .code-box {{ background: #f0f4ff; border-radius: 16px; padding: 20px; margin-bottom: 24px; }}
+  .code {{ font-size: 32px; font-weight: 900; color: #1a1a4e; letter-spacing: 3px; }}
+  .label {{ font-size: 12px; color: #6b7280; margin-top: 6px; }}
+  .steps {{ text-align: left; margin-bottom: 24px; }}
+  .steps li {{ color: #374151; font-size: 14px; margin-bottom: 8px; line-height: 1.5; }}
+  .parent {{ color: #3366FF; font-weight: 700; }}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">&#x1F46A;</div>
+  <h1>Вас приглашают!</h1>
+  <p class="sub"><span class="parent">{parent_name}</span> приглашает вас в семейный круг Kid Security</p>
+  <div class="code-box">
+    <div class="code">{invite.code}</div>
+    <div class="label">Код приглашения</div>
+  </div>
+  <ol class="steps">
+    <li>Скачайте приложение <b>Kid Security</b></li>
+    <li>Откройте и выберите <b>«Я ребёнок»</b></li>
+    <li>Введите код выше и затем укажите отображаемое имя</li>
+  </ol>
+</div>
+</body>
+</html>"""
+    else:
+        html = """<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kid Security — Приглашение</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         background: #f0f4ff; display: flex; justify-content: center; align-items: center;
+         min-height: 100vh; padding: 20px; }
+  .card { background: #fff; border-radius: 24px; padding: 40px 32px; max-width: 400px;
+          width: 100%; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+  h1 { color: #dc2626; font-size: 22px; margin-bottom: 12px; }
+  p { color: #6b7280; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Код недействителен</h1>
+  <p>Этот код приглашения истёк или уже был использован. Попросите родителя отправить новый код.</p>
+</div>
+</body>
+</html>"""
+
+    return HttpResponse(html)
