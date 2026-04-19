@@ -740,4 +740,69 @@ class SRu extends S {
 
   @override
   String get childLogout => 'Выйти';
+
+  @override
+  String get inviteChild => 'Пригласить ребёнка';
+
+  @override
+  String get inviteTitle => 'Пригласите детей и других членов семьи в ваш круг';
+
+  @override
+  String get inviteSubtitle =>
+      'Вашим близким необходимо установить приложение и присоединиться к кругу, используя код';
+
+  @override
+  String get inviteCodeLabel => 'Код действует 3 дня';
+
+  @override
+  String get shareCode => 'Поделиться кодом';
+
+  @override
+  String get getHelp => 'Получить помощь';
+
+  @override
+  String get generateCode => 'Сгенерировать код';
+
+  @override
+  String get codeCopied => 'Код скопирован в буфер обмена';
+
+  @override
+  String inviteShareText(String code) {
+    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code';
+  }
+
+  @override
+  String failedToGenerateCode(String error) {
+    return 'Не удалось сгенерировать код: $error';
+  }
+
+  @override
+  String get childRegisterTitle => 'Присоединиться к семье';
+
+  @override
+  String get childRegisterSubtitle => 'Введите код приглашения от родителя';
+
+  @override
+  String get inviteCode => 'Код приглашения';
+
+  @override
+  String get next => 'Далее';
+
+  @override
+  String get setupYourProfile => 'Настройте свой профиль';
+
+  @override
+  String get enterYourDetails => 'Выберите имя, логин и пароль';
+
+  @override
+  String get register => 'Зарегистрироваться';
+
+  @override
+  String get invalidInviteCode => 'Неверный или просроченный код приглашения';
+
+  @override
+  String get alreadyHaveAccount => 'Уже есть аккаунт? Войти';
+
+  @override
+  String get dontHaveCode => 'Есть код приглашения? Зарегистрироваться';
 }

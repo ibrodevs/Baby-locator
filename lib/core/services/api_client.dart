@@ -140,6 +140,31 @@ class ApiClient {
     await _saveToken(null);
   }
 
+  // === Invite Code ===
+  Future<Map<String, dynamic>> generateInviteCode() async {
+    return await _post('/api/auth/invite/', {});
+  }
+
+  Future<Map<String, dynamic>> getInviteCode() async {
+    return (await _get('/api/auth/invite/')) as Map<String, dynamic>;
+  }
+
+  Future<Map<String, dynamic>> registerChildWithCode({
+    required String code,
+    required String username,
+    required String password,
+    String? displayName,
+  }) async {
+    final data = await _post('/api/auth/register-child/', {
+      'code': code,
+      'username': username,
+      'password': password,
+      if (displayName != null) 'display_name': displayName,
+    });
+    await _saveToken(data['token'] as String);
+    return data;
+  }
+
   // === Children ===
   Future<List<dynamic>> listChildren() async {
     return (await _get('/api/auth/children/')) as List<dynamic>;

@@ -1410,6 +1410,126 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Log Out'**
   String get childLogout;
+
+  /// No description provided for @inviteChild.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite Child'**
+  String get inviteChild;
+
+  /// No description provided for @inviteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite children and other family members to your circle'**
+  String get inviteTitle;
+
+  /// No description provided for @inviteSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your family members need to install the app and join the circle using the code'**
+  String get inviteSubtitle;
+
+  /// No description provided for @inviteCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code valid for 3 days'**
+  String get inviteCodeLabel;
+
+  /// No description provided for @shareCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code'**
+  String get shareCode;
+
+  /// No description provided for @getHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Get help'**
+  String get getHelp;
+
+  /// No description provided for @generateCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Code'**
+  String get generateCode;
+
+  /// No description provided for @codeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied to clipboard'**
+  String get codeCopied;
+
+  /// No description provided for @inviteShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Join my family circle in Kid Security! Use invite code: {code}'**
+  String inviteShareText(String code);
+
+  /// No description provided for @failedToGenerateCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to generate code: {error}'**
+  String failedToGenerateCode(String error);
+
+  /// No description provided for @childRegisterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Family'**
+  String get childRegisterTitle;
+
+  /// No description provided for @childRegisterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the invite code from your parent'**
+  String get childRegisterSubtitle;
+
+  /// No description provided for @inviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get inviteCode;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @setupYourProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your profile'**
+  String get setupYourProfile;
+
+  /// No description provided for @enterYourDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your name, login and password'**
+  String get enterYourDetails;
+
+  /// No description provided for @register.
+  ///
+  /// In en, this message translates to:
+  /// **'Register'**
+  String get register;
+
+  /// No description provided for @invalidInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired invite code'**
+  String get invalidInviteCode;
+
+  /// No description provided for @alreadyHaveAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get alreadyHaveAccount;
+
+  /// No description provided for @dontHaveCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Have an invite code? Register'**
+  String get dontHaveCode;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

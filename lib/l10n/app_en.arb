@@ -258,5 +258,29 @@
   "childNavSettings": "Settings",
   "childProfile": "Profile",
   "childSettingsTitle": "Settings",
-  "childLogout": "Log Out"
+  "childLogout": "Log Out",
+
+  "inviteChild": "Invite Child",
+  "inviteTitle": "Invite children and other family members to your circle",
+  "inviteSubtitle": "Your family members need to install the app and join the circle using the code",
+  "inviteCodeLabel": "Code valid for 3 days",
+  "shareCode": "Share code",
+  "getHelp": "Get help",
+  "generateCode": "Generate Code",
+  "codeCopied": "Code copied to clipboard",
+  "inviteShareText": "Join my family circle in Kid Security! Use invite code: {code}",
+  "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
+  "failedToGenerateCode": "Failed to generate code: {error}",
+  "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },
+
+  "childRegisterTitle": "Join Family",
+  "childRegisterSubtitle": "Enter the invite code from your parent",
+  "inviteCode": "Invite code",
+  "next": "Next",
+  "setupYourProfile": "Set up your profile",
+  "enterYourDetails": "Choose your name, login and password",
+  "register": "Register",
+  "invalidInviteCode": "Invalid or expired invite code",
+  "alreadyHaveAccount": "Already have an account? Sign in",
+  "dontHaveCode": "Have an invite code? Register"
 }

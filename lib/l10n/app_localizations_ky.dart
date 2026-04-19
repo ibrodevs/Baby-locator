@@ -741,4 +741,70 @@ class SKy extends S {
 
   @override
   String get childLogout => 'Чыгуу';
+
+  @override
+  String get inviteChild => 'Invite Child';
+
+  @override
+  String get inviteTitle =>
+      'Invite children and other family members to your circle';
+
+  @override
+  String get inviteSubtitle =>
+      'Your family members need to install the app and join the circle using the code';
+
+  @override
+  String get inviteCodeLabel => 'Code valid for 3 days';
+
+  @override
+  String get shareCode => 'Share code';
+
+  @override
+  String get getHelp => 'Get help';
+
+  @override
+  String get generateCode => 'Generate Code';
+
+  @override
+  String get codeCopied => 'Code copied to clipboard';
+
+  @override
+  String inviteShareText(String code) {
+    return 'Join my family circle in Kid Security! Use invite code: $code';
+  }
+
+  @override
+  String failedToGenerateCode(String error) {
+    return 'Failed to generate code: $error';
+  }
+
+  @override
+  String get childRegisterTitle => 'Join Family';
+
+  @override
+  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+
+  @override
+  String get inviteCode => 'Invite code';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get setupYourProfile => 'Set up your profile';
+
+  @override
+  String get enterYourDetails => 'Choose your name, login and password';
+
+  @override
+  String get register => 'Register';
+
+  @override
+  String get invalidInviteCode => 'Invalid or expired invite code';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account? Sign in';
+
+  @override
+  String get dontHaveCode => 'Have an invite code? Register';
 }

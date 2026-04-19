@@ -222,5 +222,29 @@
   "childNavSettings": "Настройки",
   "childProfile": "Профиль",
   "childSettingsTitle": "Настройки",
-  "childLogout": "Выйти"
+  "childLogout": "Выйти",
+
+  "inviteChild": "Пригласить ребёнка",
+  "inviteTitle": "Пригласите детей и других членов семьи в ваш круг",
+  "inviteSubtitle": "Вашим близким необходимо установить приложение и присоединиться к кругу, используя код",
+  "inviteCodeLabel": "Код действует 3 дня",
+  "shareCode": "Поделиться кодом",
+  "getHelp": "Получить помощь",
+  "generateCode": "Сгенерировать код",
+  "codeCopied": "Код скопирован в буфер обмена",
+  "inviteShareText": "Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: {code}",
+  "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
+  "failedToGenerateCode": "Не удалось сгенерировать код: {error}",
+  "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },
+
+  "childRegisterTitle": "Присоединиться к семье",
+  "childRegisterSubtitle": "Введите код приглашения от родителя",
+  "inviteCode": "Код приглашения",
+  "next": "Далее",
+  "setupYourProfile": "Настройте свой профиль",
+  "enterYourDetails": "Выберите имя, логин и пароль",
+  "register": "Зарегистрироваться",
+  "invalidInviteCode": "Неверный или просроченный код приглашения",
+  "alreadyHaveAccount": "Уже есть аккаунт? Войти",
+  "dontHaveCode": "Есть код приглашения? Зарегистрироваться"
 }
