@@ -10,7 +10,7 @@ import 'core/providers/session_providers.dart';
 import 'core/services/device_notification_service.dart';
 import 'core/services/remote_device_service.dart';
 import 'core/theme/app_theme.dart';
-import 'features/auth/role_select_screen.dart';
+import 'features/auth/onboarding_screen.dart';
 import 'features/child/child_root_screen.dart';
 import 'features/root/root_screen.dart';
 
@@ -92,7 +92,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       home: switch (session.user?.role) {
         UserRole.parent => const RootScreen(),
         UserRole.child => const ChildRootScreen(),
-        _ => const RoleSelectScreen(),
+        _ => const OnboardingScreen(),
       },
     );
   }

@@ -208,5 +208,19 @@
   "fri": "ПТ",
   "sat": "СБ",
   "sun": "ВС",
-  "over": "ПРЕВЫШЕН"
+  "over": "ПРЕВЫШЕН",
+  "onboardingTitle": "Добро пожаловать!",
+  "onboardingSubtitle": "Кто вы?",
+  "iAmParent": "Я родитель",
+  "iAmChild": "Я ребёнок",
+  "parentSignIn": "Войти",
+  "parentCreateAccount": "Создать аккаунт",
+  "parentAuthSubtitle": "Управляйте и защищайте свою семью",
+  "childSignIn": "Войти",
+  "childAuthTitle": "Привет!",
+  "childAuthSubtitle": "Спросите у родителя данные для входа",
+  "childNavSettings": "Настройки",
+  "childProfile": "Профиль",
+  "childSettingsTitle": "Настройки",
+  "childLogout": "Выйти"
 }

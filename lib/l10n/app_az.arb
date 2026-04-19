@@ -208,5 +208,19 @@
   "fri": "CÜM",
   "sat": "ŞƏN",
   "sun": "BAZ",
-  "over": "AŞILDI"
+  "over": "AŞILDI",
+  "onboardingTitle": "Xoş gəlmisiniz!",
+  "onboardingSubtitle": "Siz kimsiniz?",
+  "iAmParent": "Mən valideynəm",
+  "iAmChild": "Mən uşağam",
+  "parentSignIn": "Daxil ol",
+  "parentCreateAccount": "Hesab yarat",
+  "parentAuthSubtitle": "Ailənizi idarə edin və qoruyun",
+  "childSignIn": "Daxil ol",
+  "childAuthTitle": "Salam!",
+  "childAuthSubtitle": "Giriş məlumatlarını valideyninizdən alın",
+  "childNavSettings": "Parametrlər",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Parametrlər",
+  "childLogout": "Çıxış"
 }

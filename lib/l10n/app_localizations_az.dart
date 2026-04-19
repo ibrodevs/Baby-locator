@@ -697,4 +697,46 @@ class SAz extends S {
 
   @override
   String get over => 'AŞILDI';
+
+  @override
+  String get onboardingTitle => 'Xoş gəlmisiniz!';
+
+  @override
+  String get onboardingSubtitle => 'Siz kimsiniz?';
+
+  @override
+  String get iAmParent => 'Mən valideynəm';
+
+  @override
+  String get iAmChild => 'Mən uşağam';
+
+  @override
+  String get parentSignIn => 'Daxil ol';
+
+  @override
+  String get parentCreateAccount => 'Hesab yarat';
+
+  @override
+  String get parentAuthSubtitle => 'Ailənizi idarə edin və qoruyun';
+
+  @override
+  String get childSignIn => 'Daxil ol';
+
+  @override
+  String get childAuthTitle => 'Salam!';
+
+  @override
+  String get childAuthSubtitle => 'Giriş məlumatlarını valideyninizdən alın';
+
+  @override
+  String get childNavSettings => 'Parametrlər';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Parametrlər';
+
+  @override
+  String get childLogout => 'Çıxış';
 }

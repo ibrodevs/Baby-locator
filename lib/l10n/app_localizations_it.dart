@@ -700,4 +700,46 @@ class SIt extends S {
 
   @override
   String get over => 'SUPERATO';
+
+  @override
+  String get onboardingTitle => 'Benvenuto!';
+
+  @override
+  String get onboardingSubtitle => 'Chi sei?';
+
+  @override
+  String get iAmParent => 'Sono un genitore';
+
+  @override
+  String get iAmChild => 'Sono un bambino';
+
+  @override
+  String get parentSignIn => 'Accedi';
+
+  @override
+  String get parentCreateAccount => 'Crea account';
+
+  @override
+  String get parentAuthSubtitle => 'Gestisci e proteggi la tua famiglia';
+
+  @override
+  String get childSignIn => 'Accedi';
+
+  @override
+  String get childAuthTitle => 'Ciao!';
+
+  @override
+  String get childAuthSubtitle => 'Chiedi al tuo genitore i dati di accesso';
+
+  @override
+  String get childNavSettings => 'Impostazioni';
+
+  @override
+  String get childProfile => 'Profilo';
+
+  @override
+  String get childSettingsTitle => 'Impostazioni';
+
+  @override
+  String get childLogout => 'Esci';
 }

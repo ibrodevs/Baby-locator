@@ -199,5 +199,19 @@
   "fri": "პარ",
   "sat": "შაბ",
   "sun": "კვი",
-  "over": "გადაცილებულია"
+  "over": "გადაცილებულია",
+  "onboardingTitle": "კეთილი იყოს თქვენი მობრძანება!",
+  "onboardingSubtitle": "ვინ ხარ?",
+  "iAmParent": "მე მშობელი ვარ",
+  "iAmChild": "მე ბავშვი ვარ",
+  "parentSignIn": "შესვლა",
+  "parentCreateAccount": "ანგარიშის შექმნა",
+  "parentAuthSubtitle": "მართეთ და დაიცავით თქვენი ოჯახი",
+  "childSignIn": "შესვლა",
+  "childAuthTitle": "გამარჯობა!",
+  "childAuthSubtitle": "შესასვლელი მონაცემები მშობელს ჰკითხე",
+  "childNavSettings": "პარამეტრები",
+  "childProfile": "პროფილი",
+  "childSettingsTitle": "პარამეტრები",
+  "childLogout": "გასვლა"
 }

@@ -208,5 +208,19 @@
   "fri": "SEX",
   "sat": "SÁB",
   "sun": "DOM",
-  "over": "EXCEDIDO"
+  "over": "EXCEDIDO",
+  "onboardingTitle": "Bem-vindo!",
+  "onboardingSubtitle": "Quem é você?",
+  "iAmParent": "Sou responsável",
+  "iAmChild": "Sou uma criança",
+  "parentSignIn": "Entrar",
+  "parentCreateAccount": "Criar conta",
+  "parentAuthSubtitle": "Gerencie e proteja sua família",
+  "childSignIn": "Entrar",
+  "childAuthTitle": "Olá!",
+  "childAuthSubtitle": "Peça ao seu responsável seus dados de acesso",
+  "childNavSettings": "Configurações",
+  "childProfile": "Perfil",
+  "childSettingsTitle": "Configurações",
+  "childLogout": "Sair"
 }

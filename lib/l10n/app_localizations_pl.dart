@@ -697,4 +697,46 @@ class SPl extends S {
 
   @override
   String get over => 'PRZEKR.';
+
+  @override
+  String get onboardingTitle => 'Witamy!';
+
+  @override
+  String get onboardingSubtitle => 'Kim jesteś?';
+
+  @override
+  String get iAmParent => 'Jestem rodzicem';
+
+  @override
+  String get iAmChild => 'Jestem dzieckiem';
+
+  @override
+  String get parentSignIn => 'Zaloguj się';
+
+  @override
+  String get parentCreateAccount => 'Utwórz konto';
+
+  @override
+  String get parentAuthSubtitle => 'Zarządzaj i chroń swoją rodzinę';
+
+  @override
+  String get childSignIn => 'Zaloguj się';
+
+  @override
+  String get childAuthTitle => 'Cześć!';
+
+  @override
+  String get childAuthSubtitle => 'Poproś rodzica o dane logowania';
+
+  @override
+  String get childNavSettings => 'Ustawienia';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Ustawienia';
+
+  @override
+  String get childLogout => 'Wyloguj się';
 }

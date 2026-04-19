@@ -208,5 +208,19 @@
   "fri": "VIE",
   "sat": "SÁB",
   "sun": "DOM",
-  "over": "SUPERADO"
+  "over": "SUPERADO",
+  "onboardingTitle": "¡Bienvenido!",
+  "onboardingSubtitle": "¿Quién eres?",
+  "iAmParent": "Soy madre o padre",
+  "iAmChild": "Soy un niño",
+  "parentSignIn": "Iniciar sesión",
+  "parentCreateAccount": "Crear cuenta",
+  "parentAuthSubtitle": "Administra y protege a tu familia",
+  "childSignIn": "Iniciar sesión",
+  "childAuthTitle": "¡Hola!",
+  "childAuthSubtitle": "Pide a tu madre o padre tus datos de acceso",
+  "childNavSettings": "Ajustes",
+  "childProfile": "Perfil",
+  "childSettingsTitle": "Ajustes",
+  "childLogout": "Cerrar sesión"
 }

@@ -199,5 +199,19 @@
   "fri": "JU",
   "sat": "SH",
   "sun": "YA",
-  "over": "OSHGAN"
+  "over": "OSHGAN",
+  "onboardingTitle": "Xush kelibsiz!",
+  "onboardingSubtitle": "Siz kimsiz?",
+  "iAmParent": "Men ota-onaman",
+  "iAmChild": "Men farzandman",
+  "parentSignIn": "Kirish",
+  "parentCreateAccount": "Hisob yaratish",
+  "parentAuthSubtitle": "Oilangizni boshqaring va himoya qiling",
+  "childSignIn": "Kirish",
+  "childAuthTitle": "Salom!",
+  "childAuthSubtitle": "Kirish ma'lumotlarini ota-onangizdan so'rang",
+  "childNavSettings": "Sozlamalar",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Sozlamalar",
+  "childLogout": "Chiqish"
 }

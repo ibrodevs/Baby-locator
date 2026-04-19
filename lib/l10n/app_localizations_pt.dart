@@ -700,4 +700,47 @@ class SPt extends S {
 
   @override
   String get over => 'EXCEDIDO';
+
+  @override
+  String get onboardingTitle => 'Bem-vindo!';
+
+  @override
+  String get onboardingSubtitle => 'Quem é você?';
+
+  @override
+  String get iAmParent => 'Sou responsável';
+
+  @override
+  String get iAmChild => 'Sou uma criança';
+
+  @override
+  String get parentSignIn => 'Entrar';
+
+  @override
+  String get parentCreateAccount => 'Criar conta';
+
+  @override
+  String get parentAuthSubtitle => 'Gerencie e proteja sua família';
+
+  @override
+  String get childSignIn => 'Entrar';
+
+  @override
+  String get childAuthTitle => 'Olá!';
+
+  @override
+  String get childAuthSubtitle =>
+      'Peça ao seu responsável seus dados de acesso';
+
+  @override
+  String get childNavSettings => 'Configurações';
+
+  @override
+  String get childProfile => 'Perfil';
+
+  @override
+  String get childSettingsTitle => 'Configurações';
+
+  @override
+  String get childLogout => 'Sair';
 }

@@ -1326,6 +1326,90 @@ abstract class S {
   /// In en, this message translates to:
   /// **'OVER'**
   String get over;
+
+  /// No description provided for @onboardingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome!'**
+  String get onboardingTitle;
+
+  /// No description provided for @onboardingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you?'**
+  String get onboardingSubtitle;
+
+  /// No description provided for @iAmParent.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a Parent'**
+  String get iAmParent;
+
+  /// No description provided for @iAmChild.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'m a Child'**
+  String get iAmChild;
+
+  /// No description provided for @parentSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get parentSignIn;
+
+  /// No description provided for @parentCreateAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Account'**
+  String get parentCreateAccount;
+
+  /// No description provided for @parentAuthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage and protect your family'**
+  String get parentAuthSubtitle;
+
+  /// No description provided for @childSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get childSignIn;
+
+  /// No description provided for @childAuthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hey there!'**
+  String get childAuthTitle;
+
+  /// No description provided for @childAuthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your parent for your login details'**
+  String get childAuthSubtitle;
+
+  /// No description provided for @childNavSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get childNavSettings;
+
+  /// No description provided for @childProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get childProfile;
+
+  /// No description provided for @childSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get childSettingsTitle;
+
+  /// No description provided for @childLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out'**
+  String get childLogout;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -208,5 +208,19 @@
   "fri": "FR",
   "sat": "SA",
   "sun": "SO",
-  "over": "ÜBERSCHRITTEN"
+  "over": "ÜBERSCHRITTEN",
+  "onboardingTitle": "Willkommen!",
+  "onboardingSubtitle": "Wer bist du?",
+  "iAmParent": "Ich bin ein Elternteil",
+  "iAmChild": "Ich bin ein Kind",
+  "parentSignIn": "Anmelden",
+  "parentCreateAccount": "Konto erstellen",
+  "parentAuthSubtitle": "Verwalte und schütze deine Familie",
+  "childSignIn": "Anmelden",
+  "childAuthTitle": "Hallo!",
+  "childAuthSubtitle": "Frag deine Eltern nach deinen Anmeldedaten",
+  "childNavSettings": "Einstellungen",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Einstellungen",
+  "childLogout": "Abmelden"
 }

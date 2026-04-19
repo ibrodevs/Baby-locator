@@ -208,5 +208,19 @@
   "fri": "الجم",
   "sat": "السب",
   "sun": "الأح",
-  "over": "تجاوز"
+  "over": "تجاوز",
+  "onboardingTitle": "أهلاً بك!",
+  "onboardingSubtitle": "من أنت؟",
+  "iAmParent": "أنا ولي أمر",
+  "iAmChild": "أنا طفل",
+  "parentSignIn": "تسجيل الدخول",
+  "parentCreateAccount": "إنشاء حساب",
+  "parentAuthSubtitle": "أدِر عائلتك واحمها",
+  "childSignIn": "تسجيل الدخول",
+  "childAuthTitle": "مرحباً!",
+  "childAuthSubtitle": "اطلب من ولي أمرك بيانات تسجيل الدخول",
+  "childNavSettings": "الإعدادات",
+  "childProfile": "الملف الشخصي",
+  "childSettingsTitle": "الإعدادات",
+  "childLogout": "تسجيل الخروج"
 }

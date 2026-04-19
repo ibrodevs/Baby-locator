@@ -690,4 +690,46 @@ class SAr extends S {
 
   @override
   String get over => 'تجاوز';
+
+  @override
+  String get onboardingTitle => 'أهلاً بك!';
+
+  @override
+  String get onboardingSubtitle => 'من أنت؟';
+
+  @override
+  String get iAmParent => 'أنا ولي أمر';
+
+  @override
+  String get iAmChild => 'أنا طفل';
+
+  @override
+  String get parentSignIn => 'تسجيل الدخول';
+
+  @override
+  String get parentCreateAccount => 'إنشاء حساب';
+
+  @override
+  String get parentAuthSubtitle => 'أدِر عائلتك واحمها';
+
+  @override
+  String get childSignIn => 'تسجيل الدخول';
+
+  @override
+  String get childAuthTitle => 'مرحباً!';
+
+  @override
+  String get childAuthSubtitle => 'اطلب من ولي أمرك بيانات تسجيل الدخول';
+
+  @override
+  String get childNavSettings => 'الإعدادات';
+
+  @override
+  String get childProfile => 'الملف الشخصي';
+
+  @override
+  String get childSettingsTitle => 'الإعدادات';
+
+  @override
+  String get childLogout => 'تسجيل الخروج';
 }

@@ -696,4 +696,46 @@ class SKk extends S {
 
   @override
   String get over => 'АСЫП КЕТТІ';
+
+  @override
+  String get onboardingTitle => 'Қош келдіңіз!';
+
+  @override
+  String get onboardingSubtitle => 'Сіз кімсіз?';
+
+  @override
+  String get iAmParent => 'Мен ата-анамын';
+
+  @override
+  String get iAmChild => 'Мен баламын';
+
+  @override
+  String get parentSignIn => 'Кіру';
+
+  @override
+  String get parentCreateAccount => 'Тіркелгі жасау';
+
+  @override
+  String get parentAuthSubtitle => 'Отбасыңызды басқарып, қорғаңыз';
+
+  @override
+  String get childSignIn => 'Кіру';
+
+  @override
+  String get childAuthTitle => 'Сәлем!';
+
+  @override
+  String get childAuthSubtitle => 'Кіру деректерін ата-анаңыздан сұраңыз';
+
+  @override
+  String get childNavSettings => 'Параметрлер';
+
+  @override
+  String get childProfile => 'Профиль';
+
+  @override
+  String get childSettingsTitle => 'Параметрлер';
+
+  @override
+  String get childLogout => 'Шығу';
 }

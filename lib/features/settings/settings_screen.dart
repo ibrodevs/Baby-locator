@@ -11,6 +11,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/device_notification_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_language_sheet.dart';
 import '../../core/widgets/brand_header.dart';
 import '../parent/children_list_screen.dart';
 
@@ -127,14 +128,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _selectLanguage() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (_) => const _LanguageSheet(),
-    );
+    await showAppLanguageSheet(context);
   }
 
   @override
@@ -701,106 +695,6 @@ class _SettingsSwitchRow extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _LanguageSheet extends ConsumerWidget {
-  const _LanguageSheet();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final t = S.of(context);
-    final selectedLocale = ref.watch(appLocaleProvider);
-
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              t.language,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 12),
-            _LanguageOptionTile(
-              title: t.systemDefault,
-              subtitle: null,
-              selected: selectedLocale == null,
-              onTap: () async {
-                await ref.read(appLocaleProvider.notifier).setLocale(null);
-                if (context.mounted) Navigator.of(context).pop();
-              },
-            ),
-            const SizedBox(height: 8),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                itemCount: appLanguageOptions.length,
-                separatorBuilder: (_, __) =>
-                    const Divider(height: 1, color: AppColors.dividerLight),
-                itemBuilder: (context, index) {
-                  final option = appLanguageOptions[index];
-                  final selected = selectedLocale != null &&
-                      localeMatches(selectedLocale, option.locale);
-                  final subtitle = option.englishName == option.nativeName
-                      ? null
-                      : option.englishName;
-                  return _LanguageOptionTile(
-                    title: option.nativeName,
-                    subtitle: subtitle,
-                    selected: selected,
-                    onTap: () async {
-                      await ref
-                          .read(appLocaleProvider.notifier)
-                          .setLocale(option.locale);
-                      if (context.mounted) Navigator.of(context).pop();
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LanguageOptionTile extends StatelessWidget {
-  const _LanguageOptionTile({
-    required this.title,
-    required this.subtitle,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String title;
-  final String? subtitle;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      title: Text(
-        title,
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle!,
-              style: const TextStyle(color: AppColors.textSecondaryLight),
-            ),
-      trailing: selected
-          ? const Icon(Icons.check_rounded, color: AppColors.primary)
-          : null,
     );
   }
 }

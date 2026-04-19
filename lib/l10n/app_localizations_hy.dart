@@ -702,4 +702,46 @@ class SHy extends S {
 
   @override
   String get over => 'ԳԵՐԱԶԱՆՑՎԱԾ';
+
+  @override
+  String get onboardingTitle => 'Բարի գալուստ!';
+
+  @override
+  String get onboardingSubtitle => 'Ո՞վ եք դուք։';
+
+  @override
+  String get iAmParent => 'Ես ծնող եմ';
+
+  @override
+  String get iAmChild => 'Ես երեխա եմ';
+
+  @override
+  String get parentSignIn => 'Մուտք գործել';
+
+  @override
+  String get parentCreateAccount => 'Ստեղծել հաշիվ';
+
+  @override
+  String get parentAuthSubtitle => 'Կառավարեք և պաշտպանեք ձեր ընտանիքը';
+
+  @override
+  String get childSignIn => 'Մուտք գործել';
+
+  @override
+  String get childAuthTitle => 'Բարև՛։';
+
+  @override
+  String get childAuthSubtitle => 'Խնդրեք ձեր ծնողից մուտքի տվյալները';
+
+  @override
+  String get childNavSettings => 'Կարգավորումներ';
+
+  @override
+  String get childProfile => 'Պրոֆիլ';
+
+  @override
+  String get childSettingsTitle => 'Կարգավորումներ';
+
+  @override
+  String get childLogout => 'Դուրս գալ';
 }

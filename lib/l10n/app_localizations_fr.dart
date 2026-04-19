@@ -702,4 +702,47 @@ class SFr extends S {
 
   @override
   String get over => 'DÉPASSÉ';
+
+  @override
+  String get onboardingTitle => 'Bienvenue !';
+
+  @override
+  String get onboardingSubtitle => 'Qui es-tu ?';
+
+  @override
+  String get iAmParent => 'Je suis un parent';
+
+  @override
+  String get iAmChild => 'Je suis un enfant';
+
+  @override
+  String get parentSignIn => 'Se connecter';
+
+  @override
+  String get parentCreateAccount => 'Créer un compte';
+
+  @override
+  String get parentAuthSubtitle => 'Gérez et protégez votre famille';
+
+  @override
+  String get childSignIn => 'Se connecter';
+
+  @override
+  String get childAuthTitle => 'Salut !';
+
+  @override
+  String get childAuthSubtitle =>
+      'Demande à ton parent tes identifiants de connexion';
+
+  @override
+  String get childNavSettings => 'Paramètres';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Paramètres';
+
+  @override
+  String get childLogout => 'Se déconnecter';
 }

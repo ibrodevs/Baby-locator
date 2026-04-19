@@ -696,4 +696,46 @@ class SKa extends S {
 
   @override
   String get over => 'გადაცილებულია';
+
+  @override
+  String get onboardingTitle => 'კეთილი იყოს თქვენი მობრძანება!';
+
+  @override
+  String get onboardingSubtitle => 'ვინ ხარ?';
+
+  @override
+  String get iAmParent => 'მე მშობელი ვარ';
+
+  @override
+  String get iAmChild => 'მე ბავშვი ვარ';
+
+  @override
+  String get parentSignIn => 'შესვლა';
+
+  @override
+  String get parentCreateAccount => 'ანგარიშის შექმნა';
+
+  @override
+  String get parentAuthSubtitle => 'მართეთ და დაიცავით თქვენი ოჯახი';
+
+  @override
+  String get childSignIn => 'შესვლა';
+
+  @override
+  String get childAuthTitle => 'გამარჯობა!';
+
+  @override
+  String get childAuthSubtitle => 'შესასვლელი მონაცემები მშობელს ჰკითხე';
+
+  @override
+  String get childNavSettings => 'პარამეტრები';
+
+  @override
+  String get childProfile => 'პროფილი';
+
+  @override
+  String get childSettingsTitle => 'პარამეტრები';
+
+  @override
+  String get childLogout => 'გასვლა';
 }

@@ -208,5 +208,19 @@
   "fri": "ЖМ",
   "sat": "СБ",
   "sun": "ЖС",
-  "over": "АСЫП КЕТТІ"
+  "over": "АСЫП КЕТТІ",
+  "onboardingTitle": "Қош келдіңіз!",
+  "onboardingSubtitle": "Сіз кімсіз?",
+  "iAmParent": "Мен ата-анамын",
+  "iAmChild": "Мен баламын",
+  "parentSignIn": "Кіру",
+  "parentCreateAccount": "Тіркелгі жасау",
+  "parentAuthSubtitle": "Отбасыңызды басқарып, қорғаңыз",
+  "childSignIn": "Кіру",
+  "childAuthTitle": "Сәлем!",
+  "childAuthSubtitle": "Кіру деректерін ата-анаңыздан сұраңыз",
+  "childNavSettings": "Параметрлер",
+  "childProfile": "Профиль",
+  "childSettingsTitle": "Параметрлер",
+  "childLogout": "Шығу"
 }

@@ -701,4 +701,46 @@ class STg extends S {
 
   @override
   String get over => 'ЗИЁД';
+
+  @override
+  String get onboardingTitle => 'Хуш омадед!';
+
+  @override
+  String get onboardingSubtitle => 'Шумо кистед?';
+
+  @override
+  String get iAmParent => 'Ман волидайн ҳастам';
+
+  @override
+  String get iAmChild => 'Ман кӯдак ҳастам';
+
+  @override
+  String get parentSignIn => 'Ворид шудан';
+
+  @override
+  String get parentCreateAccount => 'Эҷоди ҳисоб';
+
+  @override
+  String get parentAuthSubtitle => 'Оилаи худро идора ва муҳофизат кунед';
+
+  @override
+  String get childSignIn => 'Ворид шудан';
+
+  @override
+  String get childAuthTitle => 'Салом!';
+
+  @override
+  String get childAuthSubtitle => 'Маълумоти воридшавиро аз волидатон пурсед';
+
+  @override
+  String get childNavSettings => 'Танзимот';
+
+  @override
+  String get childProfile => 'Профил';
+
+  @override
+  String get childSettingsTitle => 'Танзимот';
+
+  @override
+  String get childLogout => 'Баромадан';
 }

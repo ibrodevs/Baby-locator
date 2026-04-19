@@ -243,5 +243,20 @@
   "fri": "FRI",
   "sat": "SAT",
   "sun": "SUN",
-  "over": "OVER"
+  "over": "OVER",
+
+  "onboardingTitle": "Welcome!",
+  "onboardingSubtitle": "Who are you?",
+  "iAmParent": "I'm a Parent",
+  "iAmChild": "I'm a Child",
+  "parentSignIn": "Sign In",
+  "parentCreateAccount": "Create Account",
+  "parentAuthSubtitle": "Manage and protect your family",
+  "childSignIn": "Sign In",
+  "childAuthTitle": "Hey there!",
+  "childAuthSubtitle": "Ask your parent for your login details",
+  "childNavSettings": "Settings",
+  "childProfile": "Profile",
+  "childSettingsTitle": "Settings",
+  "childLogout": "Log Out"
 }

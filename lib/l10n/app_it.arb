@@ -208,5 +208,19 @@
   "fri": "VEN",
   "sat": "SAB",
   "sun": "DOM",
-  "over": "SUPERATO"
+  "over": "SUPERATO",
+  "onboardingTitle": "Benvenuto!",
+  "onboardingSubtitle": "Chi sei?",
+  "iAmParent": "Sono un genitore",
+  "iAmChild": "Sono un bambino",
+  "parentSignIn": "Accedi",
+  "parentCreateAccount": "Crea account",
+  "parentAuthSubtitle": "Gestisci e proteggi la tua famiglia",
+  "childSignIn": "Accedi",
+  "childAuthTitle": "Ciao!",
+  "childAuthSubtitle": "Chiedi al tuo genitore i dati di accesso",
+  "childNavSettings": "Impostazioni",
+  "childProfile": "Profilo",
+  "childSettingsTitle": "Impostazioni",
+  "childLogout": "Esci"
 }

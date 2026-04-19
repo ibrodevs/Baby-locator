@@ -692,4 +692,46 @@ class SEn extends S {
 
   @override
   String get over => 'OVER';
+
+  @override
+  String get onboardingTitle => 'Welcome!';
+
+  @override
+  String get onboardingSubtitle => 'Who are you?';
+
+  @override
+  String get iAmParent => 'I\'m a Parent';
+
+  @override
+  String get iAmChild => 'I\'m a Child';
+
+  @override
+  String get parentSignIn => 'Sign In';
+
+  @override
+  String get parentCreateAccount => 'Create Account';
+
+  @override
+  String get parentAuthSubtitle => 'Manage and protect your family';
+
+  @override
+  String get childSignIn => 'Sign In';
+
+  @override
+  String get childAuthTitle => 'Hey there!';
+
+  @override
+  String get childAuthSubtitle => 'Ask your parent for your login details';
+
+  @override
+  String get childNavSettings => 'Settings';
+
+  @override
+  String get childProfile => 'Profile';
+
+  @override
+  String get childSettingsTitle => 'Settings';
+
+  @override
+  String get childLogout => 'Log Out';
 }

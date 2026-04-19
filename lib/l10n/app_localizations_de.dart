@@ -701,4 +701,46 @@ class SDe extends S {
 
   @override
   String get over => 'ÜBERSCHRITTEN';
+
+  @override
+  String get onboardingTitle => 'Willkommen!';
+
+  @override
+  String get onboardingSubtitle => 'Wer bist du?';
+
+  @override
+  String get iAmParent => 'Ich bin ein Elternteil';
+
+  @override
+  String get iAmChild => 'Ich bin ein Kind';
+
+  @override
+  String get parentSignIn => 'Anmelden';
+
+  @override
+  String get parentCreateAccount => 'Konto erstellen';
+
+  @override
+  String get parentAuthSubtitle => 'Verwalte und schütze deine Familie';
+
+  @override
+  String get childSignIn => 'Anmelden';
+
+  @override
+  String get childAuthTitle => 'Hallo!';
+
+  @override
+  String get childAuthSubtitle => 'Frag deine Eltern nach deinen Anmeldedaten';
+
+  @override
+  String get childNavSettings => 'Einstellungen';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Einstellungen';
+
+  @override
+  String get childLogout => 'Abmelden';
 }

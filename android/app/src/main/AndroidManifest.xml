@@ -50,6 +50,7 @@
             android:name="id.flutter.flutter_background_service.BackgroundService"
             android:foregroundServiceType="microphone|mediaPlayback"
             android:stopWithTask="false"
+            tools:replace="android:exported"
             android:exported="false" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

@@ -208,5 +208,19 @@
   "fri": "JUM",
   "sat": "ŞEN",
   "sun": "ÝEK",
-  "over": "AŞDY"
+  "over": "AŞDY",
+  "onboardingTitle": "Hoş geldiňiz!",
+  "onboardingSubtitle": "Siz kim?",
+  "iAmParent": "Men ene-ata",
+  "iAmChild": "Men çaga",
+  "parentSignIn": "Giriş",
+  "parentCreateAccount": "Hasap döretmek",
+  "parentAuthSubtitle": "Maşgalaňyzy dolandyryň we goraň",
+  "childSignIn": "Giriş",
+  "childAuthTitle": "Salam!",
+  "childAuthSubtitle": "Giriş maglumatlaryňyzy ene-ataňyzdan soraň",
+  "childNavSettings": "Sazlamalar",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Sazlamalar",
+  "childLogout": "Çykmak"
 }

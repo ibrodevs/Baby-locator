@@ -4,6 +4,7 @@ import 'package:kid_security/l10n/app_localizations.dart';
 import '../../core/theme/app_colors.dart';
 import '../chat/chat_screen.dart';
 import 'child_home_screen.dart';
+import 'child_settings_screen.dart';
 
 class ChildRootScreen extends StatefulWidget {
   const ChildRootScreen({super.key});
@@ -23,6 +24,7 @@ class _ChildRootScreenState extends State<ChildRootScreen> {
         children: const [
           ChildHomeScreen(),
           ChatScreen(),
+          ChildSettingsScreen(),
         ],
       ),
       bottomNavigationBar: Container(
@@ -47,6 +49,12 @@ class _ChildRootScreenState extends State<ChildRootScreen> {
                   label: t.navChat,
                   selected: _index == 1,
                   onTap: () => setState(() => _index = 1),
+                ),
+                _NavItem(
+                  icon: Icons.settings_rounded,
+                  label: t.childNavSettings,
+                  selected: _index == 2,
+                  onTap: () => setState(() => _index = 2),
                 ),
               ],
             ),

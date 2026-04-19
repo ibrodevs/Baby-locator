@@ -696,4 +696,46 @@ class SEs extends S {
 
   @override
   String get over => 'SUPERADO';
+
+  @override
+  String get onboardingTitle => '¡Bienvenido!';
+
+  @override
+  String get onboardingSubtitle => '¿Quién eres?';
+
+  @override
+  String get iAmParent => 'Soy madre o padre';
+
+  @override
+  String get iAmChild => 'Soy un niño';
+
+  @override
+  String get parentSignIn => 'Iniciar sesión';
+
+  @override
+  String get parentCreateAccount => 'Crear cuenta';
+
+  @override
+  String get parentAuthSubtitle => 'Administra y protege a tu familia';
+
+  @override
+  String get childSignIn => 'Iniciar sesión';
+
+  @override
+  String get childAuthTitle => '¡Hola!';
+
+  @override
+  String get childAuthSubtitle => 'Pide a tu madre o padre tus datos de acceso';
+
+  @override
+  String get childNavSettings => 'Ajustes';
+
+  @override
+  String get childProfile => 'Perfil';
+
+  @override
+  String get childSettingsTitle => 'Ajustes';
+
+  @override
+  String get childLogout => 'Cerrar sesión';
 }

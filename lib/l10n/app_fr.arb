@@ -208,5 +208,19 @@
   "fri": "VEN",
   "sat": "SAM",
   "sun": "DIM",
-  "over": "DÉPASSÉ"
+  "over": "DÉPASSÉ",
+  "onboardingTitle": "Bienvenue !",
+  "onboardingSubtitle": "Qui es-tu ?",
+  "iAmParent": "Je suis un parent",
+  "iAmChild": "Je suis un enfant",
+  "parentSignIn": "Se connecter",
+  "parentCreateAccount": "Créer un compte",
+  "parentAuthSubtitle": "Gérez et protégez votre famille",
+  "childSignIn": "Se connecter",
+  "childAuthTitle": "Salut !",
+  "childAuthSubtitle": "Demande à ton parent tes identifiants de connexion",
+  "childNavSettings": "Paramètres",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Paramètres",
+  "childLogout": "Se déconnecter"
 }

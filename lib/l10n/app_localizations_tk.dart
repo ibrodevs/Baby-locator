@@ -695,4 +695,46 @@ class STk extends S {
 
   @override
   String get over => 'AŞDY';
+
+  @override
+  String get onboardingTitle => 'Hoş geldiňiz!';
+
+  @override
+  String get onboardingSubtitle => 'Siz kim?';
+
+  @override
+  String get iAmParent => 'Men ene-ata';
+
+  @override
+  String get iAmChild => 'Men çaga';
+
+  @override
+  String get parentSignIn => 'Giriş';
+
+  @override
+  String get parentCreateAccount => 'Hasap döretmek';
+
+  @override
+  String get parentAuthSubtitle => 'Maşgalaňyzy dolandyryň we goraň';
+
+  @override
+  String get childSignIn => 'Giriş';
+
+  @override
+  String get childAuthTitle => 'Salam!';
+
+  @override
+  String get childAuthSubtitle => 'Giriş maglumatlaryňyzy ene-ataňyzdan soraň';
+
+  @override
+  String get childNavSettings => 'Sazlamalar';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Sazlamalar';
+
+  @override
+  String get childLogout => 'Çykmak';
 }

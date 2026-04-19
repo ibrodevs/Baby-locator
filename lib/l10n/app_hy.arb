@@ -199,5 +199,19 @@
   "fri": "ՈւՐ",
   "sat": "ՇԲ",
   "sun": "ԿԻ",
-  "over": "ԳԵՐԱԶԱՆՑՎԱԾ"
+  "over": "ԳԵՐԱԶԱՆՑՎԱԾ",
+  "onboardingTitle": "Բարի գալուստ!",
+  "onboardingSubtitle": "Ո՞վ եք դուք։",
+  "iAmParent": "Ես ծնող եմ",
+  "iAmChild": "Ես երեխա եմ",
+  "parentSignIn": "Մուտք գործել",
+  "parentCreateAccount": "Ստեղծել հաշիվ",
+  "parentAuthSubtitle": "Կառավարեք և պաշտպանեք ձեր ընտանիքը",
+  "childSignIn": "Մուտք գործել",
+  "childAuthTitle": "Բարև՛։",
+  "childAuthSubtitle": "Խնդրեք ձեր ծնողից մուտքի տվյալները",
+  "childNavSettings": "Կարգավորումներ",
+  "childProfile": "Պրոֆիլ",
+  "childSettingsTitle": "Կարգավորումներ",
+  "childLogout": "Դուրս գալ"
 }

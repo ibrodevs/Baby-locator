@@ -208,5 +208,19 @@
   "fri": "PT",
   "sat": "SOB",
   "sun": "NIE",
-  "over": "PRZEKR."
+  "over": "PRZEKR.",
+  "onboardingTitle": "Witamy!",
+  "onboardingSubtitle": "Kim jesteś?",
+  "iAmParent": "Jestem rodzicem",
+  "iAmChild": "Jestem dzieckiem",
+  "parentSignIn": "Zaloguj się",
+  "parentCreateAccount": "Utwórz konto",
+  "parentAuthSubtitle": "Zarządzaj i chroń swoją rodzinę",
+  "childSignIn": "Zaloguj się",
+  "childAuthTitle": "Cześć!",
+  "childAuthSubtitle": "Poproś rodzica o dane logowania",
+  "childNavSettings": "Ustawienia",
+  "childProfile": "Profil",
+  "childSettingsTitle": "Ustawienia",
+  "childLogout": "Wyloguj się"
 }

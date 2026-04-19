@@ -699,4 +699,46 @@ class SKy extends S {
 
   @override
   String get over => 'АШЫП КЕТТИ';
+
+  @override
+  String get onboardingTitle => 'Кош келиңиз!';
+
+  @override
+  String get onboardingSubtitle => 'Сиз кимсиз?';
+
+  @override
+  String get iAmParent => 'Мен ата-энемин';
+
+  @override
+  String get iAmChild => 'Мен баламын';
+
+  @override
+  String get parentSignIn => 'Кирүү';
+
+  @override
+  String get parentCreateAccount => 'Аккаунт түзүү';
+
+  @override
+  String get parentAuthSubtitle => 'Үй-бүлөңүздү башкарып жана коргоңуз';
+
+  @override
+  String get childSignIn => 'Кирүү';
+
+  @override
+  String get childAuthTitle => 'Салам!';
+
+  @override
+  String get childAuthSubtitle => 'Кирүү маалыматыңызды ата-энеңизден сураңыз';
+
+  @override
+  String get childNavSettings => 'Жөндөөлөр';
+
+  @override
+  String get childProfile => 'Профиль';
+
+  @override
+  String get childSettingsTitle => 'Жөндөөлөр';
+
+  @override
+  String get childLogout => 'Чыгуу';
 }

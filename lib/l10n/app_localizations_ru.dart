@@ -698,4 +698,46 @@ class SRu extends S {
 
   @override
   String get over => 'ПРЕВЫШЕН';
+
+  @override
+  String get onboardingTitle => 'Добро пожаловать!';
+
+  @override
+  String get onboardingSubtitle => 'Кто вы?';
+
+  @override
+  String get iAmParent => 'Я родитель';
+
+  @override
+  String get iAmChild => 'Я ребёнок';
+
+  @override
+  String get parentSignIn => 'Войти';
+
+  @override
+  String get parentCreateAccount => 'Создать аккаунт';
+
+  @override
+  String get parentAuthSubtitle => 'Управляйте и защищайте свою семью';
+
+  @override
+  String get childSignIn => 'Войти';
+
+  @override
+  String get childAuthTitle => 'Привет!';
+
+  @override
+  String get childAuthSubtitle => 'Спросите у родителя данные для входа';
+
+  @override
+  String get childNavSettings => 'Настройки';
+
+  @override
+  String get childProfile => 'Профиль';
+
+  @override
+  String get childSettingsTitle => 'Настройки';
+
+  @override
+  String get childLogout => 'Выйти';
 }

@@ -208,5 +208,19 @@
   "fri": "ҶМ",
   "sat": "ШБ",
   "sun": "ЯШ",
-  "over": "ЗИЁД"
+  "over": "ЗИЁД",
+  "onboardingTitle": "Хуш омадед!",
+  "onboardingSubtitle": "Шумо кистед?",
+  "iAmParent": "Ман волидайн ҳастам",
+  "iAmChild": "Ман кӯдак ҳастам",
+  "parentSignIn": "Ворид шудан",
+  "parentCreateAccount": "Эҷоди ҳисоб",
+  "parentAuthSubtitle": "Оилаи худро идора ва муҳофизат кунед",
+  "childSignIn": "Ворид шудан",
+  "childAuthTitle": "Салом!",
+  "childAuthSubtitle": "Маълумоти воридшавиро аз волидатон пурсед",
+  "childNavSettings": "Танзимот",
+  "childProfile": "Профил",
+  "childSettingsTitle": "Танзимот",
+  "childLogout": "Баромадан"
 }

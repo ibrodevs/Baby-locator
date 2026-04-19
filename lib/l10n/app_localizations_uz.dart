@@ -699,4 +699,47 @@ class SUz extends S {
 
   @override
   String get over => 'OSHGAN';
+
+  @override
+  String get onboardingTitle => 'Xush kelibsiz!';
+
+  @override
+  String get onboardingSubtitle => 'Siz kimsiz?';
+
+  @override
+  String get iAmParent => 'Men ota-onaman';
+
+  @override
+  String get iAmChild => 'Men farzandman';
+
+  @override
+  String get parentSignIn => 'Kirish';
+
+  @override
+  String get parentCreateAccount => 'Hisob yaratish';
+
+  @override
+  String get parentAuthSubtitle => 'Oilangizni boshqaring va himoya qiling';
+
+  @override
+  String get childSignIn => 'Kirish';
+
+  @override
+  String get childAuthTitle => 'Salom!';
+
+  @override
+  String get childAuthSubtitle =>
+      'Kirish ma\'lumotlarini ota-onangizdan so\'rang';
+
+  @override
+  String get childNavSettings => 'Sozlamalar';
+
+  @override
+  String get childProfile => 'Profil';
+
+  @override
+  String get childSettingsTitle => 'Sozlamalar';
+
+  @override
+  String get childLogout => 'Chiqish';
 }
