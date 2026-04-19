@@ -223,6 +223,19 @@ class ApiClient {
     return _decode(response) as Map<String, dynamic>;
   }
 
+  // === SOS ===
+  Future<Map<String, dynamic>> sendSos({
+    double? lat,
+    double? lng,
+    String? address,
+  }) async {
+    return await _post('/api/sos/', {
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
+      if (address != null) 'address': address,
+    });
+  }
+
   // === Location ===
   Future<Map<String, dynamic>> shareLocation({
     required double lat,
@@ -374,6 +387,12 @@ class ApiClient {
     });
   }
 
+  Future<Map<String, dynamic>> stopLoud(int childId) async {
+    return await _post('/api/children/$childId/device-commands/', {
+      'command_type': 'loud_stop',
+    });
+  }
+
   Future<Map<String, dynamic>> startAround(int childId) async {
     return await _post('/api/children/$childId/device-commands/', {
       'command_type': 'around_start',
@@ -467,6 +486,11 @@ class ApiClient {
 
   Future<void> markAllAlertsRead() async {
     await _post('/api/alerts/read-all/', {});
+  }
+
+  // === Child Notifications (polling fallback) ===
+  Future<List<dynamic>> childNotifications() async {
+    return (await _get('/api/chat/notifications/')) as List<dynamic>;
   }
 
   // === Chat ===

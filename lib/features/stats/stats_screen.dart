@@ -10,6 +10,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import '../../core/widgets/child_selector_chips.dart';
 import '../settings/settings_screen.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
@@ -399,39 +400,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               ),
             ),
           ),
-          if (_children.length > 1)
-            SizedBox(
-              height: 50,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _children.length,
-                itemBuilder: (_, index) {
-                  final child = _children[index];
-                  final id = child['id'] as int;
-                  final name =
-                      ((child['display_name'] as String?)?.isNotEmpty ?? false)
-                          ? child['display_name'] as String
-                          : child['username'] as String;
-                  final selected = id == _selectedChildId;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(name),
-                      selected: selected,
-                      selectedColor: AppColors.primary,
-                      labelStyle: TextStyle(
-                        color: selected
-                            ? Colors.white
-                            : AppColors.textPrimaryLight,
-                        fontWeight: FontWeight.w700,
-                      ),
-                      onSelected: (_) => _setSelectedChild(id),
-                    ),
-                  );
-                },
-              ),
-            ),
+          ChildSelectorChips(
+            children: _children,
+            selectedChildId: _selectedChildId,
+            onSelected: _setSelectedChild,
+          ),
           Expanded(
             child: _buildBody(selectedDateLabel),
           ),

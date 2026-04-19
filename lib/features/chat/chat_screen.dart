@@ -8,6 +8,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import '../../core/widgets/child_selector_chips.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, this.initialSelectedChildId});
@@ -30,6 +31,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   // ignore: unused_field
   int _starBalance = 0;
   bool _loading = true;
+  bool _didInitialScrollToBottom = false;
   Timer? _poll;
 
   @override
@@ -97,6 +99,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _totalStars = 0;
       _starBalance = 0;
       _loading = true;
+      _didInitialScrollToBottom = false;
     });
     await _loadAll();
   }
@@ -128,7 +131,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _rewards = (results[3] as List<dynamic>).cast<Map<String, dynamic>>();
         _loading = false;
       });
-      if (wasAtBottom || _messages.length <= 1) {
+      if (!_didInitialScrollToBottom) {
+        _didInitialScrollToBottom = true;
+        _scrollToBottom(animated: false);
+      } else if (wasAtBottom || _messages.length <= 1) {
         _scrollToBottom();
       }
     } catch (e) {
@@ -136,14 +142,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool animated = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-        );
+        final offset = _scrollController.position.maxScrollExtent;
+        if (animated) {
+          _scrollController.animateTo(
+            offset,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        } else {
+          _scrollController.jumpTo(offset);
+        }
       }
     });
   }
@@ -497,45 +508,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  GearButton(onTap: () {}),
                 ],
               ),
             ),
 
             // Child selector for parent
-            if (isParent && _children.length > 1)
-              SizedBox(
-                height: 50,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _children.length,
-                  itemBuilder: (_, i) {
-                    final c = _children[i];
-                    final id = c['id'] as int;
-                    final name =
-                        ((c['display_name'] as String?)?.isNotEmpty ?? false)
-                            ? c['display_name'] as String
-                            : c['username'] as String;
-                    final selected = id == _selectedChildId;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(name),
-                        selected: selected,
-                        selectedColor: AppColors.primary,
-                        labelStyle: TextStyle(
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textPrimaryLight,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        onSelected: (_) => _setSelectedChild(id),
-                      ),
-                    );
-                  },
-                ),
+            if (isParent)
+              ChildSelectorChips(
+                children: _children,
+                selectedChildId: _selectedChildId,
+                onSelected: _setSelectedChild,
               ),
 
             // Weekly Rewards Banner

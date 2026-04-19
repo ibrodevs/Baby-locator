@@ -55,6 +55,8 @@
 	<string>Main</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Kid Security uses your location to share with your family.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Kid Security uses your location even in the background so the parent can see where the child is.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Kid Security uses your location in the background to keep your family informed.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -69,6 +71,7 @@
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
+		<string>location</string>
 		<string>processing</string>
 		<string>remote-notification</string>
 	</array>

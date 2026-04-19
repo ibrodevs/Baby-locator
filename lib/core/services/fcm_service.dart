@@ -1,116 +1,86 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:math' as math;
-import 'dart:typed_data';
+import 'dart:ui';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api_client.dart';
 import 'background_command_service.dart';
+
+/// Global navigator key used by the app to push SOS screen from FCM handler.
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// Top-level handler — runs even when the app is killed.
 /// Must be a top-level function (not a class method).
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp();
 
   final data = message.data;
   final commandType = data['command_type'] ?? '';
+  final notificationType = data['notification_type'] ?? '';
 
-  switch (commandType) {
-    case 'loud':
-      // Play alarm directly — no need for background service.
-      await _playLoudAlarm();
-      break;
-    case 'around_start':
-    case 'around_stop':
-      // Start the background service which will poll and handle the command.
-      await startChildBackgroundService();
-      break;
+  // Handle child device commands — always start the background service
+  // which will poll the API and execute commands with proper volume control.
+  if (commandType == 'loud' ||
+      commandType == 'loud_stop' ||
+      commandType == 'around_start' ||
+      commandType == 'around_stop') {
+    await wakeChildBackgroundService();
+  }
+
+  // Handle parent notifications in background — show local notification
+  if (notificationType.isNotEmpty) {
+    await _showBackgroundNotification(message);
   }
 }
 
-/// Plays a loud alarm for 20 seconds. Used from both foreground and background
-/// FCM handlers.
-Future<void> _playLoudAlarm() async {
-  final player = AudioPlayer();
-  try {
-    await player.setReleaseMode(ReleaseMode.loop);
-    await player.setVolume(1.0);
+Future<void> _showBackgroundNotification(RemoteMessage message) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  const initSettings = InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    iOS: DarwinInitializationSettings(),
+  );
+  await plugin.initialize(initSettings);
 
-    final filePath = await _ensureAlarmFile();
-    await player.play(DeviceFileSource(filePath));
+  final notification = message.notification;
+  final title = notification?.title ?? message.data['title'] ?? 'Kid Security';
+  final body = notification?.body ?? message.data['body'] ?? '';
+  final notificationType = message.data['notification_type'] ?? '';
 
-    // Play for 20 seconds then stop.
-    await Future<void>.delayed(const Duration(seconds: 20));
-    await player.stop();
-  } finally {
-    await player.dispose();
-  }
-}
+  String channelId = 'kid_security_activity_alerts';
+  String channelName = 'Kid Security Alerts';
+  Importance importance = Importance.high;
 
-String? _cachedAlarmPath;
-
-Future<String> _ensureAlarmFile() async {
-  if (_cachedAlarmPath != null && await File(_cachedAlarmPath!).exists()) {
-    return _cachedAlarmPath!;
-  }
-  final dir = await getTemporaryDirectory();
-  final file = File('${dir.path}/kid_security_alarm_fcm.wav');
-  await file.writeAsBytes(_buildAlarmWave(), flush: true);
-  _cachedAlarmPath = file.path;
-  return file.path;
-}
-
-Uint8List _buildAlarmWave() {
-  const sampleRate = 44100;
-  const seconds = 2;
-  const channels = 1;
-  const bitsPerSample = 16;
-  const totalSamples = sampleRate * seconds;
-  final data = ByteData(44 + totalSamples * 2);
-
-  void writeString(int offset, String value) {
-    for (var i = 0; i < value.length; i++) {
-      data.setUint8(offset + i, value.codeUnitAt(i));
-    }
+  if (notificationType == 'sos') {
+    channelId = 'kid_security_sos';
+    channelName = 'SOS Alerts';
+    importance = Importance.max;
   }
 
-  const byteRate = sampleRate * channels * bitsPerSample ~/ 8;
-  const blockAlign = channels * bitsPerSample ~/ 8;
-  const dataLength = totalSamples * blockAlign;
-
-  writeString(0, 'RIFF');
-  data.setUint32(4, 36 + dataLength, Endian.little);
-  writeString(8, 'WAVE');
-  writeString(12, 'fmt ');
-  data.setUint32(16, 16, Endian.little);
-  data.setUint16(20, 1, Endian.little);
-  data.setUint16(22, channels, Endian.little);
-  data.setUint32(24, sampleRate, Endian.little);
-  data.setUint32(28, byteRate, Endian.little);
-  data.setUint16(32, blockAlign, Endian.little);
-  data.setUint16(34, bitsPerSample, Endian.little);
-  writeString(36, 'data');
-  data.setUint32(40, dataLength, Endian.little);
-
-  var offset = 44;
-  for (var i = 0; i < totalSamples; i++) {
-    final t = i / sampleRate;
-    final envelope = (math.sin(math.pi * t / seconds)).abs() * 0.9 + 0.1;
-    final sample = (math.sin(2 * math.pi * 880 * t) * 0.55 +
-            math.sin(2 * math.pi * 1320 * t) * 0.35 +
-            math.sin(2 * math.pi * 1760 * t) * 0.10) *
-        envelope;
-    data.setInt16(offset, (sample * 32767).round(), Endian.little);
-    offset += 2;
-  }
-  return data.buffer.asUint8List();
+  await plugin.show(
+    DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
+    title,
+    body,
+    NotificationDetails(
+      android: AndroidNotificationDetails(
+        channelId,
+        channelName,
+        importance: importance,
+        priority: Priority.max,
+        fullScreenIntent: notificationType == 'sos',
+      ),
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    ),
+  );
 }
 
 /// Manages FCM initialization, token registration, and foreground message
@@ -120,6 +90,13 @@ class FcmService {
   static final FcmService instance = FcmService._();
 
   bool _initialized = false;
+  bool _localNotificationsReady = false;
+  final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  /// Callback invoked when an SOS push arrives in foreground.
+  /// Set by app.dart to show the full-screen SOS overlay.
+  void Function(String childName, String? message)? onSosReceived;
 
   /// Call once after Firebase.initializeApp().
   Future<void> initialize() async {
@@ -127,6 +104,7 @@ class FcmService {
     _initialized = true;
 
     final messaging = FirebaseMessaging.instance;
+    await _ensureLocalNotificationsInitialized();
 
     // Request permission (iOS).
     await messaging.requestPermission(
@@ -141,6 +119,16 @@ class FcmService {
 
     // Foreground messages — handle commands directly.
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+  }
+
+  Future<void> _ensureLocalNotificationsInitialized() async {
+    if (_localNotificationsReady) return;
+    const initSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(),
+    );
+    await _localNotificationsPlugin.initialize(initSettings);
+    _localNotificationsReady = true;
   }
 
   /// Registers the current FCM token with the backend.
@@ -166,16 +154,66 @@ class FcmService {
   void _handleForegroundMessage(RemoteMessage message) {
     final data = message.data;
     final commandType = data['command_type'] ?? '';
+    final notificationType = data['notification_type'] ?? '';
 
-    switch (commandType) {
-      case 'loud':
-        _playLoudAlarm();
-        break;
-      case 'around_start':
-      case 'around_stop':
-        // Background service is already running in foreground mode —
-        // it will pick up the command via polling.
-        break;
+    // Handle child device commands — ensure background service is running.
+    // The background service polls the API and handles commands with
+    // proper volume maximization and foreground service.
+    if (commandType == 'loud' ||
+        commandType == 'loud_stop' ||
+        commandType == 'around_start' ||
+        commandType == 'around_stop') {
+      unawaited(wakeChildBackgroundService());
     }
+
+    // Handle parent notifications in foreground
+    if (notificationType.isNotEmpty) {
+      _handleParentNotification(message);
+    }
+  }
+
+  void _handleParentNotification(RemoteMessage message) {
+    final data = message.data;
+    final notificationType = data['notification_type'] ?? '';
+    final notification = message.notification;
+    final title = notification?.title ?? '';
+    final body = notification?.body ?? '';
+    final childName = data['child_name'] ?? '';
+
+    if (notificationType == 'sos') {
+      // Show full-screen SOS alert
+      onSosReceived?.call(
+        childName.isNotEmpty ? childName : 'Child',
+        body.isNotEmpty ? body : null,
+      );
+    } else {
+      // Show local notification for chat_message, task_assigned, etc.
+      _showLocalNotification(title: title, body: body);
+    }
+  }
+
+  Future<void> _showLocalNotification({
+    required String title,
+    required String body,
+  }) async {
+    await _ensureLocalNotificationsInitialized();
+    await _localNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'kid_security_activity_alerts',
+          'Kid Security Alerts',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
   }
 }

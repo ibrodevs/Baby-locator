@@ -5,6 +5,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
+from tracking.fcm import send_notification_push
+from tracking.models import Alert
 
 from .models import Message, Reward, Task
 from .serializers import (
@@ -67,6 +69,31 @@ class ChatMessagesView(APIView):
             receiver=receiver,
             text=s.validated_data["text"],
         )
+
+        # Send FCM push to the receiver
+        sender_name = user.display_name or user.username
+        if receiver.fcm_token:
+            send_notification_push(
+                receiver.fcm_token,
+                notification_type="chat_message",
+                title=f"Сообщение от {sender_name}",
+                body=s.validated_data["text"][:200],
+                extra_data={
+                    "child_id": child.id,
+                    "sender_id": user.id,
+                },
+            )
+
+        # Create alert for parent if child sends a message
+        if user.role == User.ROLE_CHILD and child.parent:
+            Alert.objects.create(
+                child=child,
+                parent=child.parent,
+                alert_type=Alert.TYPE_CHAT_MESSAGE,
+                title=f"Сообщение от {sender_name}",
+                message=s.validated_data["text"][:200],
+            )
+
         return Response(MessageSerializer(msg).data, status=201)
 
 
@@ -113,6 +140,30 @@ class TaskListView(APIView):
             child=child,
             **s.validated_data,
         )
+
+        # Send FCM push to child about new task
+        parent_name = request.user.display_name or request.user.username
+        if child.fcm_token:
+            send_notification_push(
+                child.fcm_token,
+                notification_type="task_assigned",
+                title=f"Новое задание от {parent_name}",
+                body=task.title,
+                extra_data={
+                    "child_id": child.id,
+                    "task_id": task.id,
+                },
+            )
+
+        # Create alert for the child's parent record
+        Alert.objects.create(
+            child=child,
+            parent=request.user,
+            alert_type=Alert.TYPE_TASK_ASSIGNED,
+            title=f"Задание для {child.display_name or child.username}",
+            message=task.title,
+        )
+
         return Response(TaskSerializer(task).data, status=201)
 
 
@@ -264,3 +315,50 @@ class RewardClaimView(APIView):
         reward = get_object_or_404(Reward, id=reward_id, child=child)
         reward.delete()
         return Response(status=204)
+
+
+class ChildNotificationsView(APIView):
+    """
+    GET /api/chat/notifications/ — child gets unread messages + pending tasks.
+    Used as a polling fallback when FCM is unavailable.
+    """
+
+    def get(self, request):
+        user = request.user
+        if user.role != User.ROLE_CHILD:
+            return Response({"detail": "children only"}, status=403)
+
+        unread_messages = Message.objects.filter(
+            receiver=user,
+            read=False,
+        ).order_by("-created_at")[:20]
+
+        pending_tasks = Task.objects.filter(
+            child=user,
+            status=Task.STATUS_PENDING,
+        ).order_by("-created_at")[:20]
+
+        notifications = []
+
+        for msg in unread_messages:
+            sender_name = msg.sender.display_name or msg.sender.username
+            notifications.append({
+                "id": f"msg_{msg.id}",
+                "type": "chat_message",
+                "title": f"Сообщение от {sender_name}",
+                "body": msg.text[:200],
+                "created_at": msg.created_at.isoformat(),
+            })
+
+        for task in pending_tasks:
+            parent_name = task.parent.display_name or task.parent.username
+            notifications.append({
+                "id": f"task_{task.id}",
+                "type": "task_assigned",
+                "title": f"Задание от {parent_name}",
+                "body": task.title,
+                "created_at": task.created_at.isoformat(),
+            })
+
+        notifications.sort(key=lambda n: n["created_at"], reverse=True)
+        return Response(notifications)

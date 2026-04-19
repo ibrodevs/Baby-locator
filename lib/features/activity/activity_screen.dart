@@ -7,8 +7,8 @@ import '../../core/providers/zone_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import '../../core/widgets/child_selector_chips.dart';
 import '../map/adaptive_map.dart';
-import '../settings/settings_screen.dart';
 import 'zone_edit_screen.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
@@ -274,45 +274,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                     ? NetworkImage(session.user!.avatarUrl!)
                     : null,
               ),
-              trailing: GearButton(
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                ),
-              ),
             ),
-            if (_children.length > 1)
-              SizedBox(
-                height: 50,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _children.length,
-                  itemBuilder: (_, i) {
-                    final c = _children[i];
-                    final id = c['id'] as int;
-                    final name =
-                        ((c['display_name'] as String?)?.isNotEmpty ?? false)
-                            ? c['display_name'] as String
-                            : c['username'] as String;
-                    final selected = id == _selectedChildId;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(name),
-                        selected: selected,
-                        selectedColor: AppColors.primary,
-                        labelStyle: TextStyle(
-                          color: selected
-                              ? Colors.white
-                              : AppColors.textPrimaryLight,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        onSelected: (_) => _setSelectedChild(id),
-                      ),
-                    );
-                  },
-                ),
-              ),
+            ChildSelectorChips(
+              children: _children,
+              selectedChildId: _selectedChildId,
+              onSelected: _setSelectedChild,
+            ),
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())

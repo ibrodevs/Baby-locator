@@ -30,7 +30,7 @@ def _ensure_firebase():
         return False
 
 
-def send_command_push(fcm_token: str, command_type: str):
+def send_command_push(fcm_token: str, command_type: str, extra_data=None):
     """Send a high-priority data-only FCM message to wake the child device."""
     if not fcm_token:
         return
@@ -41,18 +41,24 @@ def send_command_push(fcm_token: str, command_type: str):
     try:
         from firebase_admin import messaging
 
+        data = {"command_type": command_type}
+        if extra_data:
+            data.update({k: str(v) for k, v in extra_data.items() if v is not None})
+
         message = messaging.Message(
-            data={"command_type": command_type},
+            data=data,
             token=fcm_token,
             android=messaging.AndroidConfig(
                 priority="high",
             ),
             apns=messaging.APNSConfig(
-                headers={"apns-priority": "10"},
+                headers={
+                    "apns-priority": "5",
+                    "apns-push-type": "background",
+                },
                 payload=messaging.APNSPayload(
                     aps=messaging.Aps(
                         content_available=True,
-                        sound="default",
                     ),
                 ),
             ),
@@ -61,3 +67,51 @@ def send_command_push(fcm_token: str, command_type: str):
         logger.info("FCM %s push sent: %s", command_type, response)
     except Exception as e:
         logger.error("FCM send failed: %s", e)
+
+
+def send_notification_push(fcm_token: str, notification_type: str, title: str, body: str, extra_data=None):
+    """Send a high-priority notification FCM message to the parent device."""
+    if not fcm_token:
+        return
+    if not _ensure_firebase():
+        logger.warning("Firebase not initialized, skipping FCM push")
+        return
+
+    try:
+        from firebase_admin import messaging
+
+        data = {"notification_type": notification_type}
+        if extra_data:
+            data.update({k: str(v) for k, v in extra_data.items()})
+
+        message = messaging.Message(
+            data=data,
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            token=fcm_token,
+            android=messaging.AndroidConfig(
+                priority="high",
+                notification=messaging.AndroidNotification(
+                    channel_id="kid_security_activity_alerts",
+                    sound="default",
+                ),
+            ),
+            apns=messaging.APNSConfig(
+                headers={"apns-priority": "10"},
+                payload=messaging.APNSPayload(
+                    aps=messaging.Aps(
+                        alert=messaging.ApsAlert(
+                            title=title,
+                            body=body,
+                        ),
+                        sound="default",
+                    ),
+                ),
+            ),
+        )
+        response = messaging.send(message)
+        logger.info("FCM notification %s push sent: %s", notification_type, response)
+    except Exception as e:
+        logger.error("FCM notification send failed: %s", e)

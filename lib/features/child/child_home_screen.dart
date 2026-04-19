@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:record/record.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -44,6 +45,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _readBattery();
       _start();
+      _prepareAroundPermission();
       _syncDeviceStats();
       // Background service is now managed by app.dart (session lifecycle),
       // not by this screen — so we don't start/stop it here.
@@ -100,6 +102,17 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
       await _push(fix);
     });
     _starting = false;
+  }
+
+  Future<void> _prepareAroundPermission() async {
+    final recorder = AudioRecorder();
+    try {
+      await recorder.hasPermission();
+    } catch (_) {
+      // Best-effort only. Around will fail later if the permission stays denied.
+    } finally {
+      await recorder.dispose();
+    }
   }
 
   void _updateLocal(LocationFix fix) {
@@ -363,16 +376,26 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                           label: t.sos,
                           color: AppColors.danger,
                           onTap: () async {
+                            final localizations = S.of(context);
                             final user = ref.read(sessionProvider).user;
                             if (user != null) {
                               final loc = ref.read(childLocationProvider);
+                              // Send SOS alert via dedicated endpoint
+                              try {
+                                await ApiClient.instance.sendSos(
+                                  lat: loc?.lat,
+                                  lng: loc?.lng,
+                                  address: loc?.address,
+                                );
+                              } catch (_) {}
+                              // Also send chat message
                               final locationText = loc != null
-                                  ? S.of(context).sosLocation(loc.address)
+                                  ? localizations.sosLocation(loc.address)
                                   : '';
                               try {
                                 await ApiClient.instance.sendMessage(
                                   user.id,
-                                  '${S.of(context).sosMessage}$locationText',
+                                  '${localizations.sosMessage}$locationText',
                                 );
                               } catch (_) {}
                             }

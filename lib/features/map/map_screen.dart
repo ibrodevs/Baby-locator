@@ -27,6 +27,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _poll;
   String? _err;
   bool _sendingLoud = false;
+  bool _loudActive = false;
+  int? _loudChildId;
   int? _startingAroundChildId;
 
   @override
@@ -82,6 +84,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     try {
       await ApiClient.instance.triggerLoud(childId);
       if (!mounted) return;
+      setState(() {
+        _loudActive = true;
+        _loudChildId = childId;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Loud signal sent to ${child.name}')),
       );
@@ -92,6 +98,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     } finally {
       if (mounted) setState(() => _sendingLoud = false);
+    }
+  }
+
+  Future<void> _stopLoud() async {
+    final childId = _loudChildId;
+    if (childId == null) return;
+    try {
+      await ApiClient.instance.stopLoud(childId);
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _loudActive = false;
+        _loudChildId = null;
+      });
     }
   }
 
@@ -223,14 +243,20 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     child: Column(
                       children: [
                         _MapActionButton(
-                          icon: Icons.volume_up_rounded,
-                          label: t.loud,
-                          color: AppColors.primary,
+                          icon: _loudActive
+                              ? Icons.stop_rounded
+                              : Icons.volume_up_rounded,
+                          label: _loudActive ? 'STOP' : t.loud,
+                          color: _loudActive
+                              ? AppColors.danger
+                              : AppColors.primary,
                           onTap: selected == null ||
                                   selected.childId == null ||
                                   _sendingLoud
                               ? null
-                              : () => _triggerLoud(selected),
+                              : _loudActive
+                                  ? _stopLoud
+                                  : () => _triggerLoud(selected),
                         ),
                         const SizedBox(height: 12),
                         _MapActionButton(
@@ -522,7 +548,7 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
   Future<void> _start() async {
     await _pollLatestClip();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 4),
+      const Duration(seconds: 2),
       (_) => _pollLatestClip(),
     );
   }
@@ -648,7 +674,7 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
             ],
             const SizedBox(height: 14),
             const Text(
-              'The sheet stays open while the child phone keeps sending short microphone clips.',
+              'The stream works as a chain of short microphone clips from the child phone, so tiny network gaps are still possible.',
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textMuted,

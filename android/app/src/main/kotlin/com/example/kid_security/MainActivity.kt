@@ -5,6 +5,7 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Build
 import android.os.Process
 import android.provider.Settings
@@ -21,7 +22,10 @@ import java.util.concurrent.TimeUnit
 class MainActivity : FlutterActivity() {
     companion object {
         private const val CHANNEL = "kid_security/device_stats"
+        private const val VOLUME_CHANNEL = "kid_security/volume"
     }
+
+    private var savedVolume: Int = -1
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -44,6 +48,60 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, VOLUME_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "maximizeVolume" -> {
+                        result.success(maximizeVolume())
+                    }
+
+                    "restoreVolume" -> {
+                        restoreVolume()
+                        result.success(true)
+                    }
+
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    private fun maximizeVolume(): Boolean {
+        return try {
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            // Save current volume to restore later
+            savedVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            // Set to max volume
+            val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+            audioManager.setStreamVolume(
+                AudioManager.STREAM_MUSIC,
+                maxVolume,
+                0
+            )
+            // Also maximize ring/alarm streams for good measure
+            val maxAlarm = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM)
+            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxAlarm, 0)
+            // Set ringer mode to normal (un-silence the phone)
+            audioManager.ringerMode = AudioManager.RINGER_MODE_NORMAL
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private fun restoreVolume() {
+        try {
+            if (savedVolume >= 0) {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioManager.setStreamVolume(
+                    AudioManager.STREAM_MUSIC,
+                    savedVolume,
+                    0
+                )
+                savedVolume = -1
+            }
+        } catch (_: Exception) {
+        }
     }
 
     private fun getDeviceStats(days: Int): Map<String, Any?> {

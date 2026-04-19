@@ -630,21 +630,36 @@ class _SettingsRow extends StatelessWidget {
             if (trailingText != null) ...[
               const SizedBox(width: 12),
               Flexible(
-                child: Text(
-                  trailingText!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: AppColors.textSecondaryLight,
-                    fontWeight: FontWeight.w600,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          trailingText!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondaryLight,
+                            fontWeight: FontWeight.w600,
+                            height: 1.0,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_right,
+                          color: AppColors.textMuted, size: 22),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 6),
             ],
-            const Icon(Icons.chevron_right,
-                color: AppColors.textMuted, size: 22),
+            if (trailingText == null)
+              const Icon(Icons.chevron_right,
+                  color: AppColors.textMuted, size: 22),
           ],
         ),
       ),
