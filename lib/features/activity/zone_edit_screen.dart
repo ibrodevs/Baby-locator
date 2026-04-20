@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/providers/zone_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../map/adaptive_map.dart';
 
@@ -65,14 +66,18 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
   Future<void> _save() async {
     final t = S.of(context);
     if (_nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.pleaseEnterZoneName)),
+      showAppSnackBar(
+        context,
+        t.pleaseEnterZoneName,
+        type: AppFeedbackType.warning,
       );
       return;
     }
     if (_scheduleType == SafeZone.scheduleDays && _selectedDays.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.chooseAtLeastOneDayError)),
+      showAppSnackBar(
+        context,
+        t.chooseAtLeastOneDayError,
+        type: AppFeedbackType.warning,
       );
       return;
     }
@@ -104,8 +109,10 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.failedGeneric(e.toString()))),
+        showAppSnackBar(
+          context,
+          t.failedGeneric(e.toString()),
+          type: AppFeedbackType.error,
         );
         setState(() => _loading = false);
       }
@@ -128,23 +135,13 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
               icon: const Icon(Icons.delete_outline, color: AppColors.danger),
               onPressed: () async {
                 final navigator = Navigator.of(context);
-                final confirm = await showDialog<bool>(
+                final confirm = await showAppConfirmDialog(
                   context: context,
-                  builder: (ctx) => AlertDialog(
-                    title: Text(t.deleteZoneTitle),
-                    content: Text(t.deleteZoneMessage),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(ctx, false),
-                          child: Text(t.cancel)),
-                      TextButton(
-                        onPressed: () => Navigator.pop(ctx, true),
-                        style: TextButton.styleFrom(
-                            foregroundColor: AppColors.danger),
-                        child: Text(t.delete),
-                      ),
-                    ],
-                  ),
+                  title: t.deleteZoneTitle,
+                  message: t.deleteZoneMessage,
+                  confirmLabel: t.delete,
+                  cancelLabel: t.cancel,
+                  type: AppFeedbackType.error,
                 );
                 if (confirm == true) {
                   setState(() => _loading = true);

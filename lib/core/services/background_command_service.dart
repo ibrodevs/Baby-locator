@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -11,10 +12,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_client.dart';
 
 bool _backgroundServiceConfigured = false;
+const MethodChannel _deviceStatsChannel =
+    MethodChannel('kid_security/device_stats');
 
 /// Initialises and configures the background service.
 /// Call once from main() before runApp.
@@ -112,8 +117,8 @@ class VolumeHelper {
 class _BackgroundCommandHandler {
   _BackgroundCommandHandler(this._service);
 
-  static const _locationHeartbeat = Duration(minutes: 2);
-  static const _deviceStatsInterval = Duration(minutes: 5);
+  static const _locationHeartbeat = Duration(minutes: 1);
+  static const _deviceStatsInterval = Duration(minutes: 2);
   static const _minimumMovementMeters = 15.0;
   static const _maximumQuietPeriod = Duration(minutes: 10);
 
@@ -126,6 +131,7 @@ class _BackgroundCommandHandler {
   Timer? _pollTimer;
   Timer? _telemetryTimer;
   Timer? _deviceStatsTimer;
+  Timer? _blockedAppsTimer;
   Timer? _alarmStopTimer;
   StreamSubscription<Position>? _positionSub;
   StreamSubscription<BatteryState>? _batterySub;
@@ -151,6 +157,13 @@ class _BackgroundCommandHandler {
     await _alarmPlayer.setReleaseMode(ReleaseMode.loop);
     await _ensureAlarmFile();
     await _startTelemetry();
+    if (Platform.isAndroid) {
+      await _enforceBlockedApps();
+      _blockedAppsTimer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => unawaited(_enforceBlockedApps()),
+      );
+    }
 
     // Listen for stop command from the main isolate.
     _service.on('stop').listen((_) async {
@@ -179,6 +192,7 @@ class _BackgroundCommandHandler {
     _pollTimer?.cancel();
     _telemetryTimer?.cancel();
     _deviceStatsTimer?.cancel();
+    _blockedAppsTimer?.cancel();
     _alarmStopTimer?.cancel();
     await _positionSub?.cancel();
     await _batterySub?.cancel();
@@ -241,8 +255,9 @@ class _BackgroundCommandHandler {
     _positionSub = Geolocator.getPositionStream(
       locationSettings: _locationSettings(),
     ).listen(
-      (position) {
+      (position) async {
         _lastPosition = position;
+        await _refreshBattery();
         unawaited(_pushLocationSnapshot(position));
       },
       onError: (_) async {
@@ -351,11 +366,15 @@ class _BackgroundCommandHandler {
 
     _locationPushInFlight = true;
     try {
+      final address =
+          await _reverseGeocode(position.latitude, position.longitude);
       await ApiClient.instance.shareLocation(
         lat: position.latitude,
         lng: position.longitude,
-        address: _formatCoordinates(position),
+        address: address,
         battery: _batteryLevel,
+        charging: _batteryState == BatteryState.charging ||
+            _batteryState == BatteryState.full,
         active: true,
       );
 
@@ -394,11 +413,6 @@ class _BackgroundCommandHandler {
     } finally {
       _deviceStatsSyncInFlight = false;
     }
-  }
-
-  String _formatCoordinates(Position position) {
-    return '${position.latitude.toStringAsFixed(5)}, '
-        '${position.longitude.toStringAsFixed(5)}';
   }
 
   void _updateTrackingNotification(String content) {
@@ -462,9 +476,103 @@ class _BackgroundCommandHandler {
         final sessionToken = payload['session_token'] as String?;
         await _stopAroundSession(expectedSession: sessionToken);
         return;
+      case 'sync_blocked_apps':
+        final packages =
+            (payload['blocked_packages'] as List<dynamic>?)?.cast<String>() ??
+                const [];
+        await _syncBlockedApps(packages);
+        return;
       default:
         throw Exception('Unsupported command type: $type');
     }
+  }
+
+  // ---- App Blocking ----
+
+  static const _blockedAppsKey = 'blocked_apps';
+
+  Future<void> _syncBlockedApps(List<String> packages) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_blockedAppsKey, packages);
+    await _enforceBlockedApps();
+  }
+
+  Future<void> _enforceBlockedApps() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final packages =
+          (prefs.getStringList(_blockedAppsKey) ?? const []).toSet();
+      if (packages.isEmpty) return;
+
+      final foregroundPackage = await _deviceStatsChannel
+          .invokeMethod<String>('getForegroundPackage');
+      if (foregroundPackage != null && packages.contains(foregroundPackage)) {
+        await _deviceStatsChannel.invokeMethod<bool>('goHome');
+      }
+    } catch (_) {
+      // Best-effort only. Blocking keeps retrying on the timer.
+    }
+  }
+
+  // ---- Reverse Geocoding ----
+
+  static const _googleApiKey = 'AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8';
+  String? _lastGeocodedAddress;
+  double? _lastGeocodedLat;
+  double? _lastGeocodedLng;
+
+  Future<String?> _reverseGeocode(double lat, double lng) async {
+    // Skip if coordinates haven't changed significantly (< 10m).
+    if (_lastGeocodedLat != null &&
+        _lastGeocodedLng != null &&
+        Geolocator.distanceBetween(
+              _lastGeocodedLat!,
+              _lastGeocodedLng!,
+              lat,
+              lng,
+            ) <
+            10) {
+      return _lastGeocodedAddress;
+    }
+
+    try {
+      final uri = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json'
+        '?latlng=$lat,$lng'
+        '&key=$_googleApiKey'
+        '&language=ru',
+      );
+      final response = await http.get(uri).timeout(const Duration(seconds: 5));
+      if (response.statusCode != 200) return _lastGeocodedAddress;
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final results = json['results'] as List<dynamic>?;
+      if (results == null || results.isEmpty) return _lastGeocodedAddress;
+
+      // Pick most precise: street_address > route > first.
+      Map<String, dynamic>? best;
+      for (final result in results) {
+        final r = result as Map<String, dynamic>;
+        final types = (r['types'] as List<dynamic>?)?.cast<String>() ?? [];
+        if (types.contains('street_address')) {
+          best = r;
+          break;
+        }
+        if (best == null && types.contains('route')) {
+          best = r;
+        }
+      }
+      best ??= results.first as Map<String, dynamic>;
+
+      final formatted = best['formatted_address'] as String?;
+      if (formatted != null && formatted.isNotEmpty) {
+        _lastGeocodedAddress = formatted;
+        _lastGeocodedLat = lat;
+        _lastGeocodedLng = lng;
+        return formatted;
+      }
+    } catch (_) {}
+    return _lastGeocodedAddress;
   }
 
   // ---- Loud alarm ----
@@ -570,9 +678,16 @@ class _BackgroundCommandHandler {
 
   Future<void> _runAroundLoop(String sessionToken) async {
     while (_activeAroundSession == sessionToken) {
-      await _captureAroundClip();
+      try {
+        await _captureAroundClip();
+      } catch (_) {
+        // Recording or upload failed — wait a bit and retry so the session
+        // stays alive instead of dying on a single error.
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
       if (_activeAroundSession != sessionToken) break;
-      await Future<void>.delayed(const Duration(milliseconds: 350));
+      // Minimal gap between chunks for near-real-time streaming.
+      await Future<void>.delayed(const Duration(milliseconds: 50));
     }
   }
 
@@ -587,25 +702,36 @@ class _BackgroundCommandHandler {
       await _recorder.start(
         const RecordConfig(
           encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          sampleRate: 44100,
+          bitRate: 64000,
+          sampleRate: 22050,
         ),
         path: path,
       );
-      await Future<void>.delayed(const Duration(seconds: 5));
-      if (_activeAroundSession != sessionToken) return;
-      final recordedPath = await _recorder.stop();
-      if (recordedPath == null) {
-        throw Exception('Around audio recording failed');
+      // 1-second chunks for near-real-time latency.
+      await Future<void>.delayed(const Duration(seconds: 1));
+      if (_activeAroundSession != sessionToken) {
+        // Session was stopped while recording — clean up the recorder.
+        try {
+          await _recorder.stop();
+        } catch (_) {}
+        final tempFile = File(path);
+        if (await tempFile.exists()) await tempFile.delete();
+        return;
       }
+      final recordedPath = await _recorder.stop();
+      if (recordedPath == null) return;
       final file = File(recordedPath);
       if (await file.exists()) {
-        await ApiClient.instance.uploadAroundAudio(
-          audioFile: file,
-          sessionToken: sessionToken,
-          durationSeconds: 5,
-        );
-        await file.delete();
+        try {
+          await ApiClient.instance.uploadAroundAudio(
+            audioFile: file,
+            sessionToken: sessionToken,
+            durationSeconds: 1,
+          );
+        } finally {
+          // Always delete the temp file, even if upload failed.
+          if (await file.exists()) await file.delete();
+        }
       }
     } finally {
       _capturingAround = false;

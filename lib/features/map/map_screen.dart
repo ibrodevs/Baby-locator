@@ -10,7 +10,9 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
+import '../../core/widgets/child_selector_chips.dart';
 import '../activity/activity_screen.dart';
 import '../chat/chat_screen.dart';
 import '../parent/children_list_screen.dart';
@@ -88,13 +90,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         _loudActive = true;
         _loudChildId = childId;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Loud signal sent to ${child.name}')),
+      showAppSnackBar(
+        context,
+        'Loud signal sent to ${child.name}',
+        type: AppFeedbackType.success,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to send loud signal: $e')),
+      showAppSnackBar(
+        context,
+        'Failed to send loud signal: $e',
+        type: AppFeedbackType.error,
       );
     } finally {
       if (mounted) setState(() => _sendingLoud = false);
@@ -137,8 +143,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to start Around: $e')),
+      showAppSnackBar(
+        context,
+        'Failed to start Around: $e',
+        type: AppFeedbackType.error,
       );
     } finally {
       if (sessionToken != null && sessionToken.isNotEmpty) {
@@ -165,6 +173,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final session = ref.watch(sessionProvider);
     final children = ref.watch(allChildrenLocationsProvider);
     final selectedChildId = ref.watch(selectedChildIdProvider);
+    final selectorChildren = children
+        .where((child) => child.childId != null)
+        .map(
+          (child) => <String, dynamic>{
+            'id': child.childId,
+            'display_name': child.name,
+          },
+        )
+        .toList();
     final hasChildren = children.isNotEmpty;
     final selectedIndex =
         children.indexWhere((child) => child.childId == selectedChildId);
@@ -207,88 +224,111 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ],
             ),
           ),
+          ChildSelectorChips(
+            children: selectorChildren,
+            selectedChildId: selectedChildId,
+            onSelected: (id) => _selectChild(id),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          ),
           Expanded(
-            child: Stack(
-              children: [
-                // Map
-                Positioned.fill(
-                  child: hasChildren && mapChild != null
-                      ? AdaptiveMap(
-                          latitude: mapChild.lat,
-                          longitude: mapChild.lng,
-                          children: children,
-                          selectedIndex:
-                              selectedIndex >= 0 ? selectedIndex : null,
-                          onChildTapped: (idx) {
-                            _selectChild(children[idx].childId);
-                          },
-                        )
-                      : _EmptyMapPlaceholder(
-                          hasChildren: hasChildren,
-                          error: _err,
-                          onManage: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (_) => const ChildrenListScreen()),
-                            );
-                            _fetchAll();
-                          },
-                        ),
-                ),
-                // Action buttons (LOUD / AROUND)
-                if (hasChildren)
-                  Positioned(
-                    right: 16,
-                    top: 20,
-                    child: Column(
-                      children: [
-                        _MapActionButton(
-                          icon: _loudActive
-                              ? Icons.stop_rounded
-                              : Icons.volume_up_rounded,
-                          label: _loudActive ? 'STOP' : t.loud,
-                          color: _loudActive
-                              ? AppColors.danger
-                              : AppColors.primary,
-                          onTap: selected == null ||
-                                  selected.childId == null ||
-                                  _sendingLoud
-                              ? null
-                              : _loudActive
-                                  ? _stopLoud
-                                  : () => _triggerLoud(selected),
-                        ),
-                        const SizedBox(height: 12),
-                        _MapActionButton(
-                          icon: Icons.radar_rounded,
-                          label: t.around,
-                          color: AppColors.success,
-                          onTap: selected == null || selected.childId == null
-                              ? null
-                              : () => _openAround(selected),
-                        ),
-                      ],
-                    ),
-                  ),
-                // Bottom child info card
-                if (hasChildren)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: selected != null
-                        ? _ChildInfoCard(
-                            loc: selected,
-                            onMessage: () => _openChat(context, selected),
-                            onHistory: () => _openActivity(context, selected),
-                          )
-                        : _ChildCarousel(
-                            children: children,
-                            onSelect: (idx) =>
-                                _selectChild(children[idx].childId),
+            child: LayoutBuilder(
+              builder: (context, constraints) => RefreshIndicator(
+                onRefresh: _fetchAll,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  children: [
+                    SizedBox(
+                      height: constraints.maxHeight,
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: hasChildren && mapChild != null
+                                ? AdaptiveMap(
+                                    latitude: mapChild.lat,
+                                    longitude: mapChild.lng,
+                                    children: children,
+                                    selectedIndex: selectedIndex >= 0
+                                        ? selectedIndex
+                                        : null,
+                                    onChildTapped: (idx) {
+                                      _selectChild(children[idx].childId);
+                                    },
+                                  )
+                                : _EmptyMapPlaceholder(
+                                    hasChildren: hasChildren,
+                                    error: _err,
+                                    onManage: () async {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ChildrenListScreen(),
+                                        ),
+                                      );
+                                      _fetchAll();
+                                    },
+                                  ),
                           ),
-                  ),
-              ],
+                          if (hasChildren)
+                            Positioned(
+                              right: 16,
+                              top: 20,
+                              child: Column(
+                                children: [
+                                  _MapActionButton(
+                                    icon: _loudActive
+                                        ? Icons.stop_rounded
+                                        : Icons.volume_up_rounded,
+                                    label: _loudActive ? 'STOP' : t.loud,
+                                    color: _loudActive
+                                        ? AppColors.danger
+                                        : AppColors.primary,
+                                    onTap: selected == null ||
+                                            selected.childId == null ||
+                                            _sendingLoud
+                                        ? null
+                                        : _loudActive
+                                            ? _stopLoud
+                                            : () => _triggerLoud(selected),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _MapActionButton(
+                                    icon: Icons.radar_rounded,
+                                    label: t.around,
+                                    color: AppColors.success,
+                                    onTap: selected == null ||
+                                            selected.childId == null
+                                        ? null
+                                        : () => _openAround(selected),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (hasChildren)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: selected != null
+                                  ? _ChildInfoCard(
+                                      loc: selected,
+                                      onMessage: () =>
+                                          _openChat(context, selected),
+                                      onHistory: () =>
+                                          _openActivity(context, selected),
+                                    )
+                                  : _ChildCarousel(
+                                      children: children,
+                                      onSelect: (idx) =>
+                                          _selectChild(children[idx].childId),
+                                    ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -451,6 +491,14 @@ class _ChildCarousel extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
+                      Icon(
+                        c.charging ? Icons.bolt_rounded : Icons.power_outlined,
+                        size: 12,
+                        color: c.charging
+                            ? AppColors.success
+                            : AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 4),
                       const Icon(Icons.battery_full,
                           size: 12, color: AppColors.success),
                       const SizedBox(width: 2),
@@ -516,6 +564,48 @@ class _MapActionButton extends StatelessWidget {
   }
 }
 
+class _ChargingStatusRow extends StatelessWidget {
+  const _ChargingStatusRow({required this.charging});
+
+  final bool charging;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRu = Localizations.localeOf(context).languageCode == 'ru';
+    final color = charging ? AppColors.success : AppColors.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            charging ? Icons.bolt_rounded : Icons.power_outlined,
+            size: 14,
+            color: color,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            charging
+                ? (isRu ? 'Устройство на зарядке' : 'Device is charging')
+                : (isRu
+                    ? 'Устройство не заряжается'
+                    : 'Device is not charging'),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AroundListenSheet extends StatefulWidget {
   const _AroundListenSheet({
     required this.childId,
@@ -539,16 +629,21 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
   String? _error;
   String _status = 'Waiting for audio from child phone...';
 
+  /// Queue of downloaded clip files ready for playback.
+  final List<File> _clipQueue = [];
+  bool _isPlaying = false;
+
   @override
   void initState() {
     super.initState();
+    _player.onPlayerComplete.listen((_) => _playNext());
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
   }
 
   Future<void> _start() async {
     await _pollLatestClip();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 2),
+      const Duration(seconds: 1),
       (_) => _pollLatestClip(),
     );
   }
@@ -572,27 +667,27 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
       final clipId = clipMap['id'] as int?;
       final url = clipMap['audio_url'] as String? ?? '';
       if (clipId == null || url.isEmpty) return;
-      _lastClipId = clipId;
 
-      // Download via authenticated API endpoint to avoid 404 on media
-      // files and iOS streaming errors with remote M4A URLs.
       final bytes = await ApiClient.instance.downloadAroundAudio(clipId);
       final dir = await getTemporaryDirectory();
       final localFile = File('${dir.path}/around_clip_$clipId.m4a');
       await localFile.writeAsBytes(bytes, flush: true);
 
-      await _player.stop();
-      await _player.play(DeviceFileSource(localFile.path));
+      // Only advance the cursor AFTER a successful download so a failed
+      // clip is retried on the next poll instead of being skipped.
+      _lastClipId = clipId;
+
+      _clipQueue.add(localFile);
+
+      if (!_isPlaying) {
+        _playNext();
+      }
+
       if (!mounted) return;
       setState(() {
         _loading = false;
         _error = null;
         _status = 'Listening to ${widget.childName} surroundings';
-      });
-
-      // Clean up the file after playback completes.
-      _player.onPlayerComplete.first.then((_) async {
-        if (await localFile.exists()) await localFile.delete();
       });
     } catch (e) {
       if (!mounted) return;
@@ -603,10 +698,35 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
     }
   }
 
+  Future<void> _playNext() async {
+    if (_clipQueue.isEmpty) {
+      _isPlaying = false;
+      return;
+    }
+    _isPlaying = true;
+    final file = _clipQueue.removeAt(0);
+    try {
+      await _player.play(DeviceFileSource(file.path));
+    } catch (_) {
+      // Current clip failed — clean it up and try the next one instead of
+      // stalling the entire queue.
+      file.delete().catchError((_) => file);
+      _playNext();
+      return;
+    }
+    // Clean up after a short delay so the player finishes reading.
+    Future<void>.delayed(const Duration(seconds: 3), () async {
+      if (await file.exists()) await file.delete();
+    });
+  }
+
   @override
   void dispose() {
     _pollTimer?.cancel();
     _player.dispose();
+    for (final f in _clipQueue) {
+      f.delete().catchError((_) => f);
+    }
     super.dispose();
   }
 
@@ -700,6 +820,21 @@ class _ChildInfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final compactLabel = t
+        .messageChild(loc.name)
+        .replaceAll(loc.name, '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
+    final actionLabel = compactLabel.isNotEmpty
+        ? compactLabel
+        : (Localizations.localeOf(context).languageCode == 'ru'
+            ? 'Написать'
+            : 'Message');
+    final addressLabel = loc.address.trim().isNotEmpty
+        ? loc.address
+        : (Localizations.localeOf(context).languageCode == 'ru'
+            ? 'Адрес уточняется...'
+            : 'Resolving address...');
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
       decoration: const BoxDecoration(
@@ -761,6 +896,8 @@ class _ChildInfoCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          _ChargingStatusRow(charging: loc.charging),
           const SizedBox(height: 8),
           // Status row
           Row(
@@ -813,9 +950,7 @@ class _ChildInfoCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      loc.address.isEmpty
-                          ? '${loc.lat.toStringAsFixed(5)}, ${loc.lng.toStringAsFixed(5)}'
-                          : loc.address,
+                      addressLabel,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -843,7 +978,7 @@ class _ChildInfoCard extends StatelessWidget {
                     elevation: 0,
                   ),
                   child: Text(
-                    t.messageChild(loc.name),
+                    actionLabel,
                     style: const TextStyle(
                         fontWeight: FontWeight.w700, fontSize: 15),
                   ),

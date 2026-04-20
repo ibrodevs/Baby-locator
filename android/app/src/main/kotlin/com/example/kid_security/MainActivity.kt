@@ -1,7 +1,7 @@
 package com.example.kid_security
 
 import android.app.AppOpsManager
-import android.app.usage.UsageStats
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
@@ -26,6 +26,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private var savedVolume: Int = -1
+    private val homePackages by lazy { resolveHomePackages() }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -39,6 +40,19 @@ class MainActivity : FlutterActivity() {
 
                     "openUsageAccessSettings" -> {
                         val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                        result.success(true)
+                    }
+
+                    "getForegroundPackage" -> {
+                        result.success(getForegroundPackage())
+                    }
+
+                    "goHome" -> {
+                        val intent = Intent(Intent.ACTION_MAIN).apply {
+                            addCategory(Intent.CATEGORY_HOME)
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
                         startActivity(intent)
@@ -146,12 +160,7 @@ class MainActivity : FlutterActivity() {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
             val queryEnd = minOf(dayEnd.timeInMillis, System.currentTimeMillis())
-            val stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                dayStart.timeInMillis,
-                queryEnd,
-            )
-            val apps = aggregateAppUsage(stats)
+            val apps = aggregateAppUsage(usageStatsManager, dayStart.timeInMillis, queryEnd)
             val totalMinutes = apps.sumOf {
                 (it["usageMinutes"] as? Int) ?: 0
             }
@@ -167,19 +176,95 @@ class MainActivity : FlutterActivity() {
         return results.sortedBy { it["date"] as String }
     }
 
-    private fun aggregateAppUsage(stats: List<UsageStats>): List<Map<String, Any?>> {
+    private fun aggregateAppUsage(
+        usageStatsManager: UsageStatsManager,
+        beginTime: Long,
+        endTime: Long,
+    ): List<Map<String, Any?>> {
+        val lastUsedByPackage = linkedMapOf<String, Long>()
+        val usageByPackage = linkedMapOf<String, Long>()
+        var currentPackage: String? = null
+        var currentStart: Long? = null
+
+        fun closeCurrent(atTime: Long) {
+            val pkg = currentPackage ?: return
+            val startedAt = currentStart ?: return
+            val boundedEnd = atTime.coerceAtMost(endTime)
+            if (boundedEnd > startedAt) {
+                usageByPackage[pkg] = (usageByPackage[pkg] ?: 0L) + (boundedEnd - startedAt)
+                lastUsedByPackage[pkg] = maxOf(lastUsedByPackage[pkg] ?: 0L, boundedEnd)
+            }
+            currentPackage = null
+            currentStart = null
+        }
+
+        val events = usageStatsManager.queryEvents(beginTime, endTime)
+        val event = UsageEvents.Event()
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            val pkg = event.packageName ?: continue
+            val eventTime = event.timeStamp.coerceIn(beginTime, endTime)
+            when (event.eventType) {
+                UsageEvents.Event.ACTIVITY_RESUMED,
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    if (!isTrackablePackage(pkg)) continue
+                    if (currentPackage == pkg) continue
+                    closeCurrent(eventTime)
+                    currentPackage = pkg
+                    currentStart = eventTime
+                }
+
+                UsageEvents.Event.ACTIVITY_PAUSED,
+                UsageEvents.Event.ACTIVITY_STOPPED,
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    if (pkg == currentPackage) {
+                        closeCurrent(eventTime)
+                    }
+                }
+            }
+        }
+
+        closeCurrent(endTime)
+
+        if (usageByPackage.isEmpty()) {
+            return aggregateUsageFallback(usageStatsManager, beginTime, endTime)
+        }
+
+        return usageByPackage.entries
+            .mapNotNull { (pkg, totalMs) ->
+                val usageMinutes = TimeUnit.MILLISECONDS.toMinutes(totalMs).toInt()
+                if (usageMinutes <= 0) return@mapNotNull null
+
+                mapOf(
+                    "packageName" to pkg,
+                    "appName" to appLabelFor(pkg),
+                    "usageMinutes" to usageMinutes,
+                    "lastUsedAt" to lastUsedByPackage[pkg]?.let { formatDateTime(it) },
+                )
+            }
+            .sortedByDescending { (it["usageMinutes"] as? Int) ?: 0 }
+            .take(16)
+    }
+
+    private fun aggregateUsageFallback(
+        usageStatsManager: UsageStatsManager,
+        beginTime: Long,
+        endTime: Long,
+    ): List<Map<String, Any?>> {
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            beginTime,
+            endTime,
+        )
         val usageByPackage = linkedMapOf<String, Long>()
         val lastUsedByPackage = linkedMapOf<String, Long>()
 
         for (stat in stats) {
             val pkg = stat.packageName ?: continue
-            if (pkg == packageName) continue
-            if (packageManager.getLaunchIntentForPackage(pkg) == null) continue
-
+            if (!isTrackablePackage(pkg)) continue
             val totalMs = stat.totalTimeInForeground
             if (totalMs <= 0L) continue
-
-            usageByPackage[pkg] = (usageByPackage[pkg] ?: 0L) + totalMs
+            usageByPackage[pkg] = maxOf(usageByPackage[pkg] ?: 0L, totalMs)
             if (stat.lastTimeUsed > 0L) {
                 lastUsedByPackage[pkg] = maxOf(lastUsedByPackage[pkg] ?: 0L, stat.lastTimeUsed)
             }
@@ -228,5 +313,64 @@ class MainActivity : FlutterActivity() {
         val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
         format.timeZone = TimeZone.getTimeZone("UTC")
         return format.format(Date(timestamp))
+    }
+
+    private fun getForegroundPackage(): String? {
+        if (!hasUsageStatsPermission()) return null
+        val usageStatsManager =
+            getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+        val now = System.currentTimeMillis()
+        val events = usageStatsManager.queryEvents(now - 120_000, now)
+        val event = UsageEvents.Event()
+        var currentPackage: String? = null
+
+        while (events.hasNextEvent()) {
+            events.getNextEvent(event)
+            val pkg = event.packageName ?: continue
+            when (event.eventType) {
+                UsageEvents.Event.ACTIVITY_RESUMED,
+                UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                    currentPackage = if (isTrackablePackage(pkg)) pkg else null
+                }
+
+                UsageEvents.Event.ACTIVITY_PAUSED,
+                UsageEvents.Event.ACTIVITY_STOPPED,
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                    if (pkg == currentPackage) {
+                        currentPackage = null
+                    }
+                }
+            }
+        }
+
+        if (currentPackage != null) return currentPackage
+
+        val stats = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            now - 60_000,
+            now,
+        )
+        if (stats.isNullOrEmpty()) return null
+        return stats
+            .asSequence()
+            .filter { isTrackablePackage(it.packageName ?: return@filter false) }
+            .maxByOrNull { it.lastTimeUsed }
+            ?.packageName
+    }
+
+    private fun isTrackablePackage(packageName: String): Boolean {
+        if (packageName == this.packageName) return false
+        if (homePackages.contains(packageName)) return false
+        return packageManager.getLaunchIntentForPackage(packageName) != null
+    }
+
+    private fun resolveHomePackages(): Set<String> {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+        }
+        return packageManager
+            .queryIntentActivities(intent, 0)
+            .mapNotNull { it.activityInfo?.packageName }
+            .toSet()
     }
 }

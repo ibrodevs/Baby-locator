@@ -291,6 +291,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                       : RefreshIndicator(
                           onRefresh: _loadData,
                           child: ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                             children: [
                               // Title row
@@ -699,6 +700,7 @@ class _SafeZoneCard extends StatelessWidget {
                           lng: zone.lng,
                           address: zone.name,
                           battery: 0,
+                          charging: false,
                           updatedAt: zone.createdAt ?? DateTime.now(),
                           active: zone.active,
                         ),

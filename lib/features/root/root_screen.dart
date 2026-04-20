@@ -16,18 +16,19 @@ class RootScreen extends StatefulWidget {
 class _RootScreenState extends State<RootScreen> {
   int _index = 0;
 
-  final _screens = const [
-    MapScreen(),
-    ActivityScreen(),
-    ChatScreen(),
-    StatsScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      body: IndexedStack(index: _index, children: _screens),
+      body: IndexedStack(
+        index: _index,
+        children: [
+          const MapScreen(),
+          const ActivityScreen(),
+          ChatScreen(isActive: _index == 2),
+          const StatsScreen(),
+        ],
+      ),
       bottomNavigationBar: AppBottomNav(
         index: _index,
         onChanged: (i) => setState(() => _index = i),

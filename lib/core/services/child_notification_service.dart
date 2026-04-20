@@ -3,23 +3,20 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_client.dart';
+import 'chat_visibility_service.dart';
+import 'notification_dedupe_store.dart';
 
 /// Polls the backend for unread messages and pending tasks for the child,
 /// and shows local notifications. Works as a fallback when FCM pushes
 /// are unavailable (e.g. Firebase service account not configured on server).
 class ChildNotificationService {
   ChildNotificationService._();
-  static final ChildNotificationService instance =
-      ChildNotificationService._();
+  static final ChildNotificationService instance = ChildNotificationService._();
 
   static const _androidChannelId = 'kid_security_child_alerts';
   static const _androidChannelName = 'Kid Security — Уведомления';
-  static const _shownIdsKey = 'child_notification_shown_ids';
-  static const _maxStoredIds = 200;
-
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -69,7 +66,7 @@ class ChildNotificationService {
     await ensurePermissions();
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 15),
+      const Duration(seconds: 5),
       (_) => _poll(),
     );
     unawaited(_poll());
@@ -93,6 +90,11 @@ class ChildNotificationService {
         final map = Map<String, dynamic>.from(item as Map);
         final id = map['id'] as String? ?? '';
         if (id.isEmpty || shownIds.contains(id)) continue;
+
+        if (ChatVisibilityService.instance.activeChildId != null) {
+          shownIds.add(id);
+          continue;
+        }
 
         final title = map['title'] as String? ?? '';
         final body = map['body'] as String? ?? '';
@@ -135,15 +137,10 @@ class ChildNotificationService {
   }
 
   Future<Set<String>> _loadShownIds() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_shownIdsKey) ?? []).toSet();
+    return NotificationDedupeStore.loadChildShownIds();
   }
 
   Future<void> _saveShownIds(Set<String> ids) async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = ids.toList();
-    final trimmed =
-        list.length > _maxStoredIds ? list.sublist(list.length - _maxStoredIds) : list;
-    await prefs.setStringList(_shownIdsKey, trimmed);
+    await NotificationDedupeStore.saveChildShownIds(ids);
   }
 }

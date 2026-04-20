@@ -5,6 +5,7 @@ from .models import (
     AppLimit,
     AppUsageSnapshot,
     AroundAudioClip,
+    BlockedApp,
     DeviceDailySummary,
     DeviceStatus,
     LocationUpdate,
@@ -16,7 +17,17 @@ from .models import (
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocationUpdate
-        fields = ["id", "child", "lat", "lng", "address", "battery", "active", "created_at"]
+        fields = [
+            "id",
+            "child",
+            "lat",
+            "lng",
+            "address",
+            "battery",
+            "charging",
+            "active",
+            "created_at",
+        ]
         read_only_fields = ["id", "child", "created_at"]
 
 
@@ -25,6 +36,7 @@ class LocationInputSerializer(serializers.Serializer):
     lng = serializers.FloatField()
     address = serializers.CharField(required=False, allow_blank=True, default="")
     battery = serializers.IntegerField(required=False, allow_null=True)
+    charging = serializers.BooleanField(required=False, default=False)
     active = serializers.BooleanField(required=False, default=True)
 
 
@@ -248,3 +260,15 @@ class AroundAudioClipSerializer(serializers.ModelSerializer):
             return ""
         url = obj.audio.url
         return request.build_absolute_uri(url) if request else url
+
+
+class BlockedAppSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BlockedApp
+        fields = ["id", "package_name", "app_name", "created_at"]
+        read_only_fields = fields
+
+
+class BlockAppSerializer(serializers.Serializer):
+    package_name = serializers.CharField(max_length=255)
+    app_name = serializers.CharField(max_length=120)

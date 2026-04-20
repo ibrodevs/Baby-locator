@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -24,7 +26,10 @@ class ChildHomeScreen extends ConsumerStatefulWidget {
   ConsumerState<ChildHomeScreen> createState() => _ChildHomeScreenState();
 }
 
-class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
+class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
+    with WidgetsBindingObserver {
+  static const _deviceStatsChannel = MethodChannel('kid_security/device_stats');
+
   final _svc = LocationService();
   final _battery = Battery();
   final _deviceStats = const DeviceStatsService();
@@ -38,22 +43,78 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   BatteryState _batteryState = BatteryState.unknown;
   bool? _usageAccessGranted;
   Timer? _statsTimer;
+  Timer? _blockTimer;
+  Set<String> _blockedPackages = {};
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _readBattery();
       _start();
       _prepareAroundPermission();
       _syncDeviceStats();
+      _loadBlockedApps();
       // Background service is now managed by app.dart (session lifecycle),
       // not by this screen — so we don't start/stop it here.
       _statsTimer = Timer.periodic(
-        const Duration(minutes: 5),
+        const Duration(minutes: 3),
         (_) => _syncDeviceStats(),
       );
+      if (Platform.isAndroid) {
+        _blockTimer = Timer.periodic(
+          const Duration(seconds: 3),
+          (_) => _enforceBlockedApps(),
+        );
+      }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _readBattery();
+      _syncDeviceStats();
+      _loadBlockedApps();
+    }
+  }
+
+  Future<void> _loadBlockedApps() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedPackages = prefs.getStringList('blocked_apps') ?? [];
+      _blockedPackages = cachedPackages.toSet();
+
+      final childId = ref.read(sessionProvider).user?.id;
+      if (childId == null) return;
+
+      final blocked = await ApiClient.instance.getBlockedApps(childId);
+      final remotePackages = blocked
+          .map((item) => (item as Map)['package_name'] as String? ?? '')
+          .where((pkg) => pkg.isNotEmpty)
+          .toSet();
+
+      _blockedPackages = remotePackages;
+      await prefs.setStringList('blocked_apps', remotePackages.toList());
+    } catch (_) {}
+  }
+
+  Future<void> _enforceBlockedApps() async {
+    // Always reload blocked list from SharedPreferences (background service
+    // updates it when receiving sync_blocked_apps commands).
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _blockedPackages = (prefs.getStringList('blocked_apps') ?? []).toSet();
+    } catch (_) {}
+    if (_blockedPackages.isEmpty) return;
+    try {
+      final fg = await _deviceStatsChannel
+          .invokeMethod<String>('getForegroundPackage');
+      if (fg != null && _blockedPackages.contains(fg)) {
+        await _deviceStatsChannel.invokeMethod<bool>('goHome');
+      }
+    } catch (_) {}
   }
 
   Future<void> _readBattery() async {
@@ -76,6 +137,32 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
             _batteryState = state;
           });
         }
+        final currentLoc = ref.read(childLocationProvider);
+        if (currentLoc != null) {
+          final user = ref.read(sessionProvider).user;
+          ref.read(childLocationProvider.notifier).setLocal(
+                lat: currentLoc.lat,
+                lng: currentLoc.lng,
+                address: currentLoc.address,
+                battery: level,
+                charging: state == BatteryState.charging ||
+                    state == BatteryState.full,
+                active: currentLoc.active,
+                name: currentLoc.name,
+                childId: user?.id ?? currentLoc.childId,
+                avatarUrl: user?.avatarUrl ?? currentLoc.avatarUrl,
+              );
+          await ApiClient.instance.shareLocation(
+            lat: currentLoc.lat,
+            lng: currentLoc.lng,
+            address: currentLoc.address,
+            battery: level,
+            charging:
+                state == BatteryState.charging || state == BatteryState.full,
+            active: currentLoc.active,
+          );
+        }
+        await _syncDeviceStats();
       } catch (_) {}
     });
   }
@@ -116,13 +203,17 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
   }
 
   void _updateLocal(LocationFix fix) {
+    final user = ref.read(sessionProvider).user;
     ref.read(childLocationProvider.notifier).setLocal(
           lat: fix.lat,
           lng: fix.lng,
           address: fix.address,
           battery: _batteryLevel,
+          charging: _isCharging,
           active: true,
-          name: ref.read(sessionProvider).user?.displayName ?? 'Me',
+          name: user?.displayName ?? 'Me',
+          childId: user?.id,
+          avatarUrl: user?.avatarUrl,
         );
   }
 
@@ -133,6 +224,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
         lng: fix.lng,
         address: fix.address,
         battery: _batteryLevel,
+        charging: _isCharging,
         active: true,
       );
       if (_apiError != null && mounted) setState(() => _apiError = null);
@@ -172,9 +264,11 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _sub?.cancel();
     _batterySub?.cancel();
     _statsTimer?.cancel();
+    _blockTimer?.cancel();
     // DO NOT stop the background service here — it must keep running
     // even when this screen is disposed or the app goes to background.
     _svc.stop();
@@ -218,26 +312,28 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimaryLight)),
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(t.kidMode,
                                 style: const TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textSecondaryLight,
                                     fontWeight: FontWeight.w600)),
-                            const SizedBox(width: 8),
                             Icon(
                               _batteryIcon(_batteryLevel),
                               size: 14,
                               color: _batteryColor(_batteryLevel),
                             ),
-                            const SizedBox(width: 2),
                             Text('$_batteryLevel%',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                   color: _batteryColor(_batteryLevel),
                                 )),
+                            _ChargingBadge(isCharging: _isCharging),
                           ],
                         ),
                       ],
@@ -319,6 +415,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
                                   style: const TextStyle(
                                       fontSize: 14,
                                       color: AppColors.textSecondaryLight)),
+                              const SizedBox(height: 8),
+                              _ChargingBadge(isCharging: _isCharging),
                               const SizedBox(height: 8),
                               Row(
                                 children: [
@@ -433,11 +531,55 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen> {
     return AppColors.danger;
   }
 
+  bool get _isCharging =>
+      _batteryState == BatteryState.charging ||
+      _batteryState == BatteryState.full;
+
   String _ago(DateTime t) {
     final d = DateTime.now().difference(t);
     if (d.inSeconds < 60) return S.of(context).justNow;
     if (d.inMinutes < 60) return S.of(context).minutesAgo(d.inMinutes);
     return S.of(context).hoursAgo(d.inHours);
+  }
+}
+
+class _ChargingBadge extends StatelessWidget {
+  const _ChargingBadge({required this.isCharging});
+
+  final bool isCharging;
+
+  @override
+  Widget build(BuildContext context) {
+    final isRu = Localizations.localeOf(context).languageCode == 'ru';
+    final color = isCharging ? AppColors.success : AppColors.textMuted;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isCharging ? Icons.bolt_rounded : Icons.power_outlined,
+            size: 12,
+            color: color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isCharging
+                ? (isRu ? 'На зарядке' : 'Charging')
+                : (isRu ? 'Не заряжается' : 'Not charging'),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

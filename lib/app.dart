@@ -111,6 +111,10 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       navigatorKey: rootNavigatorKey,
       onGenerateTitle: (context) => S.of(context).appName,
       debugShowCheckedModeBanner: false,
+      showPerformanceOverlay: false,
+      checkerboardRasterCacheImages: false,
+      checkerboardOffscreenLayers: false,
+      debugShowMaterialGrid: false,
       locale: locale,
       localizationsDelegates: const [
         S.delegate,

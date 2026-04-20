@@ -8,6 +8,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'api_client.dart';
 import 'background_command_service.dart';
+import 'chat_visibility_service.dart';
+import 'notification_dedupe_store.dart';
 
 /// Global navigator key used by the app to push SOS screen from FCM handler.
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -29,13 +31,17 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (commandType == 'loud' ||
       commandType == 'loud_stop' ||
       commandType == 'around_start' ||
-      commandType == 'around_stop') {
+      commandType == 'around_stop' ||
+      commandType == 'sync_blocked_apps') {
     await wakeChildBackgroundService();
   }
 
   // Handle parent notifications in background — show local notification
   if (notificationType.isNotEmpty) {
-    await _showBackgroundNotification(message);
+    await _recordNotificationAsShown(data);
+    if (message.notification == null) {
+      await _showBackgroundNotification(message);
+    }
   }
 }
 
@@ -119,6 +125,12 @@ class FcmService {
 
     // Foreground messages — handle commands directly.
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationOpened);
+
+    final initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      await _recordNotificationAsShown(initialMessage.data);
+    }
   }
 
   Future<void> _ensureLocalNotificationsInitialized() async {
@@ -162,23 +174,26 @@ class FcmService {
     if (commandType == 'loud' ||
         commandType == 'loud_stop' ||
         commandType == 'around_start' ||
-        commandType == 'around_stop') {
+        commandType == 'around_stop' ||
+        commandType == 'sync_blocked_apps') {
       unawaited(wakeChildBackgroundService());
     }
 
     // Handle parent notifications in foreground
     if (notificationType.isNotEmpty) {
-      _handleParentNotification(message);
+      unawaited(_recordNotificationAsShown(data));
+      _handleNotification(message);
     }
   }
 
-  void _handleParentNotification(RemoteMessage message) {
+  void _handleNotification(RemoteMessage message) {
     final data = message.data;
     final notificationType = data['notification_type'] ?? '';
     final notification = message.notification;
-    final title = notification?.title ?? '';
-    final body = notification?.body ?? '';
+    final title = notification?.title ?? data['title'] ?? '';
+    final body = notification?.body ?? data['body'] ?? '';
     final childName = data['child_name'] ?? '';
+    final childId = int.tryParse('${data['child_id'] ?? ''}');
 
     if (notificationType == 'sos') {
       // Show full-screen SOS alert
@@ -187,9 +202,19 @@ class FcmService {
         body.isNotEmpty ? body : null,
       );
     } else {
+      if ((notificationType == 'chat_message' ||
+              notificationType == 'task_assigned') &&
+          childId != null &&
+          ChatVisibilityService.instance.isChatOpenFor(childId)) {
+        return;
+      }
       // Show local notification for chat_message, task_assigned, etc.
       _showLocalNotification(title: title, body: body);
     }
+  }
+
+  void _handleNotificationOpened(RemoteMessage message) {
+    unawaited(_recordNotificationAsShown(message.data));
   }
 
   Future<void> _showLocalNotification({
@@ -215,5 +240,22 @@ class FcmService {
         ),
       ),
     );
+  }
+}
+
+Future<void> _recordNotificationAsShown(Map<String, dynamic> data) async {
+  final alertId = int.tryParse('${data['alert_id'] ?? ''}');
+  if (alertId != null) {
+    await NotificationDedupeStore.recordParentAlert(alertId);
+  }
+
+  final messageId = int.tryParse('${data['message_id'] ?? ''}');
+  if (messageId != null) {
+    await NotificationDedupeStore.recordChildMessage(messageId);
+  }
+
+  final taskId = int.tryParse('${data['task_id'] ?? ''}');
+  if (taskId != null) {
+    await NotificationDedupeStore.recordChildTask(taskId);
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:io' show File, Platform;
 
 import 'package:flutter/foundation.dart';
@@ -242,6 +243,7 @@ class ApiClient {
     required double lng,
     String? address,
     int? battery,
+    bool? charging,
     bool? active,
   }) async {
     return await _post('/api/locations/', {
@@ -249,6 +251,7 @@ class ApiClient {
       'lng': lng,
       if (address != null) 'address': address,
       if (battery != null) 'battery': battery,
+      if (charging != null) 'charging': charging,
       if (active != null) 'active': active,
     });
   }
@@ -375,6 +378,27 @@ class ApiClient {
     });
   }
 
+  // === Blocked Apps ===
+  Future<List<dynamic>> getBlockedApps(int childId) async {
+    return (await _get('/api/children/$childId/blocked-apps/'))
+        as List<dynamic>;
+  }
+
+  Future<Map<String, dynamic>> blockApp(
+    int childId, {
+    required String packageName,
+    required String appName,
+  }) async {
+    return await _post('/api/children/$childId/blocked-apps/', {
+      'package_name': packageName,
+      'app_name': appName,
+    });
+  }
+
+  Future<void> unblockApp(int childId, int blockedId) async {
+    await _delete('/api/children/$childId/blocked-apps/$blockedId/');
+  }
+
   // === FCM Token ===
   Future<void> registerFcmToken(String fcmToken) async {
     await _post('/api/auth/fcm-token/', {'fcm_token': fcmToken});
@@ -498,8 +522,79 @@ class ApiClient {
     return (await _get('/api/chat/$childId/messages/')) as List<dynamic>;
   }
 
+  Future<Map<String, dynamic>> markMessagesRead(
+    int childId, {
+    List<int>? messageIds,
+  }) async {
+    return await _post('/api/chat/$childId/messages/read/', {
+      if (messageIds != null && messageIds.isNotEmpty)
+        'message_ids': messageIds,
+    });
+  }
+
   Future<Map<String, dynamic>> sendMessage(int childId, String text) async {
     return await _post('/api/chat/$childId/messages/', {'text': text});
+  }
+
+  Future<Map<String, dynamic>> sendMessageWithFile(
+    int childId, {
+    String text = '',
+    required File file,
+    void Function(double progress)? onProgress,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      _u('/api/chat/$childId/messages/'),
+    );
+    request.headers['Authorization'] = 'Token $_token';
+    if (text.isNotEmpty) {
+      request.fields['text'] = text;
+    }
+    request.files.add(
+      await http.MultipartFile.fromPath('file', file.path),
+    );
+    final client = http.Client();
+    final uploadDone = Completer<void>();
+    try {
+      final streamedRequest = http.StreamedRequest(request.method, request.url);
+      streamedRequest.headers.addAll(request.headers);
+
+      final totalBytes = request.contentLength;
+      var sentBytes = 0;
+
+      request.finalize().listen(
+        (chunk) {
+          streamedRequest.sink.add(chunk);
+          if (totalBytes > 0) {
+            sentBytes += chunk.length;
+            onProgress?.call((sentBytes / totalBytes).clamp(0.0, 1.0));
+          }
+        },
+        onDone: () {
+          streamedRequest.sink.close();
+          if (!uploadDone.isCompleted) uploadDone.complete();
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          streamedRequest.sink.addError(error, stackTrace);
+          streamedRequest.sink.close();
+          if (!uploadDone.isCompleted) {
+            uploadDone.completeError(error, stackTrace);
+          }
+        },
+        cancelOnError: true,
+      );
+
+      final streamed = await client.send(streamedRequest);
+      await uploadDone.future;
+      final body = await streamed.stream.bytesToString();
+      if (streamed.statusCode < 200 || streamed.statusCode >= 300) {
+        throw ApiException(streamed.statusCode, body);
+      }
+      onProgress?.call(1);
+      return jsonDecode(body) as Map<String, dynamic>;
+    } finally {
+      client.close();
+    }
   }
 
   // === Tasks ===

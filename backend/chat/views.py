@@ -1,6 +1,7 @@
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -24,6 +25,7 @@ class ChatMessagesView(APIView):
     GET  /api/chat/<child_id>/messages/ — list messages between current user and child
     POST /api/chat/<child_id>/messages/ — send a message to child (or parent sends to child)
     """
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def _get_child_and_validate(self, request, child_id):
         child = get_object_or_404(User, id=child_id, role=User.ROLE_CHILD)
@@ -45,20 +47,26 @@ class ChatMessagesView(APIView):
             Q(sender=parent, receiver=child) | Q(sender=child, receiver=parent)
         ).order_by("created_at")
 
-        # Mark unread messages as read for the current user
-        messages.filter(
-            receiver=request.user, status=Message.STATUS_SENT,
-        ).update(status=Message.STATUS_READ, read_at=timezone.now())
-
-        return Response(MessageSerializer(messages, many=True).data)
+        return Response(
+            MessageSerializer(
+                messages,
+                many=True,
+                context={"request": request},
+            ).data
+        )
 
     def post(self, request, child_id):
         child, parent = self._get_child_and_validate(request, child_id)
         if child is None:
             return Response({"detail": "forbidden"}, status=403)
 
-        s = SendMessageSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
+        text = (request.data.get("text") or "").strip()
+        uploaded_file = request.FILES.get("file")
+
+        if not text and not uploaded_file:
+            return Response(
+                {"detail": "text or file is required"}, status=400
+            )
 
         user = request.user
         if user.role == User.ROLE_PARENT:
@@ -69,34 +77,42 @@ class ChatMessagesView(APIView):
         msg = Message.objects.create(
             sender=user,
             receiver=receiver,
-            text=s.validated_data["text"],
+            text=text,
+            file=uploaded_file,
+            file_name=uploaded_file.name if uploaded_file else "",
         )
+
+        alert = None
+        if user.role == User.ROLE_CHILD and child.parent:
+            alert = Alert.objects.create(
+                child=child,
+                parent=child.parent,
+                alert_type=Alert.TYPE_CHAT_MESSAGE,
+                title=f"Сообщение от {user.display_name or user.username}",
+                message=text[:200] if text else f"📎 {uploaded_file.name}" if uploaded_file else "",
+            )
 
         # Send FCM push to the receiver
         sender_name = user.display_name or user.username
+        push_body = text[:200] if text else f"📎 {uploaded_file.name}" if uploaded_file else ""
         if receiver.fcm_token:
             send_notification_push(
                 receiver.fcm_token,
                 notification_type="chat_message",
                 title=f"Сообщение от {sender_name}",
-                body=s.validated_data["text"][:200],
+                body=push_body,
                 extra_data={
+                    "message_id": msg.id,
                     "child_id": child.id,
                     "sender_id": user.id,
+                    "alert_id": alert.id if alert else None,
                 },
             )
 
-        # Create alert for parent if child sends a message
-        if user.role == User.ROLE_CHILD and child.parent:
-            Alert.objects.create(
-                child=child,
-                parent=child.parent,
-                alert_type=Alert.TYPE_CHAT_MESSAGE,
-                title=f"Сообщение от {sender_name}",
-                message=s.validated_data["text"][:200],
-            )
-
-        return Response(MessageSerializer(msg).data, status=201)
+        return Response(
+            MessageSerializer(msg, context={"request": request}).data,
+            status=201,
+        )
 
 
 class MarkMessagesReadView(APIView):
@@ -183,6 +199,13 @@ class TaskListView(APIView):
         # Send FCM push to child about new task
         parent_name = request.user.display_name or request.user.username
         if child.fcm_token:
+            alert = Alert.objects.create(
+                child=child,
+                parent=request.user,
+                alert_type=Alert.TYPE_TASK_ASSIGNED,
+                title=f"Задание для {child.display_name or child.username}",
+                message=task.title,
+            )
             send_notification_push(
                 child.fcm_token,
                 notification_type="task_assigned",
@@ -191,17 +214,17 @@ class TaskListView(APIView):
                 extra_data={
                     "child_id": child.id,
                     "task_id": task.id,
+                    "alert_id": alert.id,
                 },
             )
-
-        # Create alert for the child's parent record
-        Alert.objects.create(
-            child=child,
-            parent=request.user,
-            alert_type=Alert.TYPE_TASK_ASSIGNED,
-            title=f"Задание для {child.display_name or child.username}",
-            message=task.title,
-        )
+        else:
+            Alert.objects.create(
+                child=child,
+                parent=request.user,
+                alert_type=Alert.TYPE_TASK_ASSIGNED,
+                title=f"Задание для {child.display_name or child.username}",
+                message=task.title,
+            )
 
         return Response(TaskSerializer(task).data, status=201)
 

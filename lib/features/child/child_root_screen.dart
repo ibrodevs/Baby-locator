@@ -21,10 +21,10 @@ class _ChildRootScreenState extends State<ChildRootScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
-          ChildHomeScreen(),
-          ChatScreen(),
-          ChildSettingsScreen(),
+        children: [
+          const ChildHomeScreen(),
+          ChatScreen(isActive: _index == 1),
+          const ChildSettingsScreen(),
         ],
       ),
       bottomNavigationBar: Container(

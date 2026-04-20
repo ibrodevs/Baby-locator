@@ -195,6 +195,7 @@ class ChildLocation {
     required this.lng,
     required this.address,
     required this.battery,
+    required this.charging,
     required this.updatedAt,
     required this.active,
     this.childId,
@@ -206,6 +207,7 @@ class ChildLocation {
   final double lng;
   final String address;
   final int battery;
+  final bool charging;
   final DateTime updatedAt;
   final bool active;
   final int? childId;
@@ -217,6 +219,7 @@ class ChildLocation {
     double? lng,
     String? address,
     int? battery,
+    bool? charging,
     DateTime? updatedAt,
     bool? active,
     int? childId,
@@ -228,6 +231,7 @@ class ChildLocation {
         lng: lng ?? this.lng,
         address: address ?? this.address,
         battery: battery ?? this.battery,
+        charging: charging ?? this.charging,
         updatedAt: updatedAt ?? this.updatedAt,
         active: active ?? this.active,
         childId: childId ?? this.childId,
@@ -240,12 +244,14 @@ class ChildLocationNotifier extends StateNotifier<ChildLocation?> {
 
   void setFromApi(Map<String, dynamic> j,
       {String name = 'Child', int? childId, String? avatarUrl}) {
+    final rawAddress = (j['address'] as String?) ?? '';
     state = ChildLocation(
       name: name,
       lat: (j['lat'] as num).toDouble(),
       lng: (j['lng'] as num).toDouble(),
-      address: (j['address'] as String?) ?? '',
+      address: _normalizeAddress(rawAddress) ?? '',
       battery: (j['battery'] as int?) ?? 0,
+      charging: (j['charging'] as bool?) ?? false,
       updatedAt:
           DateTime.tryParse(j['created_at'] as String? ?? '') ?? DateTime.now(),
       active: (j['active'] as bool?) ?? true,
@@ -259,21 +265,44 @@ class ChildLocationNotifier extends StateNotifier<ChildLocation?> {
     required double lng,
     String? address,
     int? battery,
+    bool? charging,
     bool? active,
     String? name,
+    int? childId,
+    String? avatarUrl,
   }) {
+    final normalizedAddress = _normalizeAddress(address);
     state = ChildLocation(
       name: name ?? state?.name ?? 'Child',
       lat: lat,
       lng: lng,
-      address: address ?? state?.address ?? '',
+      address: normalizedAddress ?? state?.address ?? '',
       battery: battery ?? state?.battery ?? 100,
+      charging: charging ?? state?.charging ?? false,
       updatedAt: DateTime.now(),
       active: active ?? true,
+      childId: childId ?? state?.childId,
+      avatarUrl: avatarUrl ?? state?.avatarUrl,
     );
   }
 
   void clear() => state = null;
+
+  String? _normalizeAddress(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty || _looksLikeCoordinates(trimmed)) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  bool _looksLikeCoordinates(String value) {
+    final coordinatePattern = RegExp(
+      r'^-?\d+(?:\.\d+)?,\s*-?\d+(?:\.\d+)?$',
+    );
+    return coordinatePattern.hasMatch(value);
+  }
 }
 
 final childLocationProvider =
@@ -303,6 +332,7 @@ class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
         lng: (locData['lng'] as num).toDouble(),
         address: (locData['address'] as String?) ?? '',
         battery: (locData['battery'] as int?) ?? 0,
+        charging: (entry['charging'] as bool?) ?? false,
         updatedAt: DateTime.tryParse(locData['created_at'] as String? ?? '') ??
             DateTime.now(),
         active: (locData['active'] as bool?) ?? true,

@@ -1,6 +1,7 @@
 import calendar
 import math
 import mimetypes
+import re
 from datetime import date as dt_date
 from datetime import timedelta
 
@@ -23,6 +24,7 @@ from .models import (
     AppLimit,
     AppUsageSnapshot,
     AroundAudioClip,
+    BlockedApp,
     DeviceDailySummary,
     DeviceStatus,
     LocationUpdate,
@@ -35,6 +37,8 @@ from .serializers import (
     AppLimitSerializer,
     AppLimitWriteSerializer,
     AroundAudioClipSerializer,
+    BlockAppSerializer,
+    BlockedAppSerializer,
     DeviceStatsSyncSerializer,
     LocationInputSerializer,
     LocationSerializer,
@@ -77,6 +81,16 @@ def _parse_selected_date(raw_value, fallback):
         return fallback
     parsed = parse_date(raw_value)
     return parsed or fallback
+
+
+def _sanitize_address(value):
+    address = (value or "").strip()
+    if not address:
+        return ""
+    coordinate_pattern = r"^-?\d+(?:\.\d+)?,\s*-?\d+(?:\.\d+)?$"
+    if re.fullmatch(coordinate_pattern, address):
+        return ""
+    return address
 
 
 def _parse_selected_month(raw_value, fallback):
@@ -130,12 +144,14 @@ class ShareLocationView(APIView):
             return Response({"detail": "children only"}, status=403)
         s = LocationInputSerializer(data=request.data)
         s.is_valid(raise_exception=True)
+        address = _sanitize_address(s.validated_data.get("address", ""))
         loc = LocationUpdate.objects.create(
             child=request.user,
             lat=s.validated_data["lat"],
             lng=s.validated_data["lng"],
-            address=s.validated_data.get("address", ""),
+            address=address,
             battery=s.validated_data.get("battery"),
+            charging=s.validated_data.get("charging", False),
             active=s.validated_data.get("active", True),
         )
 
@@ -220,7 +236,11 @@ class ChildLatestLocationView(APIView):
         loc = child.locations.first()
         if not loc:
             return Response({"detail": "no location yet"}, status=404)
-        return Response(LocationSerializer(loc).data)
+        data = LocationSerializer(loc).data
+        if "charging" not in data:
+            device_status = getattr(child, "device_status", None)
+            data["charging"] = device_status.charging if device_status else False
+        return Response(data)
 
 
 class ChildLocationHistoryView(APIView):
@@ -243,9 +263,15 @@ class AllChildrenLocationsView(APIView):
         result = []
         for child in children:
             loc = child.locations.first()
+            device_status = getattr(child, "device_status", None)
             entry = {
                 "child": UserSerializer(child, context={"request": request}).data,
                 "location": LocationSerializer(loc).data if loc else None,
+                "charging": (
+                    loc.charging
+                    if loc is not None
+                    else (device_status.charging if device_status else False)
+                ),
             }
             result.append(entry)
         return Response(result)
@@ -405,6 +431,7 @@ class ChildSafetyScoreView(APIView):
 class ChildDeviceStatsSyncView(APIView):
     """Child device uploads live device information and app usage history."""
     permission_classes = [IsAuthenticated]
+    MAX_DAILY_USAGE_MINUTES = 24 * 60
 
     def post(self, request):
         if request.user.role != User.ROLE_CHILD:
@@ -443,10 +470,23 @@ class ChildDeviceStatsSyncView(APIView):
         summaries = []
         snapshots = []
         for day in days:
-            apps = day.get("apps", [])
-            total_minutes = day.get(
-                "total_minutes",
-                sum(app["usage_minutes"] for app in apps),
+            raw_apps = day.get("apps", [])
+            apps = []
+            for app in raw_apps:
+                apps.append({
+                    **app,
+                    "usage_minutes": min(
+                        max(int(app["usage_minutes"]), 0),
+                        self.MAX_DAILY_USAGE_MINUTES,
+                    ),
+                })
+
+            requested_total = day.get("total_minutes")
+            if requested_total is None:
+                requested_total = sum(app["usage_minutes"] for app in apps)
+            total_minutes = min(
+                max(int(requested_total), 0),
+                self.MAX_DAILY_USAGE_MINUTES,
             )
             over_limit_apps = 0
             for app in apps:
@@ -484,6 +524,41 @@ class ChildDeviceStatsSyncView(APIView):
             DeviceDailySummary.objects.bulk_create(summaries)
             if snapshots:
                 AppUsageSnapshot.objects.bulk_create(snapshots)
+
+        # Auto-block apps that exceed their enabled daily limits
+        today_str = timezone.localdate()
+        today_apps = [s for s in snapshots if s.usage_date == today_str]
+        newly_blocked = False
+        for snapshot in today_apps:
+            limit = active_limits.get(snapshot.package_name)
+            if limit and snapshot.usage_minutes > limit.daily_limit_minutes:
+                _, created = BlockedApp.objects.get_or_create(
+                    child=request.user,
+                    package_name=snapshot.package_name,
+                    defaults={"app_name": snapshot.app_name},
+                )
+                if created:
+                    newly_blocked = True
+
+        if newly_blocked:
+            # Send updated blocked list to the child device
+            blocked_packages = list(
+                request.user.blocked_apps.values_list("package_name", flat=True)
+            )
+            parent = request.user.parent
+            if parent:
+                cmd = RemoteDeviceCommand.objects.create(
+                    child=request.user,
+                    created_by=parent,
+                    command_type=RemoteDeviceCommand.TYPE_SYNC_BLOCKED_APPS,
+                    payload={"blocked_packages": blocked_packages},
+                )
+                if request.user.fcm_token:
+                    send_command_push(
+                        request.user.fcm_token,
+                        RemoteDeviceCommand.TYPE_SYNC_BLOCKED_APPS,
+                        {"command_id": cmd.id},
+                    )
 
         return Response(
             {
@@ -594,6 +669,12 @@ class ChildStatsSummaryView(APIView):
             else None
         )
 
+        # Recalculate over_limit_apps dynamically from current limits
+        over_limit_count = sum(
+            1 for app in selected_apps.values()
+            if app.get("exceeded", False)
+        )
+
         weekly = []
         for offset in range(7):
             day = week_start + timedelta(days=offset)
@@ -630,6 +711,25 @@ class ChildStatsSummaryView(APIView):
             key=lambda item: (-item["usage_minutes"], item["app_name"].lower()),
         )
 
+        # Build all_known_apps: unique apps ever seen on this child's device
+        all_snapshots = (
+            child.app_usage_snapshots
+            .values("package_name", "app_name")
+            .distinct()
+        )
+        known_packages_in_apps = {a["package_name"] for a in apps}
+        all_known_apps = sorted(
+            [
+                {
+                    "package_name": s["package_name"],
+                    "app_name": s["app_name"],
+                }
+                for s in all_snapshots
+                if s["package_name"] not in known_packages_in_apps
+            ],
+            key=lambda x: x["app_name"].lower(),
+        )
+
         return Response(
             {
                 "child": UserSerializer(child, context={"request": request}).data,
@@ -658,11 +758,12 @@ class ChildStatsSummaryView(APIView):
                     "selected_total_minutes": today_used_minutes,
                     "selected_total_limit_minutes": total_limit_minutes,
                     "goal_progress": goal_progress,
-                    "over_limit_apps": selected_summary.over_limit_apps if selected_summary else 0,
+                    "over_limit_apps": over_limit_count,
                 },
                 "weekly": weekly,
                 "calendar": calendar_days,
                 "apps": apps,
+                "all_known_apps": all_known_apps,
             }
         )
 
@@ -832,7 +933,7 @@ class LatestAroundAudioView(APIView):
                 qs = qs.filter(id__gt=int(after_id))
             except (TypeError, ValueError):
                 return Response({"detail": "invalid after_id"}, status=400)
-        clip = qs.order_by("-id").first()
+        clip = qs.order_by("id").first()
         if clip is None:
             return Response(status=204)
         return Response(
@@ -948,3 +1049,80 @@ class AlertReadAllView(APIView):
             return Response({"detail": "parents only"}, status=403)
         request.user.parent_alerts.filter(read=False).update(read=True)
         return Response({"detail": "ok"})
+
+
+class BlockedAppsView(APIView):
+    """
+    GET  /api/children/<child_id>/blocked-apps/ — list blocked apps
+    POST /api/children/<child_id>/blocked-apps/ — block an app
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, child_id):
+        child = _resolve_child_for_request(request, child_id)
+        if child is None:
+            return Response({"detail": "forbidden"}, status=403)
+        apps = BlockedApp.objects.filter(child=child)
+        return Response(BlockedAppSerializer(apps, many=True).data)
+
+    def post(self, request, child_id):
+        if request.user.role != User.ROLE_PARENT:
+            return Response({"detail": "parents only"}, status=403)
+        child = _resolve_child_for_request(request, child_id)
+        if child is None:
+            return Response({"detail": "forbidden"}, status=403)
+
+        s = BlockAppSerializer(data=request.data)
+        s.is_valid(raise_exception=True)
+
+        blocked, created = BlockedApp.objects.get_or_create(
+            child=child,
+            package_name=s.validated_data["package_name"],
+            defaults={"app_name": s.validated_data["app_name"]},
+        )
+
+        # Send command to child to refresh blocked apps list.
+        self._send_sync_command(child, request.user)
+
+        return Response(
+            BlockedAppSerializer(blocked).data,
+            status=201 if created else 200,
+        )
+
+    @staticmethod
+    def _send_sync_command(child, parent):
+        blocked_packages = list(
+            child.blocked_apps.values_list("package_name", flat=True)
+        )
+        cmd = RemoteDeviceCommand.objects.create(
+            child=child,
+            created_by=parent,
+            command_type=RemoteDeviceCommand.TYPE_SYNC_BLOCKED_APPS,
+            payload={"blocked_packages": blocked_packages},
+        )
+        if child.fcm_token:
+            send_command_push(
+                child.fcm_token,
+                RemoteDeviceCommand.TYPE_SYNC_BLOCKED_APPS,
+                {"command_id": cmd.id},
+            )
+
+
+class UnblockAppView(APIView):
+    """DELETE /api/children/<child_id>/blocked-apps/<blocked_id>/"""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, child_id, blocked_id):
+        if request.user.role != User.ROLE_PARENT:
+            return Response({"detail": "parents only"}, status=403)
+        child = _resolve_child_for_request(request, child_id)
+        if child is None:
+            return Response({"detail": "forbidden"}, status=403)
+
+        blocked = get_object_or_404(BlockedApp, id=blocked_id, child=child)
+        blocked.delete()
+
+        # Send updated list to child.
+        BlockedAppsView._send_sync_command(child, request.user)
+
+        return Response(status=204)

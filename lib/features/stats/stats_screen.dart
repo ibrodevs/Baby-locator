@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
 import '../settings/settings_screen.dart';
@@ -28,8 +29,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   bool _savingLimit = false;
   String? _error;
   Timer? _poll;
+  Set<String> _blockedPackages = {};
+  Map<String, int> _blockedIdByPackage = {};
 
   DateTime _selectedDate = DateTime.now();
+  DateTime _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
   @override
   void initState() {
@@ -85,19 +89,36 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     }
 
     try {
-      final summary = await ApiClient.instance.childStatsSummary(
-        _selectedChildId!,
-        date: _selectedDate,
-      );
+      final results = await Future.wait([
+        ApiClient.instance.childStatsSummary(
+          _selectedChildId!,
+          date: _selectedDate,
+          month: _visibleMonth,
+        ),
+        ApiClient.instance.getBlockedApps(_selectedChildId!),
+      ]);
       if (!mounted) return;
 
+      final summary = results[0] as Map<String, dynamic>;
+      final blocked = (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
+
       final apiSelectedDate = _parseDate(summary['selected_date'] as String?);
+      final apiSelectedMonth =
+          _parseMonth(summary['selected_month'] as String?);
 
       setState(() {
         _stats = summary;
         _loading = false;
         _error = null;
         _selectedDate = apiSelectedDate ?? _selectedDate;
+        _visibleMonth = apiSelectedMonth ?? _visibleMonth;
+        _blockedPackages = blocked
+            .map((b) => b['package_name'] as String)
+            .toSet();
+        _blockedIdByPackage = {
+          for (final b in blocked)
+            b['package_name'] as String: b['id'] as int,
+        };
       });
     } catch (e) {
       if (!mounted) return;
@@ -108,16 +129,27 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     }
   }
 
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-    );
-    if (picked == null || !mounted) return;
+  Future<void> _selectDate(DateTime picked) async {
     setState(() {
       _selectedDate = picked;
+      _visibleMonth = DateTime(picked.year, picked.month);
+    });
+    await _fetchChildData();
+  }
+
+  Future<void> _changeMonth(int offset) async {
+    final targetMonth =
+        DateTime(_visibleMonth.year, _visibleMonth.month + offset);
+    final lastDayOfTargetMonth =
+        DateTime(targetMonth.year, targetMonth.month + 1, 0).day;
+    final nextDate = DateTime(
+      targetMonth.year,
+      targetMonth.month,
+      math.min(_selectedDate.day, lastDayOfTargetMonth),
+    );
+    setState(() {
+      _visibleMonth = targetMonth;
+      _selectedDate = nextDate;
     });
     await _fetchChildData();
   }
@@ -141,6 +173,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       _loading = true;
       _error = null;
       _selectedDate = DateTime.now();
+      _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
     });
     await _fetchChildData(showLoader: true);
   }
@@ -308,22 +341,234 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       if (!mounted) return;
       await _fetchChildData();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            enabled
-                ? t.limitSavedFor(app['app_name'] as String? ?? 'App')
-                : t.limitDisabledFor(app['app_name'] as String? ?? 'App'),
-          ),
-        ),
+      showAppSnackBar(
+        context,
+        enabled
+            ? t.limitSavedFor(app['app_name'] as String? ?? 'App')
+            : t.limitDisabledFor(app['app_name'] as String? ?? 'App'),
+        type: AppFeedbackType.success,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.couldNotSaveLimit(e.toString()))),
+      showAppSnackBar(
+        context,
+        t.couldNotSaveLimit(e.toString()),
+        type: AppFeedbackType.error,
       );
     } finally {
       if (mounted) setState(() => _savingLimit = false);
+    }
+  }
+
+  Future<void> _showAddAppSheet() async {
+    final knownApps = _allKnownApps;
+    if (knownApps.isEmpty) {
+      showAppSnackBar(
+        context,
+        Localizations.localeOf(context).languageCode == 'ru'
+            ? 'Нет дополнительных приложений для добавления'
+            : 'No additional apps to add',
+        type: AppFeedbackType.info,
+      );
+      return;
+    }
+
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        var query = '';
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filtered = query.isEmpty
+                ? knownApps
+                : knownApps
+                    .where((a) =>
+                        (a['app_name'] as String? ?? '')
+                            .toLowerCase()
+                            .contains(query.toLowerCase()) ||
+                        (a['package_name'] as String? ?? '')
+                            .toLowerCase()
+                            .contains(query.toLowerCase()))
+                    .toList();
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                MediaQuery.of(context).padding.bottom + 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Localizations.localeOf(context).languageCode == 'ru'
+                        ? 'Добавить приложение'
+                        : 'Add App',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    onChanged: (v) => setSheetState(() => query = v),
+                    decoration: InputDecoration(
+                      hintText:
+                          Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Поиск...'
+                              : 'Search...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: AppColors.dividerLight),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      itemBuilder: (context, i) {
+                        final app = filtered[i];
+                        final name = app['app_name'] as String? ?? '';
+                        final pkg = app['package_name'] as String? ?? '';
+                        return ListTile(
+                          leading: Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              color: _AppLimitRow._colorForApp(pkg),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'A',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          subtitle: Text(
+                            pkg,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () => Navigator.of(context).pop(app),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected == null || _selectedChildId == null) return;
+    // Set a default limit of 60 minutes for the newly added app
+    setState(() => _savingLimit = true);
+    try {
+      await ApiClient.instance.setChildAppLimit(
+        childId: _selectedChildId!,
+        packageName: selected['package_name'] as String? ?? '',
+        appName: selected['app_name'] as String? ?? 'App',
+        dailyLimitMinutes: 60,
+        enabled: true,
+      );
+      if (!mounted) return;
+      await _fetchChildData();
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        Localizations.localeOf(context).languageCode == 'ru'
+            ? 'Лимит добавлен для ${selected['app_name']}'
+            : 'Limit added for ${selected['app_name']}',
+        type: AppFeedbackType.success,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        e.toString(),
+        type: AppFeedbackType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _savingLimit = false);
+    }
+  }
+
+  Future<void> _toggleBlock(Map<String, dynamic> app) async {
+    if (_selectedChildId == null) return;
+    final pkg = app['package_name'] as String? ?? '';
+    final name = app['app_name'] as String? ?? 'App';
+    if (pkg.isEmpty) return;
+
+    try {
+      if (_blockedPackages.contains(pkg)) {
+        final blockedId = _blockedIdByPackage[pkg];
+        if (blockedId != null) {
+          await ApiClient.instance.unblockApp(_selectedChildId!, blockedId);
+        }
+      } else {
+        await ApiClient.instance.blockApp(
+          _selectedChildId!,
+          packageName: pkg,
+          appName: name,
+        );
+      }
+      if (!mounted) return;
+      await _fetchChildData();
+      if (!mounted) return;
+      final isBlocked = _blockedPackages.contains(pkg);
+      showAppSnackBar(
+        context,
+        isBlocked
+            ? Localizations.localeOf(context).languageCode == 'ru'
+                ? '$name заблокировано'
+                : '$name blocked'
+            : Localizations.localeOf(context).languageCode == 'ru'
+                ? '$name разблокировано'
+                : '$name unblocked',
+        type: AppFeedbackType.success,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        e.toString(),
+        type: AppFeedbackType.error,
+      );
     }
   }
 
@@ -348,9 +593,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Map<String, dynamic> get _device => _asMap(_stats?['device']);
   Map<String, dynamic> get _usage => _asMap(_stats?['usage']);
   List<Map<String, dynamic>> get _weekly => _asList(_stats?['weekly']);
+  List<Map<String, dynamic>> get _calendar => _asList(_stats?['calendar']);
   List<Map<String, dynamic>> get _apps => _asList(_stats?['apps']);
+  List<Map<String, dynamic>> get _allKnownApps =>
+      _asList(_stats?['all_known_apps']);
 
   int get _battery => (_device['battery'] as int?) ?? 0;
+  bool get _charging => (_device['charging'] as bool?) ?? false;
   bool get _isActive => (_device['active'] as bool?) ?? false;
   bool get _usageAccessGranted =>
       (_device['usage_access_granted'] as bool?) ?? false;
@@ -363,6 +612,15 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   double? get _goalProgress {
     final value = _usage['goal_progress'];
     return value is num ? value.toDouble() : null;
+  }
+
+  bool get _selectedDayHasData {
+    for (final day in _calendar) {
+      if ((day['is_selected'] as bool?) ?? false) {
+        return (day['has_data'] as bool?) ?? false;
+      }
+    }
+    return false;
   }
 
   @override
@@ -435,6 +693,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     return RefreshIndicator(
       onRefresh: () => _fetchChildData(showLoader: false),
       child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
           Row(
@@ -449,34 +708,30 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 ),
               ),
               const Spacer(),
-              InkWell(
-                onTap: _pickDate,
-                borderRadius: BorderRadius.circular(999),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.dividerLight),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.calendar_today,
-                        size: 12,
-                        color: AppColors.primary,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: AppColors.dividerLight),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 12,
+                      color: AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      selectedDateLabel,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        selectedDateLabel,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -502,7 +757,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           const SizedBox(height: 14),
           _buildDeviceCard(),
           const SizedBox(height: 12),
-          _buildGoalCard(),
+          _buildCalendarCard(),
+          const SizedBox(height: 12),
+          _selectedDayHasData
+              ? _buildGoalCard()
+              : _buildNoDataCard(selectedDateLabel),
           const SizedBox(height: 12),
           _buildWeeklyCard(),
           const SizedBox(height: 20),
@@ -523,17 +782,51 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   height: 18,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 ),
+              if (!_savingLimit && _allKnownApps.isNotEmpty)
+                InkWell(
+                  onTap: _showAddAppSheet,
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.add, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Добавить'
+                              : 'Add',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 10),
           if (_apps.isEmpty)
             AppCard(
               child: Text(
-                _usageAccessGranted
-                    ? t.noAppUsageData
-                    : _isIosDevice
-                        ? t.iosAppLimitsUnavailable
-                        : t.grantUsageAccessHint,
+                !_selectedDayHasData
+                    ? _noDataLabel(context)
+                    : _usageAccessGranted
+                        ? t.noAppUsageData
+                        : _isIosDevice
+                            ? t.iosAppLimitsUnavailable
+                            : t.grantUsageAccessHint,
                 style: const TextStyle(
                   fontSize: 13,
                   color: AppColors.textSecondaryLight,
@@ -596,6 +889,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 label: _battery > 0
                     ? t.batteryPercent(_battery)
                     : t.batteryUnknown,
+              ),
+              _MetricChip(
+                icon: _charging ? Icons.bolt_rounded : Icons.power_outlined,
+                color: _charging ? AppColors.success : AppColors.textMuted,
+                label: Localizations.localeOf(context).languageCode == 'ru'
+                    ? (_charging ? 'На зарядке' : 'Не заряжается')
+                    : (_charging ? 'Charging' : 'Not charging'),
               ),
               _MetricChip(
                 icon: Icons.schedule,
@@ -712,6 +1012,197 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
+  Widget _buildCalendarCard() {
+    final t = S.of(context);
+    final monthLabel = _formatDate(context, 'LLLL yyyy', _visibleMonth);
+    final weekdayLabels = [t.mon, t.tue, t.wed, t.thu, t.fri, t.sat, t.sun];
+    final firstWeekday =
+        DateTime(_visibleMonth.year, _visibleMonth.month, 1).weekday;
+    final leadingEmpty = firstWeekday - DateTime.monday;
+    final cells = <Widget>[
+      for (final label in weekdayLabels)
+        Center(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+            ),
+          ),
+        ),
+      for (var i = 0; i < leadingEmpty; i++) const SizedBox.shrink(),
+      for (final day in _calendar)
+        _CalendarDayCell(
+          date: _parseDate(day['date'] as String?) ?? _selectedDate,
+          dayLabel: '${(day['day'] as int?) ?? 0}',
+          hasData: (day['has_data'] as bool?) ?? false,
+          isSelected: (day['is_selected'] as bool?) ?? false,
+          isToday: (day['is_today'] as bool?) ?? false,
+          isOverLimit: (day['over_limit'] as bool?) ?? false,
+          onTap: () => _selectDate(
+            _parseDate(day['date'] as String?) ?? _selectedDate,
+          ),
+        ),
+    ];
+
+    return AppCard(
+      color: const Color(0xFFF7F8FC),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                t.usageCalendar,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const Spacer(),
+              _CalendarNavButton(
+                icon: Icons.chevron_left_rounded,
+                onTap: () => _changeMonth(-1),
+              ),
+              const SizedBox(width: 8),
+              _CalendarNavButton(
+                icon: Icons.chevron_right_rounded,
+                onTap: () => _changeMonth(1),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        monthLabel[0].toUpperCase() + monthLabel.substring(1),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.3,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primarySoft,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        _formatDate(context, 'd MMM', _selectedDate),
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                GridView.count(
+                  shrinkWrap: true,
+                  crossAxisCount: 7,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 4,
+                  crossAxisSpacing: 5,
+                  childAspectRatio: 1.14,
+                  children: cells,
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _CalendarLegendDot(
+                      color: AppColors.primary,
+                      label:
+                          Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Выбранный день'
+                              : 'Selected day',
+                    ),
+                    _CalendarLegendDot(
+                      color: AppColors.success,
+                      label:
+                          Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Есть данные'
+                              : 'Has data',
+                    ),
+                    _CalendarLegendDot(
+                      color: AppColors.danger,
+                      label:
+                          Localizations.localeOf(context).languageCode == 'ru'
+                              ? 'Превышен лимит'
+                              : 'Over limit',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoDataCard(String selectedDateLabel) {
+    return AppCard(
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: const Icon(
+              Icons.bar_chart_rounded,
+              color: AppColors.primary,
+              size: 28,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            _noDataLabel(context),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            Localizations.localeOf(context).languageCode == 'ru'
+                ? 'За $selectedDateLabel статистика не найдена.'
+                : 'No statistics found for $selectedDateLabel.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondaryLight,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildWeeklyCard() {
     final t = S.of(context);
     final maxMinutes = _weekly.fold<int>(
@@ -755,17 +1246,20 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Widget _buildAppRow(Map<String, dynamic> app) {
+    final pkg = app['package_name'] as String? ?? '';
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: _AppLimitRow(
         name: app['app_name'] as String? ?? 'App',
-        packageName: app['package_name'] as String? ?? '',
+        packageName: pkg,
         usageMinutes: (app['usage_minutes'] as int?) ?? 0,
         dailyLimitMinutes: app['daily_limit_minutes'] as int?,
         enabled: (app['limit_enabled'] as bool?) ?? false,
         exceeded: (app['exceeded'] as bool?) ?? false,
+        blocked: _blockedPackages.contains(pkg),
         onToggle: (value) => _toggleLimit(app, value),
         onEdit: () => _editLimit(app),
+        onBlock: () => _toggleBlock(app),
       ),
     );
   }
@@ -773,6 +1267,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   DateTime? _parseDate(String? value) {
     if (value == null || value.isEmpty) return null;
     return DateTime.tryParse(value);
+  }
+
+  DateTime? _parseMonth(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final parts = value.split('-');
+    if (parts.length != 2) return null;
+    final year = int.tryParse(parts[0]);
+    final month = int.tryParse(parts[1]);
+    if (year == null || month == null) return null;
+    return DateTime(year, month);
   }
 
   Map<String, dynamic> _asMap(dynamic value) {
@@ -796,6 +1300,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     if (hours == 0) return '${remainingMinutes}m';
     if (remainingMinutes == 0) return '${hours}h';
     return '${hours}h ${remainingMinutes}m';
+  }
+
+  String _noDataLabel(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'ru'
+        ? 'Данных нет'
+        : 'No data';
   }
 
   String _formatDate(BuildContext context, String pattern, DateTime date) {
@@ -857,6 +1367,158 @@ class _LimitEditResult {
 
   final int minutes;
   final bool enabled;
+}
+
+class _CalendarNavButton extends StatelessWidget {
+  const _CalendarNavButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: AppColors.dividerLight),
+        ),
+        child: Icon(icon, size: 18, color: AppColors.textPrimaryLight),
+      ),
+    );
+  }
+}
+
+class _CalendarDayCell extends StatelessWidget {
+  const _CalendarDayCell({
+    required this.date,
+    required this.dayLabel,
+    required this.hasData,
+    required this.isSelected,
+    required this.isToday,
+    required this.isOverLimit,
+    required this.onTap,
+  });
+
+  final DateTime date;
+  final String dayLabel;
+  final bool hasData;
+  final bool isSelected;
+  final bool isToday;
+  final bool isOverLimit;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final textColor = isSelected
+        ? Colors.white
+        : isOverLimit
+            ? AppColors.danger
+            : AppColors.textPrimaryLight;
+    final backgroundColor = isSelected
+        ? AppColors.primary
+        : isToday
+            ? AppColors.primarySoft
+            : const Color(0xFFF6F7FB);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isToday && !isSelected
+                ? AppColors.primary.withValues(alpha: 0.28)
+                : Colors.transparent,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              dayLabel,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: textColor,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 1),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: hasData
+                    ? (isSelected ? Colors.white : AppColors.success)
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CalendarLegendDot extends StatelessWidget {
+  const _CalendarLegendDot({
+    required this.color,
+    required this.label,
+  });
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMuted,
+            height: 1,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _MetricChip extends StatelessWidget {
@@ -1021,8 +1683,10 @@ class _AppLimitRow extends StatelessWidget {
     required this.dailyLimitMinutes,
     required this.enabled,
     required this.exceeded,
+    required this.blocked,
     required this.onToggle,
     required this.onEdit,
+    required this.onBlock,
   });
 
   final String name;
@@ -1031,8 +1695,10 @@ class _AppLimitRow extends StatelessWidget {
   final int? dailyLimitMinutes;
   final bool enabled;
   final bool exceeded;
+  final bool blocked;
   final ValueChanged<bool> onToggle;
   final VoidCallback onEdit;
+  final VoidCallback onBlock;
 
   @override
   Widget build(BuildContext context) {
@@ -1100,24 +1766,72 @@ class _AppLimitRow extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                InkWell(
-                  onTap: onEdit,
-                  borderRadius: BorderRadius.circular(999),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: AppColors.chipGrey,
+                Row(
+                  children: [
+                    InkWell(
+                      onTap: onEdit,
                       borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      limitText,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.chipGrey,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          limitText,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: onBlock,
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: blocked
+                              ? AppColors.danger.withValues(alpha: 0.15)
+                              : AppColors.chipGrey,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              blocked
+                                  ? Icons.lock_rounded
+                                  : Icons.lock_open_rounded,
+                              size: 12,
+                              color: blocked
+                                  ? AppColors.danger
+                                  : AppColors.textMuted,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              blocked ? 'Blocked' : 'Block',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                color: blocked
+                                    ? AppColors.danger
+                                    : AppColors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

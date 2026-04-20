@@ -66,16 +66,15 @@ class LocationService {
   }
 
   Future<LocationFix> _toFix(Position p) async {
-    String address = '${p.latitude.toStringAsFixed(4)}, '
-        '${p.longitude.toStringAsFixed(4)}';
+    String address = '';
     try {
       final isAndroid = !kIsWeb && Platform.isAndroid;
       if (isAndroid) {
-        address = await _reverseGeocodeGoogle(p.latitude, p.longitude) ??
-            address;
+        address =
+            await _reverseGeocodeGoogle(p.latitude, p.longitude) ?? address;
       } else {
-        address = await _reverseGeocodeNative(p.latitude, p.longitude) ??
-            address;
+        address =
+            await _reverseGeocodeNative(p.latitude, p.longitude) ?? address;
       }
     } catch (_) {}
     return LocationFix(lat: p.latitude, lng: p.longitude, address: address);
@@ -86,11 +85,29 @@ class LocationService {
     final places = await placemarkFromCoordinates(lat, lng);
     if (places.isEmpty) return null;
     final pl = places.first;
+
+    // Build a precise address: street + house number, district, city.
+    final thoroughfare = (pl.thoroughfare ?? '').trim();
+    final subThoroughfare = (pl.subThoroughfare ?? '').trim();
+    final subLocality = (pl.subLocality ?? '').trim();
+    final locality = (pl.locality ?? '').trim();
+
+    // Combine street name and house number.
+    String streetPart = '';
+    if (thoroughfare.isNotEmpty && subThoroughfare.isNotEmpty) {
+      streetPart = '$thoroughfare $subThoroughfare';
+    } else if (thoroughfare.isNotEmpty) {
+      streetPart = thoroughfare;
+    } else if ((pl.street ?? '').trim().isNotEmpty) {
+      // Fallback: some platforms put the full address in `street`.
+      streetPart = pl.street!.trim();
+    }
+
     final parts = [
-      if ((pl.street ?? '').isNotEmpty) pl.street,
-      if ((pl.locality ?? '').isNotEmpty) pl.locality,
-      if ((pl.administrativeArea ?? '').isNotEmpty) pl.administrativeArea,
-    ].whereType<String>().toList();
+      if (streetPart.isNotEmpty) streetPart,
+      if (subLocality.isNotEmpty && subLocality != streetPart) subLocality,
+      if (locality.isNotEmpty) locality,
+    ];
     return parts.isNotEmpty ? parts.join(', ') : null;
   }
 
@@ -100,7 +117,6 @@ class LocationService {
       'https://maps.googleapis.com/maps/api/geocode/json'
       '?latlng=$lat,$lng'
       '&key=$_googleApiKey'
-      '&result_type=street_address|route|locality'
       '&language=ru',
     );
     final response = await http.get(uri).timeout(const Duration(seconds: 5));
@@ -108,7 +124,24 @@ class LocationService {
     final json = jsonDecode(response.body) as Map<String, dynamic>;
     final results = json['results'] as List<dynamic>?;
     if (results == null || results.isEmpty) return null;
-    final formatted = results.first['formatted_address'] as String?;
+
+    // Pick the most precise result: prefer street_address, then route,
+    // then the first available result.
+    Map<String, dynamic>? best;
+    for (final result in results) {
+      final r = result as Map<String, dynamic>;
+      final types = (r['types'] as List<dynamic>?)?.cast<String>() ?? [];
+      if (types.contains('street_address')) {
+        best = r;
+        break;
+      }
+      if (best == null && types.contains('route')) {
+        best = r;
+      }
+    }
+    best ??= results.first as Map<String, dynamic>;
+
+    final formatted = best['formatted_address'] as String?;
     return (formatted != null && formatted.isNotEmpty) ? formatted : null;
   }
 

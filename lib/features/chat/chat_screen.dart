@@ -1,30 +1,42 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/chat_visibility_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key, this.initialSelectedChildId});
+  const ChatScreen({
+    super.key,
+    this.initialSelectedChildId,
+    this.isActive = true,
+  });
 
   final int? initialSelectedChildId;
+  final bool isActive;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends ConsumerState<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   List<Map<String, dynamic>> _children = [];
   int? _selectedChildId;
   List<Map<String, dynamic>> _messages = [];
+  List<Map<String, dynamic>> _pendingMessages = [];
   List<Map<String, dynamic>> _tasks = [];
   List<Map<String, dynamic>> _rewards = [];
   int _totalStars = 0;
@@ -33,10 +45,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _loading = true;
   bool _didInitialScrollToBottom = false;
   Timer? _poll;
+  bool _conversationLoading = false;
+  bool _markReadInFlight = false;
+  AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
+  int _localMessageCounter = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _appLifecycleState =
+        WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
     WidgetsBinding.instance.addPostFrameCallback((_) => _init());
   }
 
@@ -66,7 +85,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _selectedChildId = user.id;
       await _loadAll();
     }
-    _startPolling();
+    _updatePollingState();
   }
 
   int _resolveInitialChildId(List<Map<String, dynamic>> list) {
@@ -94,6 +113,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     setState(() {
       _selectedChildId = id;
       _messages = [];
+      _pendingMessages = [];
       _tasks = [];
       _rewards = [];
       _totalStars = 0;
@@ -101,12 +121,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       _loading = true;
       _didInitialScrollToBottom = false;
     });
+    _syncActiveChatVisibility();
     await _loadAll();
   }
 
   void _startPolling() {
     _poll?.cancel();
-    _poll = Timer.periodic(const Duration(seconds: 5), (_) => _loadAll());
+    _poll = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => _loadConversation(),
+    );
+  }
+
+  void _stopPolling() {
+    _poll?.cancel();
+    _poll = null;
+  }
+
+  void _updatePollingState() {
+    if (_canInteractWithChat) {
+      _startPolling();
+      unawaited(_loadConversation());
+      unawaited(_markConversationAsRead());
+    } else {
+      _stopPolling();
+    }
+    _syncActiveChatVisibility();
   }
 
   Future<void> _loadAll() async {
@@ -119,9 +159,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ApiClient.instance.getRewards(_selectedChildId!),
       ]);
       if (!mounted) return;
-      final wasAtBottom = _scrollController.hasClients &&
-          _scrollController.position.pixels >=
-              _scrollController.position.maxScrollExtent - 50;
       setState(() {
         _messages = (results[0] as List<dynamic>).cast<Map<String, dynamic>>();
         _tasks = (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
@@ -131,15 +168,126 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         _rewards = (results[3] as List<dynamic>).cast<Map<String, dynamic>>();
         _loading = false;
       });
-      if (!_didInitialScrollToBottom) {
-        _didInitialScrollToBottom = true;
-        _scrollToBottom(animated: false);
-      } else if (wasAtBottom || _messages.length <= 1) {
-        _scrollToBottom();
-      }
+      _syncScrollAfterConversationUpdate();
+      unawaited(_markConversationAsRead());
     } catch (e) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _loadConversation() async {
+    if (_selectedChildId == null || _conversationLoading) return;
+    _conversationLoading = true;
+    try {
+      final results = await Future.wait([
+        ApiClient.instance.getMessages(_selectedChildId!),
+        ApiClient.instance.getTasks(_selectedChildId!),
+      ]);
+      if (!mounted) return;
+      final wasAtBottom = _isNearBottom;
+      final messages = List<Map<String, dynamic>>.from(results[0]);
+      final tasks = List<Map<String, dynamic>>.from(results[1]);
+      final hadChanges =
+          !_sameIds(_messages, messages) || !_sameIds(_tasks, tasks);
+      if (!hadChanges && !_loading) {
+        return;
+      }
+      setState(() {
+        _messages = messages;
+        _tasks = tasks;
+        _loading = false;
+      });
+      _syncScrollAfterConversationUpdate(wasAtBottom: wasAtBottom);
+      unawaited(_markConversationAsRead());
+    } catch (_) {
+      if (mounted) setState(() => _loading = false);
+    } finally {
+      _conversationLoading = false;
+    }
+  }
+
+  bool get _canInteractWithChat =>
+      widget.isActive && _appLifecycleState == AppLifecycleState.resumed;
+
+  void _syncActiveChatVisibility() {
+    final activeChildId = _canInteractWithChat ? _selectedChildId : null;
+    ChatVisibilityService.instance.setActiveChildFor(this, activeChildId);
+  }
+
+  Future<void> _markConversationAsRead() async {
+    if (!_canInteractWithChat ||
+        _selectedChildId == null ||
+        _markReadInFlight ||
+        !mounted) {
+      return;
+    }
+
+    final userId = ref.read(sessionProvider).user?.id;
+    if (userId == null) return;
+
+    final unreadIncomingIds = _messages
+        .where((msg) =>
+            (msg['sender'] as int?) != userId &&
+            (msg['is_read'] as bool? ?? false) == false)
+        .map((msg) => msg['id'] as int?)
+        .whereType<int>()
+        .toList();
+
+    if (unreadIncomingIds.isEmpty) return;
+
+    _markReadInFlight = true;
+    try {
+      await ApiClient.instance.markMessagesRead(
+        _selectedChildId!,
+        messageIds: unreadIncomingIds,
+      );
+      if (!mounted) return;
+      setState(() {
+        final now = DateTime.now().toUtc().toIso8601String();
+        _messages = _messages.map((msg) {
+          final id = msg['id'] as int?;
+          if (id == null || !unreadIncomingIds.contains(id)) {
+            return msg;
+          }
+          return {
+            ...msg,
+            'status': 'read',
+            'is_read': true,
+            'read_at': msg['read_at'] ?? now,
+          };
+        }).toList();
+      });
+    } catch (_) {
+      // Best-effort: next refresh will retry.
+    } finally {
+      _markReadInFlight = false;
+    }
+  }
+
+  bool get _isNearBottom =>
+      _scrollController.hasClients &&
+      _scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 50;
+
+  void _syncScrollAfterConversationUpdate({bool? wasAtBottom}) {
+    final shouldStickToBottom = wasAtBottom ?? _isNearBottom;
+    if (!_didInitialScrollToBottom) {
+      _didInitialScrollToBottom = true;
+      _scrollToBottom(animated: false);
+    } else if (shouldStickToBottom || _messages.length <= 1) {
+      _scrollToBottom();
+    }
+  }
+
+  bool _sameIds(List<Map<String, dynamic>> a, List<Map<String, dynamic>> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i]['id'] != b[i]['id']) return false;
+      if (a[i]['status'] != b[i]['status']) return false;
+      if (a[i]['updated_at'] != b[i]['updated_at']) return false;
+    }
+    return true;
   }
 
   void _scrollToBottom({bool animated = true}) {
@@ -163,17 +311,210 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty || _selectedChildId == null) return;
     _controller.clear();
-    try {
-      await ApiClient.instance.sendMessage(_selectedChildId!, text);
-      await _loadAll();
-      _scrollToBottom();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send: $e')),
-        );
-      }
+    await _submitOutgoingMessage(text: text);
+  }
+
+  Future<void> _pickAndSendFile() async {
+    if (_selectedChildId == null) return;
+    final picker = ImagePicker();
+    final source = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded,
+                  color: AppColors.primary),
+              title: const Text('Photo from gallery'),
+              onTap: () => Navigator.pop(ctx, 'gallery_photo'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded,
+                  color: AppColors.primary),
+              title: const Text('Photo from camera'),
+              onTap: () => Navigator.pop(ctx, 'camera_photo'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.video_library_rounded,
+                  color: AppColors.primary),
+              title: const Text('Video from gallery'),
+              onTap: () => Navigator.pop(ctx, 'gallery_video'),
+            ),
+            ListTile(
+              leading:
+                  const Icon(Icons.videocam_rounded, color: AppColors.primary),
+              title: const Text('Video from camera'),
+              onTap: () => Navigator.pop(ctx, 'camera_video'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    XFile? picked;
+    if (source == 'camera_photo') {
+      picked = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+      );
+    } else if (source == 'gallery_photo') {
+      picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+      );
+    } else if (source == 'camera_video') {
+      picked = await picker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: const Duration(minutes: 5),
+      );
+    } else {
+      picked = await picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(minutes: 5),
+      );
     }
+    if (picked == null || !mounted) return;
+
+    final text = _controller.text.trim();
+    _controller.clear();
+    await _submitOutgoingMessage(
+      text: text,
+      file: File(picked.path),
+      fileName: picked.name,
+    );
+  }
+
+  Future<void> _submitOutgoingMessage({
+    required String text,
+    File? file,
+    String? fileName,
+  }) async {
+    if (_selectedChildId == null) return;
+    final user = ref.read(sessionProvider).user;
+    if (user == null) return;
+    if (text.trim().isEmpty && file == null) return;
+
+    final pendingId =
+        'local_${DateTime.now().microsecondsSinceEpoch}_${_localMessageCounter++}';
+    final pending = _buildPendingMessage(
+      pendingId: pendingId,
+      user: user,
+      text: text.trim(),
+      file: file,
+      fileName: fileName,
+    );
+
+    setState(() {
+      _pendingMessages = [..._pendingMessages, pending];
+    });
+    _scrollToBottom();
+
+    try {
+      final sent = file == null
+          ? await ApiClient.instance.sendMessage(_selectedChildId!, text.trim())
+          : await ApiClient.instance.sendMessageWithFile(
+              _selectedChildId!,
+              text: text.trim(),
+              file: file,
+              onProgress: (progress) =>
+                  _updatePendingProgress(pendingId, progress),
+            );
+      if (!mounted) return;
+      setState(() {
+        _pendingMessages = _pendingMessages
+            .where((msg) => msg['local_id'] != pendingId)
+            .toList();
+        _messages = _upsertServerMessage(
+          _messages,
+          Map<String, dynamic>.from(sent),
+        );
+      });
+      _scrollToBottom();
+      unawaited(_loadConversation());
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _pendingMessages = _pendingMessages
+            .where((msg) => msg['local_id'] != pendingId)
+            .toList();
+      });
+      showAppSnackBar(
+        context,
+        file == null ? 'Failed to send: $e' : 'Failed to upload: $e',
+        type: AppFeedbackType.error,
+      );
+    }
+  }
+
+  Map<String, dynamic> _buildPendingMessage({
+    required String pendingId,
+    required SessionUser user,
+    required String text,
+    File? file,
+    String? fileName,
+  }) {
+    return {
+      'local_id': pendingId,
+      'id': pendingId,
+      'sender': user.id,
+      'text': text,
+      'created_at': DateTime.now().toUtc().toIso8601String(),
+      'sender_name': user.displayName,
+      'sender_avatar_url': user.avatarUrl,
+      'is_read': false,
+      'file_url': null,
+      'file_name': fileName ?? _fallbackFileName(file),
+      'local_file_path': file?.path,
+      'is_local_pending': true,
+      'upload_progress': file == null ? null : 0.02,
+    };
+  }
+
+  String _fallbackFileName(File? file) {
+    if (file == null) return '';
+    final segments = file.path.split(Platform.pathSeparator);
+    return segments.isEmpty ? file.path : segments.last;
+  }
+
+  void _updatePendingProgress(String pendingId, double progress) {
+    if (!mounted) return;
+    final normalized = progress.clamp(0.0, 1.0);
+    final index = _pendingMessages
+        .indexWhere((message) => message['local_id'] == pendingId);
+    if (index < 0) return;
+    final current =
+        (_pendingMessages[index]['upload_progress'] as num?)?.toDouble() ?? 0;
+    if ((normalized - current).abs() < 0.04 && normalized < 0.98) {
+      return;
+    }
+
+    setState(() {
+      final updated = List<Map<String, dynamic>>.from(_pendingMessages);
+      updated[index] = {
+        ...updated[index],
+        'upload_progress': normalized,
+      };
+      _pendingMessages = updated;
+    });
+  }
+
+  List<Map<String, dynamic>> _upsertServerMessage(
+    List<Map<String, dynamic>> existing,
+    Map<String, dynamic> incoming,
+  ) {
+    final incomingId = incoming['id'];
+    final filtered = existing.where((msg) => msg['id'] != incomingId).toList();
+    filtered.add(incoming);
+    filtered.sort((a, b) {
+      final left = DateTime.tryParse(a['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      final right = DateTime.tryParse(b['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      return left.compareTo(right);
+    });
+    return filtered;
   }
 
   Future<void> _completeTask(int taskId) async {
@@ -183,8 +524,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       await _loadAll();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        showAppSnackBar(
+          context,
+          'Error: $e',
+          type: AppFeedbackType.error,
         );
       }
     }
@@ -197,10 +540,36 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       await _loadAll();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+        showAppSnackBar(
+          context,
+          'Error: $e',
+          type: AppFeedbackType.error,
         );
       }
+    }
+  }
+
+  Future<void> _handleAddTask() async {
+    final hasReward = _rewards.any((reward) => reward['claimed'] != true);
+    if (hasReward) {
+      _showAddTaskDialog();
+      return;
+    }
+
+    final ru = _isRussian;
+    final shouldCreateReward = await showAppConfirmDialog(
+      context: context,
+      title: ru ? 'Сначала создайте награду' : 'Create a reward first',
+      message: ru
+          ? 'Перед созданием задания нужно добавить хотя бы одну награду для ребёнка.'
+          : 'Before creating a task, add at least one reward for this child.',
+      confirmLabel: ru ? 'Создать награду' : 'Create reward',
+      cancelLabel: S.of(context).cancel,
+      type: AppFeedbackType.warning,
+    );
+
+    if (shouldCreateReward == true && mounted) {
+      _showAddRewardDialog();
     }
   }
 
@@ -293,11 +662,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     description: descCtrl.text.trim(),
                     rewardStars: stars,
                   );
-                  await _loadAll();
+                  await _loadConversation();
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
+                    showAppSnackBar(
+                      context,
+                      'Error: $e',
+                      type: AppFeedbackType.error,
                     );
                   }
                 }
@@ -398,8 +769,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   await _loadAll();
                 } catch (e) {
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
+                    showAppSnackBar(
+                      context,
+                      'Error: $e',
+                      type: AppFeedbackType.error,
                     );
                   }
                 }
@@ -423,10 +796,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
-    _poll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    _stopPolling();
+    ChatVisibilityService.instance.clear(this);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant ChatScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isActive != widget.isActive) {
+      _updatePollingState();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appLifecycleState = state;
+    _updatePollingState();
   }
 
   @override
@@ -536,16 +925,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           child: Text('Add a child to start chatting',
                               style: TextStyle(color: AppColors.textMuted)),
                         )
-                      : _buildChatList(user, isParent),
+                      : RefreshIndicator(
+                          onRefresh: _loadAll,
+                          child: _buildChatList(user, isParent),
+                        ),
             ),
 
             // Composer
             _ChatComposer(
               controller: _controller,
               onSend: _send,
+              onAttach: _pickAndSendFile,
               isParent: isParent,
-              onAddTask: _showAddTaskDialog,
+              onAddTask: _handleAddTask,
               onAddReward: _showAddRewardDialog,
+              sendingCount: _pendingMessages.length,
             ),
           ],
         ),
@@ -566,6 +960,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ));
     }
 
+    for (final msg in _pendingMessages) {
+      items.add(_ChatItem(
+        type: _ChatItemType.message,
+        data: msg,
+        time: DateTime.tryParse(msg['created_at'] as String? ?? '') ??
+            DateTime.now(),
+      ));
+    }
+
     for (final task in _tasks) {
       items.add(_ChatItem(
         type: _ChatItemType.task,
@@ -578,15 +981,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     items.sort((a, b) => a.time.compareTo(b.time));
 
     if (items.isEmpty) {
-      return const Center(
-        child: Text('No messages yet. Say hello!',
-            style: TextStyle(color: AppColors.textMuted)),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 40, 16, 12),
+        children: const [
+          Center(
+            child: Text(
+              'No messages yet. Say hello!',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+        ],
       );
     }
 
     // Group by date
     return ListView.builder(
       controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       itemCount: items.length,
       itemBuilder: (_, i) {
@@ -603,11 +1015,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           final msg = item.data;
           final isMine = msg['sender'] == user?.id;
           child = _Bubble(
-            text: msg['text'] as String,
+            text: (msg['text'] as String?) ?? '',
             time: _formatTime(msg['created_at'] as String),
             isMine: isMine,
             senderName: (msg['sender_name'] as String?) ?? '',
-            read: msg['read'] as bool? ?? false,
+            senderAvatarUrl: msg['sender_avatar_url'] as String?,
+            read: msg['is_read'] as bool? ?? false,
+            fileUrl: msg['file_url'] as String?,
+            fileName: msg['file_name'] as String?,
+            localFilePath: msg['local_file_path'] as String?,
+            pending: msg['is_local_pending'] as bool? ?? false,
+            uploadProgress: (msg['upload_progress'] as num?)?.toDouble(),
           );
         } else {
           child = _TaskCard(
@@ -640,6 +1058,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       return '';
     }
   }
+
+  bool get _isRussian => Localizations.localeOf(context).languageCode == 'ru';
 }
 
 // === Data types ===
@@ -688,7 +1108,7 @@ class _WeeklyRewardsBanner extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Text(
@@ -737,7 +1157,7 @@ class _WeeklyRewardsBanner extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor:
                   const AlwaysStoppedAnimation<Color>(AppColors.success),
             ),
@@ -796,16 +1216,34 @@ class _Bubble extends StatelessWidget {
     required this.time,
     required this.isMine,
     required this.senderName,
+    required this.senderAvatarUrl,
     required this.read,
+    this.fileUrl,
+    this.fileName,
+    this.localFilePath,
+    this.pending = false,
+    this.uploadProgress,
   });
   final String text;
   final String time;
   final bool isMine;
   final String senderName;
+  final String? senderAvatarUrl;
   final bool read;
+  final String? fileUrl;
+  final String? fileName;
+  final String? localFilePath;
+  final bool pending;
+  final double? uploadProgress;
 
   @override
   Widget build(BuildContext context) {
+    const myBubbleColor = Color(0xFFF2ECE1);
+    const otherBubbleColor = Colors.white;
+    final bubbleColor = isMine ? myBubbleColor : otherBubbleColor;
+    final hasImage = _isImageFile(fileName);
+    final hasVideo = _isVideoFile(fileName);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -819,6 +1257,9 @@ class _Bubble extends StatelessWidget {
                   senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
               color: AppColors.accent,
               size: 28,
+              image: senderAvatarUrl != null
+                  ? NetworkImage(senderAvatarUrl!)
+                  : null,
             ),
             const SizedBox(width: 8),
           ],
@@ -842,29 +1283,256 @@ class _Bubble extends StatelessWidget {
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: const BoxConstraints(maxWidth: 260),
                   decoration: BoxDecoration(
-                    color: isMine ? AppColors.primary : const Color(0xFFEEF1F5),
+                    color: bubbleColor,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
                       bottomLeft: Radius.circular(isMine ? 16 : 4),
                       bottomRight: Radius.circular(isMine ? 4 : 16),
                     ),
-                  ),
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      color: isMine ? Colors.white : AppColors.textPrimaryLight,
-                      fontSize: 14,
+                    border: Border.all(
+                      color: isMine
+                          ? const Color(0xFFE0D5BF)
+                          : AppColors.dividerLight,
                     ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if ((fileUrl != null || localFilePath != null) &&
+                          hasImage)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: localFilePath != null
+                                ? Image.file(
+                                    File(localFilePath!),
+                                    width: 220,
+                                    height: 220,
+                                    fit: BoxFit.cover,
+                                    filterQuality: FilterQuality.low,
+                                    errorBuilder: (_, __, ___) =>
+                                        _fileAttachment(
+                                      fileName ?? 'file',
+                                      isMine,
+                                      isVideo: false,
+                                      pending: pending,
+                                      progress: uploadProgress,
+                                    ),
+                                  )
+                                : Image.network(
+                                    fileUrl!,
+                                    width: 220,
+                                    height: 220,
+                                    fit: BoxFit.cover,
+                                    filterQuality: FilterQuality.low,
+                                    gaplessPlayback: true,
+                                    errorBuilder: (_, __, ___) =>
+                                        _fileAttachment(
+                                      fileName ?? 'file',
+                                      isMine,
+                                      isVideo: false,
+                                      pending: pending,
+                                      progress: uploadProgress,
+                                    ),
+                                  ),
+                          ),
+                        )
+                      else if (fileUrl != null || localFilePath != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _fileAttachment(
+                            fileName ?? 'file',
+                            isMine,
+                            isVideo: hasVideo,
+                            pending: pending,
+                            progress: uploadProgress,
+                          ),
+                        ),
+                      if (text.isNotEmpty)
+                        Text(
+                          text,
+                          style: const TextStyle(
+                            color: AppColors.textPrimaryLight,
+                            fontSize: 14,
+                          ),
+                        ),
+                      if (pending) ...[
+                        if (text.isNotEmpty ||
+                            fileUrl != null ||
+                            localFilePath != null)
+                          const SizedBox(height: 8),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                value: uploadProgress == null ||
+                                        uploadProgress! <= 0 ||
+                                        uploadProgress! >= 1
+                                    ? null
+                                    : uploadProgress,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              uploadProgress != null
+                                  ? 'Uploading ${(uploadProgress! * 100).round()}%'
+                                  : 'Sending...',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  read && isMine ? '$time \u2713' : time,
-                  style:
-                      const TextStyle(fontSize: 11, color: AppColors.textMuted),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      time,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                    if (isMine) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        pending
+                            ? Icons.schedule_rounded
+                            : Icons.done_all_rounded,
+                        size: 14,
+                        color: pending
+                            ? AppColors.textSecondaryLight
+                            : read
+                                ? AppColors.success
+                                : AppColors.textMuted,
+                      ),
+                    ],
+                  ],
                 ),
+              ],
+            ),
+          ),
+          if (isMine) ...[
+            const SizedBox(width: 8),
+            AvatarCircle(
+              initials:
+                  senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+              color: AppColors.primary,
+              size: 28,
+              image: senderAvatarUrl != null
+                  ? NetworkImage(senderAvatarUrl!)
+                  : null,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  static bool _isImageFile(String? name) {
+    if (name == null) return false;
+    final lower = name.toLowerCase();
+    return lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.png') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp') ||
+        lower.endsWith('.heic');
+  }
+
+  static bool _isVideoFile(String? name) {
+    if (name == null) return false;
+    final lower = name.toLowerCase();
+    return lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.m4v') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.endsWith('.webm');
+  }
+
+  static Widget _fileAttachment(
+    String name,
+    bool isMine, {
+    required bool isVideo,
+    required bool pending,
+    double? progress,
+  }) {
+    final iconColor = isVideo ? AppColors.danger : AppColors.textSecondaryLight;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isMine ? const Color(0xFFE8DFD1) : AppColors.chipGrey,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isVideo
+                ? Icons.play_circle_fill_rounded
+                : Icons.insert_drive_file_rounded,
+            size: 18,
+            color: iconColor,
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  name,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimaryLight,
+                  ),
+                ),
+                Text(
+                  isVideo
+                      ? pending
+                          ? 'Video is uploading'
+                          : 'Video attached'
+                      : pending
+                          ? 'File is uploading'
+                          : 'File attached',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                if (pending && progress != null) ...[
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: progress <= 0 || progress >= 1 ? null : progress,
+                      minHeight: 4,
+                      backgroundColor: AppColors.dividerLight,
+                      valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -919,7 +1587,7 @@ class _TaskCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 12,
               offset: const Offset(0, 2),
             ),
@@ -959,7 +1627,7 @@ class _TaskCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.12),
+                      color: statusColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -1114,15 +1782,19 @@ class _ChatComposer extends StatelessWidget {
   const _ChatComposer({
     required this.controller,
     required this.onSend,
+    required this.onAttach,
     required this.isParent,
     required this.onAddTask,
     required this.onAddReward,
+    required this.sendingCount,
   });
   final TextEditingController controller;
   final VoidCallback onSend;
+  final VoidCallback onAttach;
   final bool isParent;
   final VoidCallback onAddTask;
   final VoidCallback onAddReward;
+  final int sendingCount;
 
   @override
   Widget build(BuildContext context) {
@@ -1132,58 +1804,103 @@ class _ChatComposer extends StatelessWidget {
         color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.dividerLight)),
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          if (isParent)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.add_circle_outline,
-                  color: AppColors.textSecondaryLight, size: 26),
-              onSelected: (val) {
-                if (val == 'task') onAddTask();
-                if (val == 'reward') onAddReward();
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(
-                  value: 'task',
-                  child: Row(
-                    children: [
-                      Icon(Icons.task_alt, color: AppColors.primary, size: 20),
-                      SizedBox(width: 8),
-                      Text('Add Task'),
-                    ],
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: sendingCount == 0
+                ? const SizedBox.shrink()
+                : Padding(
+                    key: ValueKey<int>(sendingCount),
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          sendingCount == 1
+                              ? 'Sending item...'
+                              : 'Sending $sendingCount items...',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const PopupMenuItem(
-                  value: 'reward',
-                  child: Row(
-                    children: [
-                      Icon(Icons.card_giftcard,
-                          color: AppColors.success, size: 20),
-                      SizedBox(width: 8),
-                      Text('Add Reward'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                hintText: 'Send a message or task...',
-                border: InputBorder.none,
-                hintStyle: TextStyle(color: AppColors.textMuted),
-              ),
-              onSubmitted: (_) => onSend(),
-            ),
           ),
-          Material(
-            color: AppColors.primary,
-            shape: const CircleBorder(),
-            child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white, size: 18),
-              onPressed: onSend,
-            ),
+          Row(
+            children: [
+              if (isParent)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.add_circle_outline,
+                      color: AppColors.textSecondaryLight, size: 26),
+                  onSelected: (val) {
+                    if (val == 'task') onAddTask();
+                    if (val == 'reward') onAddReward();
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: 'task',
+                      child: Row(
+                        children: [
+                          Icon(Icons.task_alt,
+                              color: AppColors.primary, size: 20),
+                          SizedBox(width: 8),
+                          Text('Add Task'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'reward',
+                      child: Row(
+                        children: [
+                          Icon(Icons.card_giftcard,
+                              color: AppColors.success, size: 20),
+                          SizedBox(width: 8),
+                          Text('Add Reward'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              IconButton(
+                icon: const Icon(Icons.attach_file_rounded,
+                    color: AppColors.textSecondaryLight, size: 24),
+                onPressed: onAttach,
+              ),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    hintText: 'Send a message, photo or video...',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(color: AppColors.textMuted),
+                  ),
+                  onSubmitted: (_) => onSend(),
+                ),
+              ),
+              Material(
+                color: AppColors.textPrimaryLight,
+                shape: const CircleBorder(),
+                child: IconButton(
+                  icon: const Icon(Icons.send, color: Colors.white, size: 18),
+                  onPressed: onSend,
+                ),
+              ),
+            ],
           ),
         ],
       ),

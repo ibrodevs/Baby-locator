@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 
 class ChildrenListScreen extends ConsumerStatefulWidget {
@@ -88,23 +89,13 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
     final name = ((child['display_name'] as String?)?.isNotEmpty ?? false)
         ? child['display_name'] as String
         : child['username'] as String;
-    final confirm = await showDialog<bool>(
+    final confirm = await showAppConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.deleteChildTitle),
-        content: Text(t.deleteChildMessage(name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(t.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
+      title: t.deleteChildTitle,
+      message: t.deleteChildMessage(name),
+      confirmLabel: t.delete,
+      cancelLabel: t.cancel,
+      type: AppFeedbackType.error,
     );
 
     if (confirm != true) return;
@@ -113,13 +104,17 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
       await ApiClient.instance.deleteChild(child['id'] as int);
       await _load();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.childDeleted(name))),
+      showAppSnackBar(
+        context,
+        t.childDeleted(name),
+        type: AppFeedbackType.success,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.failedToDeleteChild(e.toString()))),
+      showAppSnackBar(
+        context,
+        t.failedToDeleteChild(e.toString()),
+        type: AppFeedbackType.error,
       );
     }
   }
@@ -137,14 +132,18 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
         ref.read(sessionProvider.notifier).updateAvatar(avatarUrl);
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.avatarUpdated)),
+        showAppSnackBar(
+          context,
+          t.avatarUpdated,
+          type: AppFeedbackType.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(t.failedGeneric(e.toString()))),
+        showAppSnackBar(
+          context,
+          t.failedGeneric(e.toString()),
+          type: AppFeedbackType.error,
         );
       }
     }
@@ -176,18 +175,22 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : _err != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(_err!,
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (_err != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 56),
+                      child: Text(
+                        _err!,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: AppColors.danger)),
-                  ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
+                        style: const TextStyle(color: AppColors.danger),
+                      ),
+                    )
+                  else ...[
                     // Parent profile card with avatar upload
                     AppCard(
                       child: Row(
@@ -358,7 +361,9 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                         );
                       }),
                   ],
-                ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -402,8 +407,10 @@ class _InviteCodeSheetState extends State<_InviteCodeSheet> {
   void _copyCode() {
     if (_code == null) return;
     Clipboard.setData(ClipboardData(text: _code!));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(S.of(context).codeCopied)),
+    showAppSnackBar(
+      context,
+      S.of(context).codeCopied,
+      type: AppFeedbackType.success,
     );
   }
 
@@ -619,23 +626,13 @@ class _EditChildSheetState extends State<_EditChildSheet> {
     final name = (_name.text.trim().isNotEmpty
         ? _name.text.trim()
         : '@${widget.child['username']}');
-    final confirm = await showDialog<bool>(
+    final confirm = await showAppConfirmDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(t.deleteChildTitle),
-        content: Text(t.deleteChildMessage(name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(t.cancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
-            child: Text(t.delete),
-          ),
-        ],
-      ),
+      title: t.deleteChildTitle,
+      message: t.deleteChildMessage(name),
+      confirmLabel: t.delete,
+      cancelLabel: t.cancel,
+      type: AppFeedbackType.error,
     );
     if (confirm != true) return;
 

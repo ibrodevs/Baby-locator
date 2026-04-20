@@ -6,6 +6,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_client.dart';
+import 'chat_visibility_service.dart';
+import 'notification_dedupe_store.dart';
 
 class NotificationSettingsModel {
   const NotificationSettingsModel({
@@ -79,9 +81,6 @@ class DeviceNotificationService {
   static const _androidChannelName = 'Kid Security Alerts';
   static const _androidChannelDescription =
       'Notifications about children activity, battery, and safe zones.';
-  static const _shownAlertsKey = 'notification_shown_alert_ids';
-  static const _maxStoredIds = 200;
-
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -165,9 +164,10 @@ class DeviceNotificationService {
 
     if (parentChanged || _pollingTimer == null) {
       _cancelTimer();
-      // Poll every 30 seconds for near-real-time alerts.
+      // Poll more frequently so chat/task alerts still feel fast
+      // even when FCM delivery is unavailable.
       _pollingTimer = Timer.periodic(
-        const Duration(seconds: 30),
+        const Duration(seconds: 8),
         (_) => _poll(),
       );
       // Run immediately on start.
@@ -197,8 +197,8 @@ class DeviceNotificationService {
     if (_pollInFlight || _activeParentId == null) return;
     _pollInFlight = true;
     try {
-      final alerts = (await ApiClient.instance.getAlerts())
-          .cast<Map<String, dynamic>>();
+      final alerts =
+          (await ApiClient.instance.getAlerts()).cast<Map<String, dynamic>>();
       if (alerts.isEmpty) return;
 
       final shownIds = await _loadShownIds();
@@ -208,6 +208,7 @@ class DeviceNotificationService {
         final id = alert['id'] as int;
         final alertType = alert['alert_type'] as String? ?? '';
         final childName = alert['child_name'] as String? ?? '';
+        final childId = alert['child'] as int?;
         final title = alert['title'] as String? ?? '';
         final message = alert['message'] as String? ?? '';
 
@@ -216,6 +217,12 @@ class DeviceNotificationService {
 
         // Skip if already shown locally.
         if (shownIds.contains(id.toString())) continue;
+
+        if ((alertType == 'chat_message' || alertType == 'task_assigned') &&
+            childId != null &&
+            ChatVisibilityService.instance.isChatOpenFor(childId)) {
+          continue;
+        }
 
         // Check user settings.
         if (!_shouldShow(alertType)) continue;
@@ -277,15 +284,10 @@ class DeviceNotificationService {
   }
 
   Future<Set<String>> _loadShownIds() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_shownAlertsKey) ?? const []).toSet();
+    return NotificationDedupeStore.loadParentAlertShownIds();
   }
 
   Future<void> _saveShownIds(Set<String> ids) async {
-    final prefs = await SharedPreferences.getInstance();
-    final list = ids.toList()..sort();
-    final trimmed =
-        list.length > _maxStoredIds ? list.sublist(list.length - _maxStoredIds) : list;
-    await prefs.setStringList(_shownAlertsKey, trimmed);
+    await NotificationDedupeStore.saveParentAlertShownIds(ids);
   }
 }
