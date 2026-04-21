@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+
+const _preferredLocaleKey = 'preferred_locale';
 
 class LocationFix {
   LocationFix({
@@ -18,7 +22,13 @@ class LocationFix {
   final String address;
 }
 
-enum LocationPermissionStatus { granted, denied, deniedForever, serviceOff }
+enum LocationPermissionStatus {
+  granted,
+  denied,
+  deniedForever,
+  serviceOff,
+  backgroundDenied,
+}
 
 class LocationService {
   StreamSubscription<Position>? _sub;
@@ -26,12 +36,20 @@ class LocationService {
   /// Google Maps API key (same one used in AndroidManifest.xml).
   static const _googleApiKey = 'AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8';
 
-  Future<LocationPermissionStatus> ensurePermission() async {
+  Future<LocationPermissionStatus> ensurePermission({
+    bool requireBackground = false,
+  }) async {
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) return LocationPermissionStatus.serviceOff;
     var p = await Geolocator.checkPermission();
     if (p == LocationPermission.denied) {
       p = await Geolocator.requestPermission();
+    }
+    if (!kIsWeb &&
+        Platform.isAndroid &&
+        requireBackground &&
+        p == LocationPermission.whileInUse) {
+      return LocationPermissionStatus.backgroundDenied;
     }
     if (!kIsWeb && Platform.isIOS && p == LocationPermission.whileInUse) {
       try {
@@ -82,6 +100,7 @@ class LocationService {
 
   /// Uses the native Geocoder (reliable on iOS).
   Future<String?> _reverseGeocodeNative(double lat, double lng) async {
+    await setLocaleIdentifier(await _preferredLocaleTag());
     final places = await placemarkFromCoordinates(lat, lng);
     if (places.isEmpty) return null;
     final pl = places.first;
@@ -113,11 +132,12 @@ class LocationService {
 
   /// Uses the Google Maps Geocoding HTTP API (reliable on Android).
   Future<String?> _reverseGeocodeGoogle(double lat, double lng) async {
+    final languageCode = await _preferredLanguageCode();
     final uri = Uri.parse(
       'https://maps.googleapis.com/maps/api/geocode/json'
       '?latlng=$lat,$lng'
       '&key=$_googleApiKey'
-      '&language=ru',
+      '&language=$languageCode',
     );
     final response = await http.get(uri).timeout(const Duration(seconds: 5));
     if (response.statusCode != 200) return null;
@@ -148,5 +168,21 @@ class LocationService {
   void stop() {
     _sub?.cancel();
     _sub = null;
+  }
+
+  Future<String> _preferredLocaleTag() async {
+    final prefs = await SharedPreferences.getInstance();
+    final storedTag = prefs.getString(_preferredLocaleKey);
+    final fallbackTag = ui.PlatformDispatcher.instance.locale.toLanguageTag();
+    final normalized = (storedTag?.trim().isNotEmpty ?? false)
+        ? storedTag!.replaceAll('_', '-')
+        : fallbackTag.replaceAll('_', '-');
+    return normalized.isEmpty ? 'en' : normalized;
+  }
+
+  Future<String> _preferredLanguageCode() async {
+    final tag = await _preferredLocaleTag();
+    final languageCode = tag.split('-').first.toLowerCase();
+    return languageCode.isEmpty ? 'en' : languageCode;
   }
 }

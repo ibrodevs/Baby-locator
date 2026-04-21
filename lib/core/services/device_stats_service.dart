@@ -162,4 +162,17 @@ class DeviceStatsService {
     if (kIsWeb || !Platform.isAndroid) return;
     await _channel.invokeMethod<void>('openUsageAccessSettings');
   }
+
+  Future<bool> isIgnoringBatteryOptimizations() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    final result = await _channel.invokeMethod<bool>(
+      'isIgnoringBatteryOptimizations',
+    );
+    return result ?? false;
+  }
+
+  Future<void> openBatteryOptimizationSettings() async {
+    if (kIsWeb || !Platform.isAndroid) return;
+    await _channel.invokeMethod<void>('openBatteryOptimizationSettings');
+  }
 }

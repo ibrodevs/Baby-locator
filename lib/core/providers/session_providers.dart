@@ -313,6 +313,104 @@ final childLocationProvider =
 // Selected child for parent map
 final selectedChildIdProvider = StateProvider<int?>((_) => null);
 
+class ParentChildrenNotifier extends StateNotifier<List<Map<String, dynamic>>> {
+  ParentChildrenNotifier() : super(const []);
+
+  Future<List<Map<String, dynamic>>> refresh() async {
+    final children = _normalize(await ApiClient.instance.listChildren());
+    _setIfChanged(children);
+    return state;
+  }
+
+  void setFromList(List<dynamic> data) {
+    _setIfChanged(_normalize(data));
+  }
+
+  void syncFromLocationEntries(List<dynamic> data) {
+    if (data.isEmpty) return;
+
+    final mergedById = <int, Map<String, dynamic>>{};
+    final orderedIds = <int>[];
+
+    for (final child in state) {
+      final id = child['id'] as int?;
+      if (id == null) continue;
+      mergedById[id] = Map<String, dynamic>.from(child);
+      orderedIds.add(id);
+    }
+
+    for (final entry in data) {
+      final rawEntry = entry as Map?;
+      final rawChild = rawEntry?['child'];
+      if (rawChild is! Map) continue;
+
+      final child = Map<String, dynamic>.from(rawChild);
+      final id = child['id'] as int?;
+      if (id == null) continue;
+
+      if (!mergedById.containsKey(id)) {
+        orderedIds.add(id);
+      }
+
+      mergedById[id] = {
+        ...?mergedById[id],
+        ...child,
+      };
+    }
+
+    final merged = <Map<String, dynamic>>[];
+    for (final id in orderedIds) {
+      final child = mergedById[id];
+      if (child != null) {
+        merged.add(child);
+      }
+    }
+
+    _setIfChanged(merged);
+  }
+
+  void clear() {
+    if (state.isEmpty) return;
+    state = const [];
+  }
+
+  void _setIfChanged(List<Map<String, dynamic>> next) {
+    if (_sameChildren(state, next)) return;
+    state = next;
+  }
+
+  List<Map<String, dynamic>> _normalize(List<dynamic> data) {
+    return data
+        .map((child) => Map<String, dynamic>.from(child as Map))
+        .toList(growable: false);
+  }
+
+  bool _sameChildren(
+    List<Map<String, dynamic>> left,
+    List<Map<String, dynamic>> right,
+  ) {
+    if (left.length != right.length) return false;
+
+    for (var i = 0; i < left.length; i++) {
+      final a = left[i];
+      final b = right[i];
+      if (a['id'] != b['id'] ||
+          a['username'] != b['username'] ||
+          a['display_name'] != b['display_name'] ||
+          a['avatar_url'] != b['avatar_url']) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+}
+
+final parentChildrenProvider =
+    StateNotifierProvider<ParentChildrenNotifier, List<Map<String, dynamic>>>(
+  (ref) => ParentChildrenNotifier(),
+);
+
 // All children locations for the map (list of ChildLocation)
 class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
   AllChildrenLocationsNotifier() : super([]);

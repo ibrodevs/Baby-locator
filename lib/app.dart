@@ -66,11 +66,13 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     }
 
     if (user?.role == UserRole.parent) {
+      unawaited(ref.read(parentChildrenProvider.notifier).refresh());
       ChildNotificationService.instance.stop();
       await DeviceNotificationService.instance.syncParentSession(user!.id);
       // Stop child background service if we switch to parent.
       await RemoteDeviceService.instance.stop();
     } else if (user?.role == UserRole.child) {
+      ref.read(parentChildrenProvider.notifier).clear();
       DeviceNotificationService.instance.stop();
       await ChildNotificationService.instance.start();
       // Start the child background service — it must keep running even
@@ -78,6 +80,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       await RemoteDeviceService.instance.start();
     } else {
       // Logged out — stop everything.
+      ref.read(parentChildrenProvider.notifier).clear();
       DeviceNotificationService.instance.stop();
       ChildNotificationService.instance.stop();
       await RemoteDeviceService.instance.stop();

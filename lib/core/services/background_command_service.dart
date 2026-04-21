@@ -15,7 +15,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'api_client.dart';
+import 'child_webrtc_service.dart';
 
 bool _backgroundServiceConfigured = false;
 const MethodChannel _deviceStatsChannel =
@@ -25,6 +27,8 @@ const MethodChannel _deviceStatsChannel =
 /// Call once from main() before runApp.
 Future<void> initBackgroundCommandService() async {
   if (_backgroundServiceConfigured) return;
+  final localeCode = await _preferredLocaleCode();
+  final t = ExtraTranslations(localeCode);
   final service = FlutterBackgroundService();
   await service.configure(
     androidConfiguration: AndroidConfiguration(
@@ -34,7 +38,7 @@ Future<void> initBackgroundCommandService() async {
       autoStartOnBoot: true,
       foregroundServiceNotificationId: 8888,
       initialNotificationTitle: 'Kid Security',
-      initialNotificationContent: 'Геолокация и батарея ребёнка передаются',
+      initialNotificationContent: t.trackingNotification,
       foregroundServiceTypes: [
         AndroidForegroundType.location,
         AndroidForegroundType.microphone,
@@ -78,9 +82,13 @@ Future<void> startChildBackgroundService() async {
 
 Future<void> wakeChildBackgroundService() async {
   await initBackgroundCommandService();
+  final service = FlutterBackgroundService();
+  final wasRunning = await service.isRunning();
   await startChildBackgroundService();
-  await Future<void>.delayed(const Duration(milliseconds: 500));
-  FlutterBackgroundService().invoke('pollNow');
+  await Future<void>.delayed(
+    Duration(milliseconds: wasRunning ? 150 : 350),
+  );
+  service.invoke('pollNow');
 }
 
 Future<void> stopChildBackgroundService() async {
@@ -119,6 +127,7 @@ class _BackgroundCommandHandler {
 
   static const _locationHeartbeat = Duration(minutes: 1);
   static const _deviceStatsInterval = Duration(minutes: 2);
+  static const _blockedAppsCheckInterval = Duration(milliseconds: 650);
   static const _minimumMovementMeters = 15.0;
   static const _maximumQuietPeriod = Duration(minutes: 10);
 
@@ -127,6 +136,7 @@ class _BackgroundCommandHandler {
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioRecorder _recorder = AudioRecorder();
   final Battery _battery = Battery();
+  final ChildWebRTCService _webrtcService = ChildWebRTCService();
 
   Timer? _pollTimer;
   Timer? _telemetryTimer;
@@ -149,18 +159,22 @@ class _BackgroundCommandHandler {
   double? _lastPushedLat;
   double? _lastPushedLng;
   int? _lastPushedBattery;
+  String _localeCode = 'en';
+  ExtraTranslations get _t => ExtraTranslations(_localeCode);
 
   Future<void> start() async {
     // Load the auth token so ApiClient can authenticate.
     await ApiClient.instance.loadToken();
+    _localeCode = await _preferredLocaleCode();
 
     await _alarmPlayer.setReleaseMode(ReleaseMode.loop);
     await _ensureAlarmFile();
+    _resetNotification();
     await _startTelemetry();
     if (Platform.isAndroid) {
       await _enforceBlockedApps();
       _blockedAppsTimer = Timer.periodic(
-        const Duration(seconds: 1),
+        _blockedAppsCheckInterval,
         (_) => unawaited(_enforceBlockedApps()),
       );
     }
@@ -180,10 +194,11 @@ class _BackgroundCommandHandler {
       await _stopAlarm();
     });
 
-    // Start polling immediately, then every 4 seconds.
+    // Start polling immediately, then frequently enough that a wake-up miss
+    // still keeps remote commands responsive.
     await _pollCommands();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 4),
+      const Duration(seconds: 2),
       (_) => _pollCommands(),
     );
   }
@@ -198,6 +213,7 @@ class _BackgroundCommandHandler {
     await _batterySub?.cancel();
     await _alarmPlayer.stop();
     await _stopAroundSession();
+    await _webrtcService.stopMonitoring();
   }
 
   Future<void> _startTelemetry() async {
@@ -246,9 +262,7 @@ class _BackgroundCommandHandler {
 
     final permission = await _locationPermission();
     if (permission == null) {
-      _updateTrackingNotification(
-        'Геолокация недоступна: проверьте разрешение и GPS',
-      );
+      _updateTrackingNotification(_t.locationUnavailableCheckGps);
       return;
     }
 
@@ -275,9 +289,7 @@ class _BackgroundCommandHandler {
 
     final permission = await _locationPermission();
     if (permission == null) {
-      _updateTrackingNotification(
-        'Геолокация недоступна: проверьте разрешение и GPS',
-      );
+      _updateTrackingNotification(_t.locationUnavailableCheckGps);
       return;
     }
 
@@ -314,9 +326,9 @@ class _BackgroundCommandHandler {
         accuracy: LocationAccuracy.high,
         distanceFilter: 15,
         intervalDuration: const Duration(seconds: 30),
-        foregroundNotificationConfig: const ForegroundNotificationConfig(
+        foregroundNotificationConfig: ForegroundNotificationConfig(
           notificationTitle: 'Kid Security',
-          notificationText: 'Геолокация ребёнка передаётся родителю',
+          notificationText: _t.childLocationSharedToParent,
           enableWakeLock: true,
           setOngoing: true,
         ),
@@ -384,11 +396,9 @@ class _BackgroundCommandHandler {
       _lastPushedBattery = _batteryLevel;
 
       final batteryText = _batteryLevel != null ? ' • ${_batteryLevel!}%' : '';
-      _updateTrackingNotification(
-        'Геолокация активна$batteryText',
-      );
+      _updateTrackingNotification(_t.locationActive(batteryText));
     } catch (_) {
-      _updateTrackingNotification('Нет сети, повторим отправку автоматически');
+      _updateTrackingNotification(_t.noNetworkWillRetry);
     } finally {
       _locationPushInFlight = false;
     }
@@ -476,6 +486,17 @@ class _BackgroundCommandHandler {
         final sessionToken = payload['session_token'] as String?;
         await _stopAroundSession(expectedSession: sessionToken);
         return;
+      case 'webrtc_monitor_start':
+        final sessionToken = payload['session_token'] as String? ?? '';
+        if (sessionToken.isEmpty) {
+          throw Exception('Missing WebRTC session token');
+        }
+        await _startWebrtcSession(sessionToken);
+        return;
+      case 'webrtc_monitor_stop':
+        await _webrtcService.stopMonitoring();
+        _resetNotification();
+        return;
       case 'sync_blocked_apps':
         final packages =
             (payload['blocked_packages'] as List<dynamic>?)?.cast<String>() ??
@@ -494,7 +515,21 @@ class _BackgroundCommandHandler {
   Future<void> _syncBlockedApps(List<String> packages) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_blockedAppsKey, packages);
+    await _pushPackagesToNativeService(packages);
     await _enforceBlockedApps();
+  }
+
+  Future<void> _pushPackagesToNativeService(List<String> packages) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _deviceStatsChannel.invokeMethod<bool>(
+        'setBlockedPackages',
+        {'packages': packages},
+      );
+    } catch (_) {
+      // AccessibilityService is a best-effort enforcement; the polling
+      // fallback below still runs.
+    }
   }
 
   Future<void> _enforceBlockedApps() async {
@@ -541,7 +576,7 @@ class _BackgroundCommandHandler {
         'https://maps.googleapis.com/maps/api/geocode/json'
         '?latlng=$lat,$lng'
         '&key=$_googleApiKey'
-        '&language=ru',
+        '&language=$_localeCode',
       );
       final response = await http.get(uri).timeout(const Duration(seconds: 5));
       if (response.statusCode != 200) return _lastGeocodedAddress;
@@ -582,7 +617,7 @@ class _BackgroundCommandHandler {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
         title: 'Kid Security',
-        content: '🔊 Воспроизведение сигнала...',
+        content: '🔊 ${_t.playingLoudSignal}',
       );
     }
 
@@ -635,6 +670,25 @@ class _BackgroundCommandHandler {
     } catch (_) {}
   }
 
+  // ---- WebRTC live audio ----
+
+  Future<void> _startWebrtcSession(String sessionToken) async {
+    // If already running for this token, the service will ignore the call.
+    // Different session → the service resets and rejoins.
+    if (_service case final AndroidServiceInstance androidService) {
+      androidService.setForegroundNotificationInfo(
+        title: 'Kid Security',
+        content: _t.liveAudioStreamingToParent,
+      );
+    }
+    try {
+      await _webrtcService.startMonitoring(sessionToken);
+    } catch (e) {
+      _resetNotification();
+      rethrow;
+    }
+  }
+
   // ---- Around (microphone) ----
 
   Future<void> _startAroundSession(String sessionToken) async {
@@ -651,7 +705,7 @@ class _BackgroundCommandHandler {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
         title: 'Kid Security',
-        content: 'Прослушивание окружения...',
+        content: _t.listeningToSurroundings,
       );
     }
 
@@ -800,8 +854,17 @@ class _BackgroundCommandHandler {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
         title: 'Kid Security',
-        content: 'Геолокация и батарея ребёнка передаются',
+        content: _t.trackingNotification,
       );
     }
   }
+}
+
+Future<String> _preferredLocaleCode() async {
+  final prefs = await SharedPreferences.getInstance();
+  final tag = prefs.getString('preferred_locale') ??
+      PlatformDispatcher.instance.locale.toLanguageTag();
+  final normalized = tag.replaceAll('_', '-');
+  final languageCode = normalized.split('-').first.toLowerCase();
+  return languageCode.isEmpty ? 'en' : languageCode;
 }

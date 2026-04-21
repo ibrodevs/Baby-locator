@@ -7,6 +7,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
   file_selector_windows
   firebase_core
+  flutter_webrtc
   geolocator_windows
   record_windows
   share_plus

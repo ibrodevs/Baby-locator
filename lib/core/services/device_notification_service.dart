@@ -252,6 +252,9 @@ class DeviceNotificationService {
   }
 
   bool _shouldShow(String alertType) {
+    if (alertType == 'chat_message' || alertType == 'task_assigned') {
+      return true;
+    }
     if (alertType == 'battery_low') return _settings.batteryAlerts;
     if (alertType == 'safe_zone_exit') return _settings.safeZoneAlerts;
     return _settings.locationAlerts;

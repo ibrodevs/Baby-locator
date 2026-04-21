@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -42,26 +43,19 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _init() async {
-    try {
-      final list = (await ApiClient.instance.listChildren())
-          .cast<Map<String, dynamic>>();
-      if (!mounted) return;
-      setState(() => _children = list);
-      if (list.isNotEmpty) {
-        final selectedChildId = _resolveInitialChildId(list);
-        ref.read(selectedChildIdProvider.notifier).state = selectedChildId;
-        _selectedChildId = selectedChildId;
-        await _fetchChildData(showLoader: true);
-      } else {
-        ref.read(selectedChildIdProvider.notifier).state = null;
-        setState(() => _loading = false);
+    final cachedChildren = ref.read(parentChildrenProvider);
+    if (cachedChildren.isNotEmpty) {
+      await _syncChildren(cachedChildren);
+    } else {
+      try {
+        await ref.read(parentChildrenProvider.notifier).refresh();
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error = e.toString();
+        });
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
     }
 
     _poll?.cancel();
@@ -71,9 +65,54 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
+  Future<void> _syncChildren(List<Map<String, dynamic>> children) async {
+    if (!mounted) return;
+    final nextChildren = children
+        .map((child) => Map<String, dynamic>.from(child))
+        .toList(growable: false);
+
+    if (nextChildren.isEmpty) {
+      ref.read(selectedChildIdProvider.notifier).state = null;
+      setState(() {
+        _children = const [];
+        _selectedChildId = null;
+        _stats = null;
+        _loading = false;
+        _blockedPackages = const {};
+        _blockedIdByPackage = const {};
+      });
+      return;
+    }
+
+    final nextSelectedChildId = _resolveInitialChildId(nextChildren);
+    final selectionChanged = nextSelectedChildId != _selectedChildId;
+
+    setState(() {
+      _children = nextChildren;
+      if (selectionChanged) {
+        _selectedChildId = nextSelectedChildId;
+        _stats = null;
+        _loading = true;
+        _error = null;
+        _selectedDate = DateTime.now();
+        _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
+        _blockedPackages = {};
+        _blockedIdByPackage = {};
+      }
+    });
+
+    if (ref.read(selectedChildIdProvider) != nextSelectedChildId) {
+      ref.read(selectedChildIdProvider.notifier).state = nextSelectedChildId;
+    }
+
+    if (selectionChanged) {
+      await _fetchChildData(showLoader: true);
+    }
+  }
+
   int _resolveInitialChildId(List<Map<String, dynamic>> list) {
     final providerChildId = ref.read(selectedChildIdProvider);
-    final preferredIds = [providerChildId].whereType<int>();
+    final preferredIds = [_selectedChildId, providerChildId].whereType<int>();
     for (final id in preferredIds) {
       if (list.any((child) => child['id'] == id)) {
         return id;
@@ -100,7 +139,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       if (!mounted) return;
 
       final summary = results[0] as Map<String, dynamic>;
-      final blocked = (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
+      final blocked =
+          (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
 
       final apiSelectedDate = _parseDate(summary['selected_date'] as String?);
       final apiSelectedMonth =
@@ -112,12 +152,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         _error = null;
         _selectedDate = apiSelectedDate ?? _selectedDate;
         _visibleMonth = apiSelectedMonth ?? _visibleMonth;
-        _blockedPackages = blocked
-            .map((b) => b['package_name'] as String)
-            .toSet();
+        _blockedPackages =
+            blocked.map((b) => b['package_name'] as String).toSet();
         _blockedIdByPackage = {
-          for (final b in blocked)
-            b['package_name'] as String: b['id'] as int,
+          for (final b in blocked) b['package_name'] as String: b['id'] as int,
         };
       });
     } catch (e) {
@@ -215,7 +253,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    app['app_name'] as String? ?? 'App',
+                    app['app_name'] as String? ?? t.appLabel,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -334,7 +372,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       await ApiClient.instance.setChildAppLimit(
         childId: _selectedChildId!,
         packageName: app['package_name'] as String? ?? '',
-        appName: app['app_name'] as String? ?? 'App',
+        appName: app['app_name'] as String? ?? t.appLabel,
         dailyLimitMinutes: minutes,
         enabled: enabled,
       );
@@ -344,8 +382,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       showAppSnackBar(
         context,
         enabled
-            ? t.limitSavedFor(app['app_name'] as String? ?? 'App')
-            : t.limitDisabledFor(app['app_name'] as String? ?? 'App'),
+            ? t.limitSavedFor(app['app_name'] as String? ?? t.appLabel)
+            : t.limitDisabledFor(app['app_name'] as String? ?? t.appLabel),
         type: AppFeedbackType.success,
       );
     } catch (e) {
@@ -361,13 +399,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _showAddAppSheet() async {
+    final t = S.of(context);
     final knownApps = _allKnownApps;
     if (knownApps.isEmpty) {
       showAppSnackBar(
         context,
-        Localizations.localeOf(context).languageCode == 'ru'
-            ? 'Нет дополнительных приложений для добавления'
-            : 'No additional apps to add',
+        t.noAdditionalAppsToAdd,
         type: AppFeedbackType.info,
       );
       return;
@@ -411,9 +448,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Localizations.localeOf(context).languageCode == 'ru'
-                        ? 'Добавить приложение'
-                        : 'Add App',
+                    S.of(context).addApp,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -423,10 +458,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   TextField(
                     onChanged: (v) => setSheetState(() => query = v),
                     decoration: InputDecoration(
-                      hintText:
-                          Localizations.localeOf(context).languageCode == 'ru'
-                              ? 'Поиск...'
-                              : 'Search...',
+                      hintText: S.of(context).searchPlaceholder,
                       prefixIcon: const Icon(Icons.search, size: 20),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(
@@ -435,7 +467,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(color: AppColors.dividerLight),
+                        borderSide:
+                            const BorderSide(color: AppColors.dividerLight),
                       ),
                     ),
                   ),
@@ -502,7 +535,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       await ApiClient.instance.setChildAppLimit(
         childId: _selectedChildId!,
         packageName: selected['package_name'] as String? ?? '',
-        appName: selected['app_name'] as String? ?? 'App',
+        appName: selected['app_name'] as String? ?? t.appLabel,
         dailyLimitMinutes: 60,
         enabled: true,
       );
@@ -511,9 +544,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        Localizations.localeOf(context).languageCode == 'ru'
-            ? 'Лимит добавлен для ${selected['app_name']}'
-            : 'Limit added for ${selected['app_name']}',
+        t.limitAddedForApp(selected['app_name'] as String? ?? t.appLabel),
         type: AppFeedbackType.success,
       );
     } catch (e) {
@@ -531,7 +562,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _toggleBlock(Map<String, dynamic> app) async {
     if (_selectedChildId == null) return;
     final pkg = app['package_name'] as String? ?? '';
-    final name = app['app_name'] as String? ?? 'App';
+    final name = app['app_name'] as String? ?? S.of(context).appLabel;
     if (pkg.isEmpty) return;
 
     try {
@@ -554,12 +585,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       showAppSnackBar(
         context,
         isBlocked
-            ? Localizations.localeOf(context).languageCode == 'ru'
-                ? '$name заблокировано'
-                : '$name blocked'
-            : Localizations.localeOf(context).languageCode == 'ru'
-                ? '$name разблокировано'
-                : '$name unblocked',
+            ? S.of(context).appBlocked(name)
+            : S.of(context).appUnblocked(name),
         type: AppFeedbackType.success,
       );
     } catch (e) {
@@ -579,15 +606,16 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   String get _childName {
-    if (_selectedChildId == null) return 'Child';
+    final t = S.of(context);
+    if (_selectedChildId == null) return t.childLabel;
     final child = _children.firstWhere(
       (c) => c['id'] == _selectedChildId,
-      orElse: () => {'display_name': 'Child', 'username': 'child'},
+      orElse: () => {'display_name': t.childLabel, 'username': 'child'},
     );
     final displayName = child['display_name'] as String?;
     return (displayName?.isNotEmpty ?? false)
         ? displayName!
-        : child['username'] as String? ?? 'Child';
+        : child['username'] as String? ?? t.childLabel;
   }
 
   Map<String, dynamic> get _device => _asMap(_stats?['device']);
@@ -625,6 +653,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<List<Map<String, dynamic>>>(parentChildrenProvider,
+        (previous, next) {
+      unawaited(_syncChildren(next));
+    });
     ref.listen<int?>(selectedChildIdProvider, (previous, next) {
       if (!mounted || next == null || next == _selectedChildId) return;
       if (_children.any((child) => child['id'] == next)) {
@@ -651,7 +683,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   : null,
             ),
             titlePrefix: t.parentProfile,
-            title: 'Kid Security',
+            title: t.appName,
             trailing: GearButton(
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SettingsScreen()),
@@ -798,12 +830,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.add, size: 16, color: AppColors.primary),
+                        const Icon(Icons.add,
+                            size: 16, color: AppColors.primary),
                         const SizedBox(width: 4),
                         Text(
-                          Localizations.localeOf(context).languageCode == 'ru'
-                              ? 'Добавить'
-                              : 'Add',
+                          t.add,
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.w700,
@@ -893,9 +924,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               _MetricChip(
                 icon: _charging ? Icons.bolt_rounded : Icons.power_outlined,
                 color: _charging ? AppColors.success : AppColors.textMuted,
-                label: Localizations.localeOf(context).languageCode == 'ru'
-                    ? (_charging ? 'На зарядке' : 'Не заряжается')
-                    : (_charging ? 'Charging' : 'Not charging'),
+                label: _charging ? t.chargingShort : t.notChargingShort,
               ),
               _MetricChip(
                 icon: Icons.schedule,
@@ -1131,24 +1160,15 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   children: [
                     _CalendarLegendDot(
                       color: AppColors.primary,
-                      label:
-                          Localizations.localeOf(context).languageCode == 'ru'
-                              ? 'Выбранный день'
-                              : 'Selected day',
+                      label: t.selectedDay,
                     ),
                     _CalendarLegendDot(
                       color: AppColors.success,
-                      label:
-                          Localizations.localeOf(context).languageCode == 'ru'
-                              ? 'Есть данные'
-                              : 'Has data',
+                      label: t.hasData,
                     ),
                     _CalendarLegendDot(
                       color: AppColors.danger,
-                      label:
-                          Localizations.localeOf(context).languageCode == 'ru'
-                              ? 'Превышен лимит'
-                              : 'Over limit',
+                      label: t.over,
                     ),
                   ],
                 ),
@@ -1188,9 +1208,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            Localizations.localeOf(context).languageCode == 'ru'
-                ? 'За $selectedDateLabel статистика не найдена.'
-                : 'No statistics found for $selectedDateLabel.',
+            S.of(context).noStatisticsFoundFor(selectedDateLabel),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -1250,7 +1268,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: _AppLimitRow(
-        name: app['app_name'] as String? ?? 'App',
+        name: app['app_name'] as String? ?? S.of(context).appLabel,
         packageName: pkg,
         usageMinutes: (app['usage_minutes'] as int?) ?? 0,
         dailyLimitMinutes: app['daily_limit_minutes'] as int?,
@@ -1303,9 +1321,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   String _noDataLabel(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'ru'
-        ? 'Данных нет'
-        : 'No data';
+    return S.of(context).noData;
   }
 
   String _formatDate(BuildContext context, String pattern, DateTime date) {
@@ -1818,7 +1834,7 @@ class _AppLimitRow extends StatelessWidget {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              blocked ? 'Blocked' : 'Block',
+                              blocked ? t.blocked : t.block,
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,

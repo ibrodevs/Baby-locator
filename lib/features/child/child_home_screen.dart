@@ -5,6 +5,7 @@ import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -29,6 +30,7 @@ class ChildHomeScreen extends ConsumerStatefulWidget {
 class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     with WidgetsBindingObserver {
   static const _deviceStatsChannel = MethodChannel('kid_security/device_stats');
+  static const _blockedAppsCheckInterval = Duration(milliseconds: 900);
 
   final _svc = LocationService();
   final _battery = Battery();
@@ -42,6 +44,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   int _batteryLevel = 100;
   BatteryState _batteryState = BatteryState.unknown;
   bool? _usageAccessGranted;
+  bool? _accessibilityBlockingEnabled;
+  bool? _ignoringBatteryOptimizations;
   Timer? _statsTimer;
   Timer? _blockTimer;
   Set<String> _blockedPackages = {};
@@ -56,6 +60,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       _prepareAroundPermission();
       _syncDeviceStats();
       _loadBlockedApps();
+      _refreshAccessibilityStatus();
+      _refreshBatteryOptimizationStatus();
       // Background service is now managed by app.dart (session lifecycle),
       // not by this screen — so we don't start/stop it here.
       _statsTimer = Timer.periodic(
@@ -64,7 +70,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       );
       if (Platform.isAndroid) {
         _blockTimer = Timer.periodic(
-          const Duration(seconds: 3),
+          _blockedAppsCheckInterval,
           (_) => _enforceBlockedApps(),
         );
       }
@@ -77,7 +83,35 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       _readBattery();
       _syncDeviceStats();
       _loadBlockedApps();
+      _refreshAccessibilityStatus();
+      _refreshBatteryOptimizationStatus();
     }
+  }
+
+  Future<void> _refreshBatteryOptimizationStatus() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final ignored = await _deviceStats.isIgnoringBatteryOptimizations();
+      if (!mounted) return;
+      setState(() => _ignoringBatteryOptimizations = ignored);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshAccessibilityStatus() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final enabled = await _deviceStatsChannel
+          .invokeMethod<bool>('isAccessibilityBlockingEnabled');
+      if (!mounted) return;
+      setState(() => _accessibilityBlockingEnabled = enabled ?? false);
+    } catch (_) {}
+  }
+
+  Future<void> _openAccessibilitySettings() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _deviceStatsChannel.invokeMethod<bool>('openAccessibilitySettings');
+    } catch (_) {}
   }
 
   Future<void> _loadBlockedApps() async {
@@ -97,6 +131,17 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
 
       _blockedPackages = remotePackages;
       await prefs.setStringList('blocked_apps', remotePackages.toList());
+      await _pushPackagesToNative(remotePackages.toList());
+    } catch (_) {}
+  }
+
+  Future<void> _pushPackagesToNative(List<String> packages) async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _deviceStatsChannel.invokeMethod<bool>(
+        'setBlockedPackages',
+        {'packages': packages},
+      );
     } catch (_) {}
   }
 
@@ -170,7 +215,9 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   Future<void> _start() async {
     if (_starting) return;
     _starting = true;
-    final status = await _svc.ensurePermission();
+    final status = await _svc.ensurePermission(
+      requireBackground: Platform.isAndroid,
+    );
     if (!mounted) return;
     setState(() => _status = status);
     if (status != LocationPermissionStatus.granted) {
@@ -307,7 +354,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                         Text(
                             t.helloUser(user?.displayName ??
                                 user?.username ??
-                                'friend'),
+                                t.friendLabel),
                             style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
@@ -361,6 +408,16 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                       onOpenLocation: () async =>
                           Geolocator.openLocationSettings(),
                     ),
+                  if (Platform.isAndroid &&
+                      _ignoringBatteryOptimizations == false)
+                    _BatteryOptimizationBanner(
+                      onOpenSettings: () async {
+                        await _deviceStats.openBatteryOptimizationSettings();
+                        if (!mounted) return;
+                        await Future<void>.delayed(const Duration(seconds: 1));
+                        await _refreshBatteryOptimizationStatus();
+                      },
+                    ),
                   if (_apiError != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
@@ -383,6 +440,16 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                   if (_usageAccessGranted == false &&
                       !_deviceStats.supportsUsageAccess)
                     const _UsageAccessUnsupportedBanner(),
+                  if (Platform.isAndroid &&
+                      _accessibilityBlockingEnabled == false)
+                    _AccessibilityBlockingBanner(
+                      onEnable: () async {
+                        await _openAccessibilitySettings();
+                        if (!mounted) return;
+                        await Future<void>.delayed(const Duration(seconds: 1));
+                        await _refreshAccessibilityStatus();
+                      },
+                    ),
                   AppCard(
                     padding: EdgeInsets.zero,
                     child: Column(
@@ -550,7 +617,7 @@ class _ChargingBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRu = Localizations.localeOf(context).languageCode == 'ru';
+    final t = S.of(context);
     final color = isCharging ? AppColors.success : AppColors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -568,9 +635,7 @@ class _ChargingBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            isCharging
-                ? (isRu ? 'На зарядке' : 'Charging')
-                : (isRu ? 'Не заряжается' : 'Not charging'),
+            isCharging ? t.chargingShort : t.notChargingShort,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -696,6 +761,73 @@ class _UsageAccessUnsupportedBanner extends StatelessWidget {
   }
 }
 
+class _AccessibilityBlockingBanner extends StatelessWidget {
+  const _AccessibilityBlockingBanner({required this.onEnable});
+
+  final VoidCallback onEnable;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.shield_outlined,
+                  color: AppColors.warning, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.enableAccessibilityService,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.accessibilityServiceDescription,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onEnable,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                t.openAppSettings,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BigActionTile extends StatelessWidget {
   const _BigActionTile(
       {required this.icon,
@@ -771,6 +903,12 @@ class _PermissionBanner extends StatelessWidget {
         button = t.allowLocation;
         action = onRetry;
         break;
+      case LocationPermissionStatus.backgroundDenied:
+        title = t.allowLocationAllTheTime;
+        body = t.allowLocationAllTheTimeDescription;
+        button = t.openAppSettings;
+        action = onOpenSettings;
+        break;
       case LocationPermissionStatus.granted:
         return const SizedBox.shrink();
     }
@@ -811,6 +949,74 @@ class _PermissionBanner extends StatelessWidget {
               ),
               child: Text(button,
                   style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BatteryOptimizationBanner extends StatelessWidget {
+  const _BatteryOptimizationBanner({required this.onOpenSettings});
+
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.battery_alert_rounded,
+                  color: AppColors.warning, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  t.disableBatteryOptimization,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            t.batteryOptimizationDescription,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onOpenSettings,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.warning,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                t.allowUnrestricted,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
             ),
           ),
         ],

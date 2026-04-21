@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../theme/app_colors.dart';
 
@@ -16,7 +18,7 @@ class ChildSelectorChips extends StatelessWidget {
   final ValueChanged<int> onSelected;
   final EdgeInsets padding;
 
-  String _childName(Map<String, dynamic> child) {
+  String _childName(BuildContext context, Map<String, dynamic> child) {
     final displayName = child['display_name'] as String?;
     if (displayName != null && displayName.trim().isNotEmpty) {
       return displayName.trim();
@@ -25,7 +27,7 @@ class ChildSelectorChips extends StatelessWidget {
     if (username != null && username.trim().isNotEmpty) {
       return username.trim();
     }
-    return 'Child';
+    return S.of(context).childLabel;
   }
 
   @override
@@ -46,7 +48,7 @@ class ChildSelectorChips extends StatelessWidget {
             final selected = id == selectedChildId;
             return ChoiceChip(
               label: Text(
-                _childName(child),
+                _childName(context, child),
                 overflow: TextOverflow.ellipsis,
               ),
               selected: selected,

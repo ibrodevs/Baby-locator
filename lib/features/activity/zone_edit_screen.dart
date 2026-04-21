@@ -383,23 +383,28 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                             },
                           ),
                         // Center Pin
-                        Center(
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 40),
-                            child: const Icon(Icons.location_on,
-                                size: 48, color: AppColors.primary),
+                        IgnorePointer(
+                          child: Center(
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 40),
+                              child: const Icon(Icons.location_on,
+                                  size: 48, color: AppColors.primary),
+                            ),
                           ),
                         ),
                         // Radius Preview (Simplified)
-                        Center(
-                          child: Container(
-                            width: _radius * 0.4, // Visual estimation
-                            height: _radius * 0.4,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary.withValues(alpha: 0.15),
-                              border: Border.all(
-                                  color: AppColors.primary, width: 2),
+                        IgnorePointer(
+                          child: Center(
+                            child: Container(
+                              width: _radius * 0.4, // Visual estimation
+                              height: _radius * 0.4,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color:
+                                    AppColors.primary.withValues(alpha: 0.15),
+                                border: Border.all(
+                                    color: AppColors.primary, width: 2),
+                              ),
                             ),
                           ),
                         ),
@@ -407,30 +412,33 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                           bottom: 16,
                           left: 16,
                           right: 16,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.95),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black12, blurRadius: 10)
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.info_outline,
-                                    size: 16, color: AppColors.primary),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    t.moveMapToSetCenter,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700),
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.95),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                      color: Colors.black12, blurRadius: 10)
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.info_outline,
+                                      size: 16, color: AppColors.primary),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      t.moveMapToSetCenter,
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),

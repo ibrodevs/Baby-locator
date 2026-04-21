@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
@@ -41,20 +44,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   }
 
   Future<void> _init() async {
+    final cachedChildren = ref.read(parentChildrenProvider);
+    if (cachedChildren.isNotEmpty) {
+      await _syncChildren(cachedChildren);
+      return;
+    }
+
     try {
-      final list = (await ApiClient.instance.listChildren())
-          .cast<Map<String, dynamic>>();
-      if (!mounted) return;
-      setState(() => _children = list);
-      if (list.isNotEmpty) {
-        final selectedChildId = _resolveInitialChildId(list);
-        ref.read(selectedChildIdProvider.notifier).state = selectedChildId;
-        _selectedChildId = selectedChildId;
-        await _loadData();
-      } else {
-        ref.read(selectedChildIdProvider.notifier).state = null;
-        setState(() => _loading = false);
-      }
+      await ref.read(parentChildrenProvider.notifier).refresh();
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -63,6 +60,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   int _resolveInitialChildId(List<Map<String, dynamic>> list) {
     final providerChildId = ref.read(selectedChildIdProvider);
     final preferredIds = [
+      _selectedChildId,
       widget.initialSelectedChildId,
       providerChildId,
     ].whereType<int>();
@@ -94,6 +92,56 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
       _loading = true;
     });
     await _loadData();
+  }
+
+  Future<void> _syncChildren(List<Map<String, dynamic>> children) async {
+    if (!mounted) return;
+    final nextChildren = children
+        .map((child) => Map<String, dynamic>.from(child))
+        .toList(growable: false);
+
+    if (nextChildren.isEmpty) {
+      ref.read(selectedChildIdProvider.notifier).state = null;
+      setState(() {
+        _children = const [];
+        _selectedChildId = null;
+        _events = const [];
+        _showAllEvents = false;
+        _safetyScore = 0;
+        _inZonePct = 0;
+        _totalUpdates = 0;
+        _inZoneUpdates = 0;
+        _currentZoneName = null;
+        _loading = false;
+      });
+      return;
+    }
+
+    final nextSelectedChildId = _resolveInitialChildId(nextChildren);
+    final selectionChanged = nextSelectedChildId != _selectedChildId;
+
+    setState(() {
+      _children = nextChildren;
+      if (selectionChanged) {
+        _selectedChildId = nextSelectedChildId;
+        _events = [];
+        _showAllEvents = false;
+        _safetyScore = 0;
+        _inZonePct = 0;
+        _totalUpdates = 0;
+        _inZoneUpdates = 0;
+        _currentZoneName = null;
+        _loading = true;
+      }
+    });
+
+    if (ref.read(selectedChildIdProvider) != nextSelectedChildId) {
+      ref.read(selectedChildIdProvider.notifier).state = nextSelectedChildId;
+    }
+
+    if (selectionChanged) {
+      await _loadData();
+    }
   }
 
   Future<void> _loadData() async {
@@ -235,10 +283,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   }
 
   String get _childName {
-    if (_selectedChildId == null) return 'Child';
+    final t = S.of(context);
+    if (_selectedChildId == null) return t.childLabel;
     final child = _children.firstWhere(
       (c) => c['id'] == _selectedChildId,
-      orElse: () => {'display_name': 'Child', 'username': 'child'},
+      orElse: () => {'display_name': t.childLabel, 'username': 'child'},
     );
     return ((child['display_name'] as String?)?.isNotEmpty ?? false)
         ? child['display_name'] as String
@@ -247,6 +296,10 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<List<Map<String, dynamic>>>(parentChildrenProvider,
+        (previous, next) {
+      unawaited(_syncChildren(next));
+    });
     ref.listen<int?>(selectedChildIdProvider, (previous, next) {
       if (!mounted || next == null || next == _selectedChildId) return;
       if (_children.any((child) => child['id'] == next)) {
@@ -379,7 +432,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                                       onPressed: () {
                                         setState(() => _showAllEvents = true);
                                       },
-                                      child: const Text('More'),
+                                      child: Text(t.more),
                                     ),
                                   ),
                                 ),

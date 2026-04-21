@@ -1,0 +1,19 @@
+name: kid_security_android_bridge
+description: Local Android bridge plugin for Kid Security device stats, app blocking, and volume control.
+version: 0.0.1
+publish_to: "none"
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.example.kid_security.bridge
+        pluginClass: KidSecurityAndroidBridgePlugin

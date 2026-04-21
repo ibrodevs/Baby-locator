@@ -499,6 +499,50 @@ class ApiClient {
     return _decode(r) as Map<String, dynamic>;
   }
 
+  // === WebRTC Monitoring ===
+  Future<Map<String, dynamic>> activateMonitoring(int childId) async {
+    return await _post('/api/monitor/activate/', {
+      'child_id': childId,
+    });
+  }
+
+  Future<void> deactivateMonitoring({
+    int? childId,
+    String? sessionToken,
+  }) async {
+    await _post('/api/monitor/deactivate/', {
+      if (childId != null) 'child_id': childId,
+      if (sessionToken != null) 'session_token': sessionToken,
+    });
+  }
+
+  Future<void> sendSignalingMessage({
+    required String sessionToken,
+    required String type,
+    required Map<String, dynamic> payload,
+  }) async {
+    await _post('/api/monitor/signal/send/', {
+      'session_token': sessionToken,
+      'type': type,
+      'payload': payload,
+    });
+  }
+
+  Future<Map<String, dynamic>> pollSignalingMessages({
+    required String sessionToken,
+    int? afterId,
+  }) async {
+    final params = <String, String>{
+      'session_token': sessionToken,
+      if (afterId != null) 'after_id': '$afterId',
+    };
+    final uri = _u('/api/monitor/signal/poll/').replace(
+      queryParameters: params,
+    );
+    final r = await http.get(uri, headers: _headers(json: false));
+    return _decode(r) as Map<String, dynamic>;
+  }
+
   // === Alerts ===
   Future<List<dynamic>> getAlerts() async {
     return (await _get('/api/alerts/')) as List<dynamic>;
@@ -546,7 +590,9 @@ class ApiClient {
       'POST',
       _u('/api/chat/$childId/messages/'),
     );
-    request.headers['Authorization'] = 'Token $_token';
+    if (_token != null) {
+      request.headers['Authorization'] = 'Token $_token';
+    }
     if (text.isNotEmpty) {
       request.fields['text'] = text;
     }
@@ -556,13 +602,14 @@ class ApiClient {
     final client = http.Client();
     final uploadDone = Completer<void>();
     try {
+      final finalizedStream = request.finalize();
+      final totalBytes = request.contentLength;
       final streamedRequest = http.StreamedRequest(request.method, request.url);
       streamedRequest.headers.addAll(request.headers);
-
-      final totalBytes = request.contentLength;
+      streamedRequest.contentLength = totalBytes;
       var sentBytes = 0;
 
-      request.finalize().listen(
+      finalizedStream.listen(
         (chunk) {
           streamedRequest.sink.add(chunk);
           if (totalBytes > 0) {

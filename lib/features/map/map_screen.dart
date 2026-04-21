@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -32,6 +33,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   bool _loudActive = false;
   int? _loudChildId;
   int? _startingAroundChildId;
+  bool _followSelectedChild = true;
 
   @override
   void initState() {
@@ -57,6 +59,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     try {
       final data = await ApiClient.instance.allChildrenLocations();
       if (!mounted) return;
+      ref.read(parentChildrenProvider.notifier).syncFromLocationEntries(data);
       ref.read(allChildrenLocationsProvider.notifier).setFromApi(data);
       final children = ref.read(allChildrenLocationsProvider);
       final selectedChildId = ref.read(selectedChildIdProvider);
@@ -74,8 +77,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
-  void _selectChild(int? childId) {
+  void _selectChild(int? childId, {bool enableFollow = true}) {
     ref.read(selectedChildIdProvider.notifier).state = childId;
+    if (!mounted) return;
+    setState(() => _followSelectedChild = enableFollow);
+  }
+
+  void _disableFollowMode() {
+    if (!_followSelectedChild || !mounted) return;
+    setState(() => _followSelectedChild = false);
+  }
+
+  void _recenterOnSelectedChild() {
+    final selectedChildId = ref.read(selectedChildIdProvider);
+    if (selectedChildId == null) return;
+    _selectChild(selectedChildId);
   }
 
   Future<void> _triggerLoud(ChildLocation child) async {
@@ -92,14 +108,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       });
       showAppSnackBar(
         context,
-        'Loud signal sent to ${child.name}',
+        S.of(context).loudSignalSent(child.name),
         type: AppFeedbackType.success,
       );
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        'Failed to send loud signal: $e',
+        S.of(context).failedGeneric(e.toString()),
         type: AppFeedbackType.error,
       );
     } finally {
@@ -124,12 +140,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _openAround(ChildLocation child) async {
     final childId = child.childId;
     if (childId == null || _startingAroundChildId == childId) return;
+    final t = S.of(context);
     setState(() => _startingAroundChildId = childId);
     String? sessionToken;
     try {
       final command = await ApiClient.instance.startAround(childId);
-      sessionToken =
+      final liveSessionToken =
           ((command['payload'] as Map?)?['session_token'] as String?) ?? '';
+      if (liveSessionToken.isEmpty) {
+        throw Exception(t.couldNotCreateLiveSession);
+      }
+      sessionToken = liveSessionToken;
       if (!mounted) return;
       await showModalBottomSheet<void>(
         context: context,
@@ -138,14 +159,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         builder: (_) => _AroundListenSheet(
           childId: childId,
           childName: child.name,
-          sessionToken: sessionToken ?? '',
+          sessionToken: liveSessionToken,
         ),
       );
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        'Failed to start Around: $e',
+        t.failedGeneric(e.toString()),
         type: AppFeedbackType.error,
       );
     } finally {
@@ -251,9 +272,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     selectedIndex: selectedIndex >= 0
                                         ? selectedIndex
                                         : null,
+                                    followTarget: _followSelectedChild,
                                     onChildTapped: (idx) {
                                       _selectChild(children[idx].childId);
                                     },
+                                    onUserCameraMoveStarted: _disableFollowMode,
                                   )
                                 : _EmptyMapPlaceholder(
                                     hasChildren: hasChildren,
@@ -271,6 +294,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           ),
                           if (hasChildren)
                             Positioned(
+                              left: 16,
+                              top: 20,
+                              child: _MapIconButton(
+                                icon: _followSelectedChild
+                                    ? Icons.gps_fixed_rounded
+                                    : Icons.gps_not_fixed_rounded,
+                                color: _followSelectedChild
+                                    ? AppColors.primary
+                                    : AppColors.textSecondaryLight,
+                                onTap: selected == null
+                                    ? null
+                                    : _recenterOnSelectedChild,
+                              ),
+                            ),
+                          if (hasChildren)
+                            Positioned(
                               right: 16,
                               top: 20,
                               child: Column(
@@ -279,7 +318,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     icon: _loudActive
                                         ? Icons.stop_rounded
                                         : Icons.volume_up_rounded,
-                                    label: _loudActive ? 'STOP' : t.loud,
+                                    label: _loudActive ? t.stopAction : t.loud,
                                     color: _loudActive
                                         ? AppColors.danger
                                         : AppColors.primary,
@@ -564,6 +603,32 @@ class _MapActionButton extends StatelessWidget {
   }
 }
 
+class _MapIconButton extends StatelessWidget {
+  const _MapIconButton({
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white.withValues(alpha: onTap == null ? 0.72 : 1),
+      shape: const CircleBorder(),
+      elevation: 6,
+      shadowColor: Colors.black38,
+      child: IconButton(
+        onPressed: onTap,
+        icon: Icon(icon, color: onTap == null ? AppColors.textMuted : color),
+      ),
+    );
+  }
+}
+
 class _ChargingStatusRow extends StatelessWidget {
   const _ChargingStatusRow({required this.charging});
 
@@ -571,7 +636,7 @@ class _ChargingStatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isRu = Localizations.localeOf(context).languageCode == 'ru';
+    final t = S.of(context);
     final color = charging ? AppColors.success : AppColors.textMuted;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -589,11 +654,7 @@ class _ChargingStatusRow extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            charging
-                ? (isRu ? 'Устройство на зарядке' : 'Device is charging')
-                : (isRu
-                    ? 'Устройство не заряжается'
-                    : 'Device is not charging'),
+            charging ? t.deviceIsCharging : t.deviceIsNotCharging,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -623,32 +684,51 @@ class _AroundListenSheet extends StatefulWidget {
 
 class _AroundListenSheetState extends State<_AroundListenSheet> {
   final AudioPlayer _player = AudioPlayer();
+  final List<File> _clipQueue = [];
   Timer? _pollTimer;
+  Timer? _startupWatchdog;
   int? _lastClipId;
   bool _loading = true;
-  String? _error;
-  String _status = 'Waiting for audio from child phone...';
-
-  /// Queue of downloaded clip files ready for playback.
-  final List<File> _clipQueue = [];
+  bool _pollInFlight = false;
   bool _isPlaying = false;
+  String? _error;
+  String _status = '';
 
   @override
   void initState() {
     super.initState();
-    _player.onPlayerComplete.listen((_) => _playNext());
+    _player.onPlayerComplete.listen((_) => unawaited(_playNext()));
     WidgetsBinding.instance.addPostFrameCallback((_) => _start());
   }
 
   Future<void> _start() async {
     await _pollLatestClip();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 1),
-      (_) => _pollLatestClip(),
+      const Duration(milliseconds: 350),
+      (_) => unawaited(_pollLatestClip()),
     );
+    _startupWatchdog = Timer(const Duration(seconds: 3), () {
+      if (!mounted || !_loading) return;
+      setState(() {
+        _status = S.of(context).waitingForFirstAudioClip;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _startupWatchdog?.cancel();
+    unawaited(_player.dispose());
+    for (final file in _clipQueue) {
+      unawaited(_safeDelete(file));
+    }
+    super.dispose();
   }
 
   Future<void> _pollLatestClip() async {
+    if (_pollInFlight) return;
+    _pollInFlight = true;
     try {
       final clip = await ApiClient.instance.latestAroundAudio(
         widget.childId,
@@ -657,44 +737,44 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
       );
       if (!mounted) return;
       if (clip == null) {
-        setState(() {
-          _loading = false;
-          _error = null;
-        });
+        if (_loading) {
+          setState(() => _error = null);
+        }
         return;
       }
+
       final clipMap = Map<String, dynamic>.from(clip);
       final clipId = clipMap['id'] as int?;
-      final url = clipMap['audio_url'] as String? ?? '';
-      if (clipId == null || url.isEmpty) return;
+      final audioUrl = clipMap['audio_url'] as String? ?? '';
+      if (clipId == null || audioUrl.isEmpty) return;
 
       final bytes = await ApiClient.instance.downloadAroundAudio(clipId);
       final dir = await getTemporaryDirectory();
       final localFile = File('${dir.path}/around_clip_$clipId.m4a');
       await localFile.writeAsBytes(bytes, flush: true);
 
-      // Only advance the cursor AFTER a successful download so a failed
-      // clip is retried on the next poll instead of being skipped.
       _lastClipId = clipId;
-
       _clipQueue.add(localFile);
 
       if (!_isPlaying) {
-        _playNext();
+        unawaited(_playNext());
       }
 
       if (!mounted) return;
       setState(() {
         _loading = false;
         _error = null;
-        _status = 'Listening to ${widget.childName} surroundings';
+        _status = S.of(context).listeningTo(widget.childName);
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
         _error = e.toString();
+        _status = S.of(context).errorLabel;
       });
+    } finally {
+      _pollInFlight = false;
     }
   }
 
@@ -708,30 +788,28 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
     try {
       await _player.play(DeviceFileSource(file.path));
     } catch (_) {
-      // Current clip failed — clean it up and try the next one instead of
-      // stalling the entire queue.
-      file.delete().catchError((_) => file);
-      _playNext();
+      await _safeDelete(file);
+      _isPlaying = false;
+      if (_clipQueue.isNotEmpty) {
+        unawaited(_playNext());
+      }
       return;
     }
-    // Clean up after a short delay so the player finishes reading.
-    Future<void>.delayed(const Duration(seconds: 3), () async {
-      if (await file.exists()) await file.delete();
+
+    Future<void>.delayed(const Duration(seconds: 3), () {
+      unawaited(_safeDelete(file));
     });
   }
 
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    _player.dispose();
-    for (final f in _clipQueue) {
-      f.delete().catchError((_) => f);
+  Future<void> _safeDelete(File file) async {
+    if (await file.exists()) {
+      await file.delete();
     }
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return SafeArea(
       child: Container(
         margin: const EdgeInsets.all(12),
@@ -753,11 +831,18 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
           children: [
             Row(
               children: [
-                const Icon(Icons.hearing_rounded, color: AppColors.success),
+                Icon(
+                  !_loading && _error == null
+                      ? Icons.hearing_rounded
+                      : Icons.hearing_disabled_rounded,
+                  color: (!_loading && _error == null)
+                      ? AppColors.success
+                      : AppColors.textMuted,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Around: ${widget.childName}',
+                    t.listeningTo(widget.childName),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -773,14 +858,14 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
             ),
             const SizedBox(height: 8),
             Text(
-              _status,
+              _status.isEmpty ? t.connectingToChildPhone : _status,
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondaryLight,
               ),
             ),
             const SizedBox(height: 14),
-            if (_loading)
+            if (_loading && _error == null)
               const LinearProgressIndicator(
                 color: AppColors.success,
                 backgroundColor: AppColors.chipGrey,
@@ -793,8 +878,8 @@ class _AroundListenSheetState extends State<_AroundListenSheet> {
               ),
             ],
             const SizedBox(height: 14),
-            const Text(
-              'The stream works as a chain of short microphone clips from the child phone, so tiny network gaps are still possible.',
+            Text(
+              t.aroundAudioInfo,
               style: TextStyle(
                 fontSize: 12,
                 color: AppColors.textMuted,
@@ -825,16 +910,9 @@ class _ChildInfoCard extends StatelessWidget {
         .replaceAll(loc.name, '')
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
-    final actionLabel = compactLabel.isNotEmpty
-        ? compactLabel
-        : (Localizations.localeOf(context).languageCode == 'ru'
-            ? 'Написать'
-            : 'Message');
-    final addressLabel = loc.address.trim().isNotEmpty
-        ? loc.address
-        : (Localizations.localeOf(context).languageCode == 'ru'
-            ? 'Адрес уточняется...'
-            : 'Resolving address...');
+    final actionLabel = compactLabel.isNotEmpty ? compactLabel : t.navChat;
+    final addressLabel =
+        loc.address.trim().isNotEmpty ? loc.address : t.resolvingAddress;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
       decoration: const BoxDecoration(

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blocking_accessibility_label">Kid Security — блокировка приложений</string>
+    <string name="blocking_accessibility_description">Позволяет родителю блокировать выбранные приложения у ребёнка. Сервис закрывает заблокированные приложения сразу при их открытии.</string>
+</resources>

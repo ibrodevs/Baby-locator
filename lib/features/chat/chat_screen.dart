@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -64,22 +65,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     if (user == null) return;
 
     if (user.role == UserRole.parent) {
-      try {
-        final list = (await ApiClient.instance.listChildren())
-            .cast<Map<String, dynamic>>();
-        if (!mounted) return;
-        setState(() => _children = list);
-        if (list.isNotEmpty) {
-          final selectedChildId = _resolveInitialChildId(list);
-          ref.read(selectedChildIdProvider.notifier).state = selectedChildId;
-          _selectedChildId = selectedChildId;
-          await _loadAll();
-        } else {
-          ref.read(selectedChildIdProvider.notifier).state = null;
-          setState(() => _loading = false);
+      final cachedChildren = ref.read(parentChildrenProvider);
+      if (cachedChildren.isNotEmpty) {
+        await _syncChildren(cachedChildren);
+      } else {
+        try {
+          await ref.read(parentChildrenProvider.notifier).refresh();
+        } catch (e) {
+          if (mounted) setState(() => _loading = false);
         }
-      } catch (e) {
-        if (mounted) setState(() => _loading = false);
       }
     } else {
       _selectedChildId = user.id;
@@ -88,9 +82,64 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     _updatePollingState();
   }
 
+  Future<void> _syncChildren(List<Map<String, dynamic>> children) async {
+    final user = ref.read(sessionProvider).user;
+    if (user?.role != UserRole.parent || !mounted) return;
+
+    final nextChildren = children
+        .map((child) => Map<String, dynamic>.from(child))
+        .toList(growable: false);
+
+    if (nextChildren.isEmpty) {
+      ref.read(selectedChildIdProvider.notifier).state = null;
+      setState(() {
+        _children = const [];
+        _selectedChildId = null;
+        _messages = const [];
+        _pendingMessages = const [];
+        _tasks = const [];
+        _rewards = const [];
+        _totalStars = 0;
+        _starBalance = 0;
+        _loading = false;
+        _didInitialScrollToBottom = false;
+      });
+      _syncActiveChatVisibility();
+      return;
+    }
+
+    final nextSelectedChildId = _resolveInitialChildId(nextChildren);
+    final selectionChanged = nextSelectedChildId != _selectedChildId;
+
+    setState(() {
+      _children = nextChildren;
+      if (selectionChanged) {
+        _selectedChildId = nextSelectedChildId;
+        _messages = [];
+        _pendingMessages = [];
+        _tasks = [];
+        _rewards = [];
+        _totalStars = 0;
+        _starBalance = 0;
+        _loading = true;
+        _didInitialScrollToBottom = false;
+      }
+    });
+
+    if (ref.read(selectedChildIdProvider) != nextSelectedChildId) {
+      ref.read(selectedChildIdProvider.notifier).state = nextSelectedChildId;
+    }
+
+    _syncActiveChatVisibility();
+    if (selectionChanged) {
+      await _loadAll();
+    }
+  }
+
   int _resolveInitialChildId(List<Map<String, dynamic>> list) {
     final providerChildId = ref.read(selectedChildIdProvider);
     final preferredIds = [
+      _selectedChildId,
       widget.initialSelectedChildId,
       providerChildId,
     ].whereType<int>();
@@ -317,6 +366,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   Future<void> _pickAndSendFile() async {
     if (_selectedChildId == null) return;
     final picker = ImagePicker();
+    final t = S.of(context);
     final source = await showModalBottomSheet<String>(
       context: context,
       builder: (ctx) => SafeArea(
@@ -326,25 +376,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             ListTile(
               leading: const Icon(Icons.photo_library_rounded,
                   color: AppColors.primary),
-              title: const Text('Photo from gallery'),
+              title: Text(t.photoFromGallery),
               onTap: () => Navigator.pop(ctx, 'gallery_photo'),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_rounded,
                   color: AppColors.primary),
-              title: const Text('Photo from camera'),
+              title: Text(t.photoFromCamera),
               onTap: () => Navigator.pop(ctx, 'camera_photo'),
             ),
             ListTile(
               leading: const Icon(Icons.video_library_rounded,
                   color: AppColors.primary),
-              title: const Text('Video from gallery'),
+              title: Text(t.videoFromGallery),
               onTap: () => Navigator.pop(ctx, 'gallery_video'),
             ),
             ListTile(
               leading:
                   const Icon(Icons.videocam_rounded, color: AppColors.primary),
-              title: const Text('Video from camera'),
+              title: Text(t.videoFromCamera),
               onTap: () => Navigator.pop(ctx, 'camera_video'),
             ),
           ],
@@ -435,6 +485,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       unawaited(_loadConversation());
     } catch (e) {
       if (!mounted) return;
+      final t = S.of(context);
       setState(() {
         _pendingMessages = _pendingMessages
             .where((msg) => msg['local_id'] != pendingId)
@@ -442,7 +493,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       });
       showAppSnackBar(
         context,
-        file == null ? 'Failed to send: $e' : 'Failed to upload: $e',
+        file == null
+            ? t.failedToSend(e.toString())
+            : t.failedGeneric(e.toString()),
         type: AppFeedbackType.error,
       );
     }
@@ -526,7 +579,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       if (mounted) {
         showAppSnackBar(
           context,
-          'Error: $e',
+          S.of(context).failedGeneric(e.toString()),
           type: AppFeedbackType.error,
         );
       }
@@ -542,7 +595,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       if (mounted) {
         showAppSnackBar(
           context,
-          'Error: $e',
+          S.of(context).failedGeneric(e.toString()),
           type: AppFeedbackType.error,
         );
       }
@@ -556,15 +609,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       return;
     }
 
-    final ru = _isRussian;
+    final t = S.of(context);
     final shouldCreateReward = await showAppConfirmDialog(
       context: context,
-      title: ru ? 'Сначала создайте награду' : 'Create a reward first',
-      message: ru
-          ? 'Перед созданием задания нужно добавить хотя бы одну награду для ребёнка.'
-          : 'Before creating a task, add at least one reward for this child.',
-      confirmLabel: ru ? 'Создать награду' : 'Create reward',
-      cancelLabel: S.of(context).cancel,
+      title: t.createRewardFirst,
+      message: t.createRewardFirstMessage,
+      confirmLabel: t.createReward,
+      cancelLabel: t.cancel,
       type: AppFeedbackType.warning,
     );
 
@@ -574,6 +625,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   void _showAddTaskDialog() {
+    final t = S.of(context);
     final titleCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     final starsCtrl = TextEditingController(text: '50');
@@ -604,8 +656,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Add New Task',
+            Text(
+              t.addNewTask,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -616,8 +668,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             TextField(
               controller: titleCtrl,
               decoration: InputDecoration(
-                labelText: 'Task Title',
-                hintText: 'e.g. Clean your room',
+                labelText: t.taskTitle,
+                hintText: t.taskTitleHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -628,8 +680,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               controller: descCtrl,
               maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'Description',
-                hintText: 'e.g. Put away toys, make the bed...',
+                labelText: t.descriptionLabel,
+                hintText: t.taskDescriptionHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -640,7 +692,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               controller: starsCtrl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Reward Stars',
+                labelText: t.rewardStars,
                 prefixIcon:
                     const Icon(Icons.star, color: AppColors.warning, size: 20),
                 border: OutlineInputBorder(
@@ -667,7 +719,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   if (mounted) {
                     showAppSnackBar(
                       context,
-                      'Error: $e',
+                      t.failedGeneric(e.toString()),
                       type: AppFeedbackType.error,
                     );
                   }
@@ -681,8 +733,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text('Add Task',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: Text(
+                t.addTask,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -691,6 +746,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   void _showAddRewardDialog() {
+    final t = S.of(context);
     final titleCtrl = TextEditingController();
     final starsCtrl = TextEditingController(text: '500');
 
@@ -720,8 +776,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Add Reward',
+            Text(
+              t.addReward,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -732,8 +788,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             TextField(
               controller: titleCtrl,
               decoration: InputDecoration(
-                labelText: 'Reward Title',
-                hintText: 'e.g. Cinema Night',
+                labelText: t.rewardTitle,
+                hintText: t.rewardTitleHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -744,7 +800,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               controller: starsCtrl,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Required Stars',
+                labelText: t.requiredStars,
                 prefixIcon:
                     const Icon(Icons.star, color: AppColors.warning, size: 20),
                 border: OutlineInputBorder(
@@ -771,7 +827,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   if (mounted) {
                     showAppSnackBar(
                       context,
-                      'Error: $e',
+                      t.failedGeneric(e.toString()),
                       type: AppFeedbackType.error,
                     );
                   }
@@ -785,8 +841,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text('Add Reward',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: Text(
+                t.addReward,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
           ],
         ),
@@ -820,6 +879,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<List<Map<String, dynamic>>>(parentChildrenProvider,
+        (previous, next) {
+      unawaited(_syncChildren(next));
+    });
     ref.listen<int?>(selectedChildIdProvider, (previous, next) {
       final user = ref.read(sessionProvider).user;
       if (user?.role != UserRole.parent ||
@@ -834,6 +897,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     });
     final user = ref.watch(sessionProvider).user;
     final isParent = user?.role == UserRole.parent;
+    final t = S.of(context);
 
     // Find the next unclaimed reward for the progress banner
     final unclaimedRewards = _rewards
@@ -862,7 +926,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                     : null,
               ),
               titlePrefix: null,
-              title: 'Kid Security',
+              title: t.appName,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -921,9 +985,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _selectedChildId == null
-                      ? const Center(
-                          child: Text('Add a child to start chatting',
-                              style: TextStyle(color: AppColors.textMuted)),
+                      ? Center(
+                          child: Text(
+                            t.addChildToChat,
+                            style: const TextStyle(color: AppColors.textMuted),
+                          ),
                         )
                       : RefreshIndicator(
                           onRefresh: _loadAll,
@@ -948,6 +1014,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   Widget _buildChatList(SessionUser? user, bool isParent) {
+    final t = S.of(context);
     // Build a combined list: messages + task cards interleaved by time
     final items = <_ChatItem>[];
 
@@ -984,11 +1051,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 40, 16, 12),
-        children: const [
+        children: [
           Center(
             child: Text(
-              'No messages yet. Say hello!',
-              style: TextStyle(color: AppColors.textMuted),
+              t.noMessagesYet,
+              style: const TextStyle(color: AppColors.textMuted),
             ),
           ),
         ],
@@ -1058,8 +1125,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       return '';
     }
   }
-
-  bool get _isRussian => Localizations.localeOf(context).languageCode == 'ru';
 }
 
 // === Data types ===
@@ -1085,8 +1150,9 @@ class _WeeklyRewardsBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final nextTitle =
-        nextReward != null ? nextReward!['title'] as String : 'Set a reward';
+        nextReward != null ? nextReward!['title'] as String : t.setReward;
     final nextRequired =
         nextReward != null ? nextReward!['required_stars'] as int : 0;
     final starsLeft = nextRequired > totalStars ? nextRequired - totalStars : 0;
@@ -1111,8 +1177,8 @@ class _WeeklyRewardsBanner extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'WEEKLY REWARDS',
+                child: Text(
+                  t.weeklyRewards.toUpperCase(),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -1137,10 +1203,10 @@ class _WeeklyRewardsBanner extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 4),
                 child: Text(
-                  'Stars earned',
+                  t.starsEarned,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -1165,7 +1231,7 @@ class _WeeklyRewardsBanner extends StatelessWidget {
           const SizedBox(height: 8),
           if (nextReward != null)
             Text(
-              '$starsLeft more stars until $nextTitle reward!',
+              t.starsUntilReward(starsLeft, nextTitle),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.white70,
@@ -1189,7 +1255,10 @@ class _DateSeparator extends StatelessWidget {
     final now = DateTime.now();
     final isToday =
         date.year == now.year && date.month == now.month && date.day == now.day;
-    final label = isToday ? 'TODAY' : DateFormat('MMM d, yyyy').format(date);
+    final t = S.of(context);
+    final label = isToday
+        ? t.today.toUpperCase()
+        : DateFormat('MMM d, yyyy').format(date);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1238,6 +1307,7 @@ class _Bubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     const myBubbleColor = Color(0xFFF2ECE1);
     const otherBubbleColor = Colors.white;
     final bubbleColor = isMine ? myBubbleColor : otherBubbleColor;
@@ -1316,6 +1386,7 @@ class _Bubble extends StatelessWidget {
                                     filterQuality: FilterQuality.low,
                                     errorBuilder: (_, __, ___) =>
                                         _fileAttachment(
+                                      context,
                                       fileName ?? 'file',
                                       isMine,
                                       isVideo: false,
@@ -1332,6 +1403,7 @@ class _Bubble extends StatelessWidget {
                                     gaplessPlayback: true,
                                     errorBuilder: (_, __, ___) =>
                                         _fileAttachment(
+                                      context,
                                       fileName ?? 'file',
                                       isMine,
                                       isVideo: false,
@@ -1345,6 +1417,7 @@ class _Bubble extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: _fileAttachment(
+                            context,
                             fileName ?? 'file',
                             isMine,
                             isVideo: hasVideo,
@@ -1386,8 +1459,10 @@ class _Bubble extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               uploadProgress != null
-                                  ? 'Uploading ${(uploadProgress! * 100).round()}%'
-                                  : 'Sending...',
+                                  ? t.uploadingPercent(
+                                      (uploadProgress! * 100).round(),
+                                    )
+                                  : t.sending,
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -1469,13 +1544,15 @@ class _Bubble extends StatelessWidget {
         lower.endsWith('.webm');
   }
 
-  static Widget _fileAttachment(
+  Widget _fileAttachment(
+    BuildContext context,
     String name,
     bool isMine, {
     required bool isVideo,
     required bool pending,
     double? progress,
   }) {
+    final t = S.of(context);
     final iconColor = isVideo ? AppColors.danger : AppColors.textSecondaryLight;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1511,11 +1588,11 @@ class _Bubble extends StatelessWidget {
                 Text(
                   isVideo
                       ? pending
-                          ? 'Video is uploading'
-                          : 'Video attached'
+                          ? t.videoIsUploading
+                          : t.videoAttached
                       : pending
-                          ? 'File is uploading'
-                          : 'File attached',
+                          ? t.fileIsUploading
+                          : t.fileAttached,
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppColors.textMuted,
@@ -1558,6 +1635,7 @@ class _TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final title = task['title'] as String? ?? '';
     final description = task['description'] as String? ?? '';
     final stars = task['reward_stars'] as int? ?? 0;
@@ -1568,15 +1646,15 @@ class _TaskCard extends StatelessWidget {
     switch (status) {
       case 'completed':
         statusColor = AppColors.warning;
-        statusLabel = 'COMPLETED';
+        statusLabel = t.taskCompletedStatus;
         break;
       case 'approved':
         statusColor = AppColors.success;
-        statusLabel = 'APPROVED';
+        statusLabel = t.taskApprovedStatus;
         break;
       default:
         statusColor = AppColors.warning;
-        statusLabel = 'PENDING';
+        statusLabel = t.taskPendingStatus;
     }
 
     return Padding(
@@ -1649,13 +1727,17 @@ class _TaskCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(62, 2, 16, 0),
               child: Row(
                 children: [
-                  const Text('Reward: ',
-                      style:
-                          TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                  Text(
+                    '${t.rewardLabel} ',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
                   const Icon(Icons.star, size: 14, color: AppColors.warning),
                   const SizedBox(width: 2),
                   Text(
-                    '$stars Stars',
+                    '$stars ${t.starsWord}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -1691,8 +1773,10 @@ class _TaskCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onComplete,
                     icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: const Text('Mark as Complete',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    label: Text(
+                      t.markAsComplete,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.success,
                       foregroundColor: Colors.white,
@@ -1714,8 +1798,10 @@ class _TaskCard extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: onApprove,
                     icon: const Icon(Icons.thumb_up_outlined, size: 18),
-                    label: const Text('Approve & Award Stars',
-                        style: TextStyle(fontWeight: FontWeight.w600)),
+                    label: Text(
+                      t.approveAndAwardStars,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -1738,7 +1824,7 @@ class _TaskCard extends StatelessWidget {
                         size: 16, color: AppColors.success),
                     const SizedBox(width: 6),
                     Text(
-                      'Completed! +$stars stars earned',
+                      t.completedStarsEarned(stars),
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -1751,7 +1837,7 @@ class _TaskCard extends StatelessWidget {
 
             // Pending info for parent
             if (status == 'pending' && isParent)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.fromLTRB(16, 0, 16, 14),
                 child: Row(
                   children: [
@@ -1759,7 +1845,7 @@ class _TaskCard extends StatelessWidget {
                         size: 14, color: AppColors.textMuted),
                     SizedBox(width: 6),
                     Text(
-                      'Waiting for child to complete...',
+                      t.waitingForChildToComplete,
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textMuted,
@@ -1798,6 +1884,7 @@ class _ChatComposer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 12, 10),
       decoration: const BoxDecoration(
@@ -1829,8 +1916,8 @@ class _ChatComposer extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           sendingCount == 1
-                              ? 'Sending item...'
-                              : 'Sending $sendingCount items...',
+                              ? t.sendingItem
+                              : t.sendingItems(sendingCount),
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -1852,25 +1939,25 @@ class _ChatComposer extends StatelessWidget {
                     if (val == 'reward') onAddReward();
                   },
                   itemBuilder: (_) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'task',
                       child: Row(
                         children: [
-                          Icon(Icons.task_alt,
+                          const Icon(Icons.task_alt,
                               color: AppColors.primary, size: 20),
-                          SizedBox(width: 8),
-                          Text('Add Task'),
+                          const SizedBox(width: 8),
+                          Text(t.addTask),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'reward',
                       child: Row(
                         children: [
-                          Icon(Icons.card_giftcard,
+                          const Icon(Icons.card_giftcard,
                               color: AppColors.success, size: 20),
-                          SizedBox(width: 8),
-                          Text('Add Reward'),
+                          const SizedBox(width: 8),
+                          Text(t.addReward),
                         ],
                       ),
                     ),
@@ -1884,10 +1971,10 @@ class _ChatComposer extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  decoration: const InputDecoration(
-                    hintText: 'Send a message, photo or video...',
+                  decoration: InputDecoration(
+                    hintText: t.sendMessagePhotoVideo,
                     border: InputBorder.none,
-                    hintStyle: TextStyle(color: AppColors.textMuted),
+                    hintStyle: const TextStyle(color: AppColors.textMuted),
                   ),
                   onSubmitted: (_) => onSend(),
                 ),

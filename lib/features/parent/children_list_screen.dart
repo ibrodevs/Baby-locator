@@ -37,6 +37,7 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
     });
     try {
       final list = await ApiClient.instance.listChildren();
+      ref.read(parentChildrenProvider.notifier).setFromList(list);
       final selectedChildId = ref.read(selectedChildIdProvider);
       setState(() {
         _children = list;

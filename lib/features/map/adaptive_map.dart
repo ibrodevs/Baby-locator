@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as am;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:http/http.dart' as http;
@@ -22,16 +23,20 @@ class AdaptiveMap extends StatefulWidget {
     required this.longitude,
     this.children = const [],
     this.selectedIndex,
+    this.followTarget = true,
     this.onChildTapped,
     this.onCameraMove,
+    this.onUserCameraMoveStarted,
   });
 
   final double latitude;
   final double longitude;
   final List<ChildLocation> children;
   final int? selectedIndex;
+  final bool followTarget;
   final ValueChanged<int>? onChildTapped;
   final Function(double lat, double lng)? onCameraMove;
+  final VoidCallback? onUserCameraMoveStarted;
 
   @override
   State<AdaptiveMap> createState() => _AdaptiveMapState();
@@ -43,6 +48,11 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
   final Map<int, gm.BitmapDescriptor> _googleMarkers = {};
   final Map<int, am.BitmapDescriptor> _appleMarkers = {};
   final Map<String, ui.Image> _avatarCache = {};
+  bool _isProgrammaticCameraMove = false;
+  static final Set<Factory<OneSequenceGestureRecognizer>>
+      _mapGestureRecognizers = {
+    Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
+  };
 
   @override
   void initState() {
@@ -196,14 +206,30 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     if (old.children.length != widget.children.length) {
       _loadCustomMarkers();
     }
-    if (old.latitude != widget.latitude || old.longitude != widget.longitude) {
-      _appleCtrl?.animateCamera(
-        am.CameraUpdate.newLatLng(am.LatLng(widget.latitude, widget.longitude)),
-      );
-      _googleCtrl?.animateCamera(
-        gm.CameraUpdate.newLatLng(gm.LatLng(widget.latitude, widget.longitude)),
-      );
+    final targetChanged =
+        old.latitude != widget.latitude || old.longitude != widget.longitude;
+    if (widget.followTarget && (targetChanged || !old.followTarget)) {
+      _animateToTarget();
     }
+  }
+
+  void _animateToTarget() {
+    _isProgrammaticCameraMove = true;
+    _appleCtrl?.animateCamera(
+      am.CameraUpdate.newLatLng(am.LatLng(widget.latitude, widget.longitude)),
+    );
+    _googleCtrl?.animateCamera(
+      gm.CameraUpdate.newLatLng(gm.LatLng(widget.latitude, widget.longitude)),
+    );
+  }
+
+  void _handleCameraMoveStarted() {
+    if (_isProgrammaticCameraMove) return;
+    widget.onUserCameraMoveStarted?.call();
+  }
+
+  void _handleCameraIdle() {
+    _isProgrammaticCameraMove = false;
   }
 
   @override
@@ -257,10 +283,13 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       initialCameraPosition: am.CameraPosition(target: pos, zoom: 14),
       compassEnabled: false,
       onMapCreated: (c) => _appleCtrl = c,
+      gestureRecognizers: _mapGestureRecognizers,
+      onCameraMoveStarted: _handleCameraMoveStarted,
       onCameraMove: widget.onCameraMove != null
           ? (pos) =>
               widget.onCameraMove!(pos.target.latitude, pos.target.longitude)
           : null,
+      onCameraIdle: _handleCameraIdle,
       annotations: annotations,
     );
   }
@@ -285,10 +314,13 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     return gm.GoogleMap(
       initialCameraPosition: gm.CameraPosition(target: pos, zoom: 14),
       onMapCreated: (c) => _googleCtrl = c,
+      gestureRecognizers: _mapGestureRecognizers,
+      onCameraMoveStarted: _handleCameraMoveStarted,
       onCameraMove: widget.onCameraMove != null
           ? (pos) =>
               widget.onCameraMove!(pos.target.latitude, pos.target.longitude)
           : null,
+      onCameraIdle: _handleCameraIdle,
       markers: markers,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
