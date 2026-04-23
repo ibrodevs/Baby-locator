@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,14 +10,15 @@ import 'package:geolocator/geolocator.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:record/record.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/app_blocking_service.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import '../auth/onboarding_screen.dart';
 import '../map/adaptive_map.dart';
 
 class ChildHomeScreen extends ConsumerStatefulWidget {
@@ -29,12 +29,10 @@ class ChildHomeScreen extends ConsumerStatefulWidget {
 
 class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     with WidgetsBindingObserver {
-  static const _deviceStatsChannel = MethodChannel('kid_security/device_stats');
-  static const _blockedAppsCheckInterval = Duration(milliseconds: 900);
-
   final _svc = LocationService();
   final _battery = Battery();
   final _deviceStats = const DeviceStatsService();
+  final _appBlocking = AppBlockingService.instance;
   StreamSubscription<LocationFix>? _sub;
   StreamSubscription<BatteryState>? _batterySub;
   LocationPermissionStatus? _status;
@@ -47,8 +45,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   bool? _accessibilityBlockingEnabled;
   bool? _ignoringBatteryOptimizations;
   Timer? _statsTimer;
-  Timer? _blockTimer;
-  Set<String> _blockedPackages = {};
 
   @override
   void initState() {
@@ -68,12 +64,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
         const Duration(minutes: 3),
         (_) => _syncDeviceStats(),
       );
-      if (Platform.isAndroid) {
-        _blockTimer = Timer.periodic(
-          _blockedAppsCheckInterval,
-          (_) => _enforceBlockedApps(),
-        );
-      }
     });
   }
 
@@ -100,26 +90,21 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   Future<void> _refreshAccessibilityStatus() async {
     if (!Platform.isAndroid) return;
     try {
-      final enabled = await _deviceStatsChannel
-          .invokeMethod<bool>('isAccessibilityBlockingEnabled');
+      final enabled = await _appBlocking.isAccessibilityServiceEnabled();
       if (!mounted) return;
-      setState(() => _accessibilityBlockingEnabled = enabled ?? false);
+      setState(() => _accessibilityBlockingEnabled = enabled);
     } catch (_) {}
   }
 
   Future<void> _openAccessibilitySettings() async {
     if (!Platform.isAndroid) return;
     try {
-      await _deviceStatsChannel.invokeMethod<bool>('openAccessibilitySettings');
+      await _appBlocking.openAccessibilitySettings();
     } catch (_) {}
   }
 
   Future<void> _loadBlockedApps() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final cachedPackages = prefs.getStringList('blocked_apps') ?? [];
-      _blockedPackages = cachedPackages.toSet();
-
       final childId = ref.read(sessionProvider).user?.id;
       if (childId == null) return;
 
@@ -129,36 +114,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
           .where((pkg) => pkg.isNotEmpty)
           .toSet();
 
-      _blockedPackages = remotePackages;
-      await prefs.setStringList('blocked_apps', remotePackages.toList());
-      await _pushPackagesToNative(remotePackages.toList());
-    } catch (_) {}
-  }
-
-  Future<void> _pushPackagesToNative(List<String> packages) async {
-    if (!Platform.isAndroid) return;
-    try {
-      await _deviceStatsChannel.invokeMethod<bool>(
-        'setBlockedPackages',
-        {'packages': packages},
-      );
-    } catch (_) {}
-  }
-
-  Future<void> _enforceBlockedApps() async {
-    // Always reload blocked list from SharedPreferences (background service
-    // updates it when receiving sync_blocked_apps commands).
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _blockedPackages = (prefs.getStringList('blocked_apps') ?? []).toSet();
-    } catch (_) {}
-    if (_blockedPackages.isEmpty) return;
-    try {
-      final fg = await _deviceStatsChannel
-          .invokeMethod<String>('getForegroundPackage');
-      if (fg != null && _blockedPackages.contains(fg)) {
-        await _deviceStatsChannel.invokeMethod<bool>('goHome');
-      }
+      await _appBlocking.syncBlockedPackages(remotePackages);
     } catch (_) {}
   }
 
@@ -315,7 +271,6 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     _sub?.cancel();
     _batterySub?.cancel();
     _statsTimer?.cancel();
-    _blockTimer?.cancel();
     // DO NOT stop the background service here — it must keep running
     // even when this screen is disposed or the app goes to background.
     _svc.stop();
@@ -389,8 +344,16 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                   IconButton(
                     icon: const Icon(Icons.logout_rounded,
                         color: AppColors.textPrimaryLight),
-                    onPressed: () =>
-                        ref.read(sessionProvider.notifier).logout(),
+                    onPressed: () async {
+                      final navigator =
+                          Navigator.of(context, rootNavigator: true);
+                      await ref.read(sessionProvider.notifier).logout();
+                      unawaited(navigator.pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (_) => const OnboardingScreen()),
+                        (route) => false,
+                      ));
+                    },
                   ),
                 ],
               ),

@@ -57,6 +57,28 @@ class ParentWebRTCService {
     'sdpSemantics': 'unified-plan',
   };
 
+  Future<void> _attachRemoteStream(MediaStream? stream) async {
+    if (stream == null) return;
+    _remoteStream = stream;
+    _remoteRenderer?.srcObject = _remoteStream;
+
+    for (final track in stream.getAudioTracks()) {
+      track.enabled = true;
+    }
+
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        await Helper.setSpeakerphoneOn(true);
+      }
+    } catch (_) {}
+
+    if (!_audioStartedNotified) {
+      _audioStartedNotified = true;
+      _connectWatchdog?.cancel();
+      onAudioStarted?.call();
+    }
+  }
+
   /// Activate monitoring for [childId].
   Future<void> startListening({required int childId}) async {
     if (_isListening) return;
@@ -82,25 +104,22 @@ class ParentWebRTCService {
         init: RTCRtpTransceiverInit(direction: TransceiverDirection.RecvOnly),
       );
 
+      _peerConnection!.onAddStream = (MediaStream stream) {
+        debugPrint('[ParentWebRTC] Received remote stream ${stream.id}');
+        unawaited(_attachRemoteStream(stream));
+      };
+
       // 2. Handle incoming audio track from the child.
       _peerConnection!.onTrack = (RTCTrackEvent event) async {
-        if (event.track.kind == 'audio' && event.streams.isNotEmpty) {
+        if (event.track.kind == 'audio') {
           debugPrint('[ParentWebRTC] Received audio track from child');
-          _remoteStream = event.streams.first;
-          _remoteRenderer?.srcObject = _remoteStream;
-
-          // Route audio through the loud speaker on mobile so the parent
-          // hears the child's surroundings even without headphones.
-          try {
-            if (Platform.isAndroid || Platform.isIOS) {
-              await Helper.setSpeakerphoneOn(true);
-            }
-          } catch (_) {}
-
-          if (!_audioStartedNotified) {
-            _audioStartedNotified = true;
-            _connectWatchdog?.cancel();
-            onAudioStarted?.call();
+          if (event.streams.isNotEmpty) {
+            await _attachRemoteStream(event.streams.first);
+            return;
+          }
+          final remoteStreams = _peerConnection?.getRemoteStreams() ?? const [];
+          if (remoteStreams.isNotEmpty) {
+            await _attachRemoteStream(remoteStreams.first);
           }
         }
       };
@@ -124,11 +143,6 @@ class ParentWebRTCService {
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
             onStatus?.call('Соединение установлено');
-            if (!_audioStartedNotified) {
-              _audioStartedNotified = true;
-              _connectWatchdog?.cancel();
-              onAudioStarted?.call();
-            }
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
           case RTCPeerConnectionState.RTCPeerConnectionStateFailed:

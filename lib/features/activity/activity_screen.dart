@@ -203,6 +203,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final events = <_ActivityEvent>[];
     String? lastAddress;
     int? lastBattery;
+    bool? lastCharging;
 
     for (int i = history.length - 1; i >= 0; i--) {
       final loc = history[i];
@@ -232,8 +233,21 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         lastAddress = address;
       }
 
+      final charging = loc['charging'] as bool? ?? false;
+      if (charging && lastCharging != true) {
+        events.add(_ActivityEvent(
+          type: 'charging',
+          icon: 'bolt',
+          title: t.phoneCharging,
+          subtitle: battery != null
+              ? 'Телефон поставлен на зарядку · $battery%'
+              : 'Телефон поставлен на зарядку',
+          time: timeStr,
+        ));
+      }
+
       if (battery != null && lastBattery != null) {
-        if (battery > lastBattery + 5) {
+        if (battery > lastBattery + 5 && !charging) {
           events.add(_ActivityEvent(
             type: 'charging',
             icon: 'bolt',
@@ -252,6 +266,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         }
       }
       lastBattery = battery;
+      lastCharging = charging;
     }
 
     if (events.isEmpty && history.isNotEmpty) {

@@ -1,273 +1,170 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../root/root_screen.dart';
+import 'parent_setup_flow_screen.dart';
 
-class ParentAuthScreen extends StatelessWidget {
+class ParentAuthScreen extends ConsumerStatefulWidget {
   const ParentAuthScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 8),
-              // Back button
-              Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.dividerLight),
-                    ),
-                    child: const Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 18, color: AppColors.textPrimaryLight),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Icon
-              Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySoft,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: const Icon(Icons.person_rounded,
-                      color: AppColors.primary, size: 40),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Text(
-                t.iAmParent,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.navy,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                t.parentAuthSubtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textSecondaryLight,
-                  fontSize: 15,
-                ),
-              ),
-
-              const Spacer(),
-
-              // Sign In button
-              _ActionBtn(
-                label: t.parentSignIn,
-                color: AppColors.primary,
-                textColor: Colors.white,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const _AuthForm(isRegister: false))),
-              ),
-              const SizedBox(height: 14),
-              // Create account button
-              _ActionBtn(
-                label: t.parentCreateAccount,
-                color: Colors.white,
-                textColor: AppColors.primary,
-                bordered: true,
-                onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                    builder: (_) => const _AuthForm(isRegister: true))),
-              ),
-
-              const SizedBox(height: 32),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  ConsumerState<ParentAuthScreen> createState() => _ParentAuthScreenState();
 }
 
-class _ActionBtn extends StatelessWidget {
-  const _ActionBtn({
-    required this.label,
-    required this.color,
-    required this.textColor,
-    required this.onTap,
-    this.bordered = false,
-  });
-  final String label;
-  final Color color;
-  final Color textColor;
-  final VoidCallback onTap;
-  final bool bordered;
+class _ParentAuthScreenState extends ConsumerState<ParentAuthScreen> {
+  bool _loading = true;
+  String? _error;
 
   @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 56,
-          alignment: Alignment.center,
-          decoration: bordered
-              ? BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary, width: 1.5),
-                )
-              : null,
-          child: Text(label,
-              style: TextStyle(
-                  color: textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800)),
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _bootstrapParentFlow();
   }
-}
 
-class _AuthForm extends ConsumerStatefulWidget {
-  const _AuthForm({required this.isRegister});
-  final bool isRegister;
-  @override
-  ConsumerState<_AuthForm> createState() => _AuthFormState();
-}
-
-class _AuthFormState extends ConsumerState<_AuthForm> {
-  final _username = TextEditingController();
-  final _password = TextEditingController();
-  final _name = TextEditingController();
-  bool _busy = false;
-  String? _err;
-
-  Future<void> _submit() async {
+  Future<void> _bootstrapParentFlow() async {
     setState(() {
-      _busy = true;
-      _err = null;
+      _loading = true;
+      _error = null;
     });
+
     try {
-      if (widget.isRegister) {
-        await ref.read(sessionProvider.notifier).registerParent(
-              username: _username.text.trim(),
-              password: _password.text,
-              displayName: _name.text.trim(),
-            );
-      } else {
-        await ref.read(sessionProvider.notifier).login(
-              username: _username.text.trim(),
-              password: _password.text,
-            );
+      final session = ref.read(sessionProvider);
+      if (session.user?.role != UserRole.parent) {
+        await _registerHiddenParent();
       }
-      if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+      if (!mounted) return;
+      setState(() => _loading = false);
     } catch (e) {
-      setState(() => _err = e.toString());
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: Text(widget.isRegister ? t.createAccount : t.signIn),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (widget.isRegister)
-                _Field(controller: _name, label: t.displayName),
-              if (widget.isRegister) const SizedBox(height: 12),
-              _Field(controller: _username, label: t.username),
-              const SizedBox(height: 12),
-              _Field(controller: _password, label: t.password, obscure: true),
-              const SizedBox(height: 20),
-              if (_err != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Text(_err!,
-                      style: const TextStyle(
-                          color: AppColors.danger, fontSize: 13)),
-                ),
-              ElevatedButton(
-                onPressed: _busy ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                ),
-                child: _busy
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2),
-                      )
-                    : Text(widget.isRegister ? t.createAccount : t.signIn,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800)),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _registerHiddenParent() async {
+    final random = Random.secure();
+    for (var attempt = 0; attempt < 5; attempt++) {
+      final timestamp = DateTime.now().microsecondsSinceEpoch;
+      final username = 'parent_${timestamp}_${random.nextInt(9999)}';
+      final password =
+          'p${random.nextInt(1 << 32)}_${timestamp.toRadixString(16)}';
+
+      try {
+        await ref.read(sessionProvider.notifier).registerParent(
+              username: username,
+              password: password,
+            );
+        return;
+      } catch (_) {
+        if (attempt == 4) rethrow;
+      }
+    }
+  }
+
+  void _finishFlow() {
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const RootScreen()),
+      (_) => false,
     );
   }
-}
 
-class _Field extends StatelessWidget {
-  const _Field(
-      {required this.controller, required this.label, this.obscure = false});
-  final TextEditingController controller;
-  final String label;
-  final bool obscure;
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      autocorrect: false,
-      textCapitalization: TextCapitalization.none,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.dividerLight),
+    if (_loading) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(),
+                  ),
+                  SizedBox(height: 18),
+                  Text(
+                    'Подготавливаем сценарий для родителя...',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navy,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.dividerLight),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Не удалось открыть сценарий родителя.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.navy,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: AppColors.textSecondaryLight,
+                      height: 1.45,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _bootstrapParentFlow,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                    ),
+                    child: const Text(
+                      'Повторить',
+                      style: TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    }
+
+    return ParentSetupFlowScreen(onFinished: _finishFlow);
   }
 }

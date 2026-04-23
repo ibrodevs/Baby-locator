@@ -11,6 +11,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import 'child_permissions_screen.dart';
 
 /// Kid-friendly settings screen — blue palette with playful rounded shapes.
 class ChildSettingsScreen extends ConsumerStatefulWidget {
@@ -78,7 +79,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.child_care_rounded,
+                  const Icon(Icons.child_care_rounded,
                       color: AppColors.primary, size: 26),
                   const SizedBox(width: 8),
                   Text(
@@ -160,6 +161,17 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
+                  _KidSettingsRow(
+                    icon: Icons.verified_user_outlined,
+                    title: 'Разрешения',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ChildPermissionsScreen(),
+                      ),
+                    ),
+                  ),
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.dividerLight),
                   _KidSettingsRow(
                     icon: Icons.language_rounded,
                     title: t.language,
@@ -251,7 +263,7 @@ class _KidCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.06),
+            color: AppColors.primary.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),

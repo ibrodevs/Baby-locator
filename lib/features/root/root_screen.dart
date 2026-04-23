@@ -26,7 +26,7 @@ class _RootScreenState extends State<RootScreen> {
           const MapScreen(),
           const ActivityScreen(),
           ChatScreen(isActive: _index == 2),
-          const StatsScreen(),
+          const StatsScreen(showMenu: true),
         ],
       ),
       bottomNavigationBar: AppBottomNav(
@@ -49,7 +49,7 @@ class AppBottomNav extends StatelessWidget {
       (Icons.location_on_outlined, t.navMap),
       (Icons.notifications_none_rounded, t.navActivity),
       (Icons.chat_bubble_outline_rounded, t.navChat),
-      (Icons.bar_chart_rounded, t.navStats),
+      (Icons.grid_view_rounded, 'Меню'),
     ];
     return Container(
       decoration: const BoxDecoration(

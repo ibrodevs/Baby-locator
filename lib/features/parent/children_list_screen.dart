@@ -120,40 +120,9 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
     }
   }
 
-  Future<void> _uploadParentAvatar() async {
-    final t = S.of(context);
-    final picker = ImagePicker();
-    final picked =
-        await picker.pickImage(source: ImageSource.gallery, maxWidth: 512);
-    if (picked == null) return;
-    try {
-      final data = await ApiClient.instance.uploadAvatar(File(picked.path));
-      final avatarUrl = data['avatar_url'] as String?;
-      if (avatarUrl != null) {
-        ref.read(sessionProvider.notifier).updateAvatar(avatarUrl);
-      }
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          t.avatarUpdated,
-          type: AppFeedbackType.success,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          t.failedGeneric(e.toString()),
-          type: AppFeedbackType.error,
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
-    final session = ref.watch(sessionProvider);
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
@@ -192,75 +161,6 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                       ),
                     )
                   else ...[
-                    // Parent profile card with avatar upload
-                    AppCard(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: _uploadParentAvatar,
-                            child: Stack(
-                              children: [
-                                AvatarCircle(
-                                  initials:
-                                      (session.user?.displayName.isNotEmpty ??
-                                              false)
-                                          ? session.user!.displayName[0]
-                                              .toUpperCase()
-                                          : 'P',
-                                  size: 56,
-                                  color: AppColors.primary,
-                                  image: session.user?.avatarUrl != null
-                                      ? NetworkImage(session.user!.avatarUrl!)
-                                      : null,
-                                ),
-                                Positioned(
-                                  right: 0,
-                                  bottom: 0,
-                                  child: Container(
-                                    width: 22,
-                                    height: 22,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: Colors.white, width: 2),
-                                    ),
-                                    child: const Icon(Icons.camera_alt,
-                                        color: Colors.white, size: 12),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  session.user?.displayName ??
-                                      session.user?.username ??
-                                      t.parent,
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w800),
-                                ),
-                                Text(t.parentAccount,
-                                    style: TextStyle(
-                                        fontSize: 13,
-                                        color: AppColors.textSecondaryLight)),
-                              ],
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _uploadParentAvatar,
-                            child: Text(t.changePhoto,
-                                style: TextStyle(fontWeight: FontWeight.w700)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
                     if (_children.isEmpty)
                       Center(
                         child: Padding(
@@ -306,13 +206,6 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                                               style: const TextStyle(
                                                   fontSize: 16,
                                                   fontWeight: FontWeight.w800),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis),
-                                          Text('@${c['username']}',
-                                              style: const TextStyle(
-                                                  fontSize: 12,
-                                                  color: AppColors
-                                                      .textSecondaryLight),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis),
                                         ],

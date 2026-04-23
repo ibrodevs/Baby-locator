@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -514,7 +515,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       'sender': user.id,
       'text': text,
       'created_at': DateTime.now().toUtc().toIso8601String(),
-      'sender_name': user.displayName,
+      'sender_name':
+          user.role == UserRole.parent ? 'Родитель' : 'Ребёнок',
       'sender_avatar_url': user.avatarUrl,
       'is_read': false,
       'file_url': null,
@@ -1313,6 +1315,7 @@ class _Bubble extends StatelessWidget {
     final bubbleColor = isMine ? myBubbleColor : otherBubbleColor;
     final hasImage = _isImageFile(fileName);
     final hasVideo = _isVideoFile(fileName);
+    final hasMedia = fileUrl != null || localFilePath != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1322,14 +1325,10 @@ class _Bubble extends StatelessWidget {
             isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           if (!isMine) ...[
-            AvatarCircle(
-              initials:
-                  senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+            _RoleAvatar(
+              senderName: senderName,
+              senderAvatarUrl: senderAvatarUrl,
               color: AppColors.accent,
-              size: 28,
-              image: senderAvatarUrl != null
-                  ? NetworkImage(senderAvatarUrl!)
-                  : null,
             ),
             const SizedBox(width: 8),
           ],
@@ -1338,18 +1337,6 @@ class _Bubble extends StatelessWidget {
               crossAxisAlignment:
                   isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                if (!isMine && senderName.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4, left: 4),
-                    child: Text(
-                      senderName,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -1371,58 +1358,64 @@ class _Bubble extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if ((fileUrl != null || localFilePath != null) &&
-                          hasImage)
+                      if (hasMedia && hasImage)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: localFilePath != null
-                                ? Image.file(
-                                    File(localFilePath!),
-                                    width: 220,
-                                    height: 220,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.low,
-                                    errorBuilder: (_, __, ___) =>
-                                        _fileAttachment(
-                                      context,
-                                      fileName ?? 'file',
-                                      isMine,
-                                      isVideo: false,
-                                      pending: pending,
-                                      progress: uploadProgress,
+                          child: GestureDetector(
+                            onTap: () => _openMediaViewer(context, false),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: localFilePath != null
+                                  ? Image.file(
+                                      File(localFilePath!),
+                                      width: 220,
+                                      height: 220,
+                                      fit: BoxFit.cover,
+                                      filterQuality: FilterQuality.low,
+                                      errorBuilder: (_, __, ___) =>
+                                          _fileAttachment(
+                                        context,
+                                        fileName ?? 'file',
+                                        isMine,
+                                        isVideo: false,
+                                        pending: pending,
+                                        progress: uploadProgress,
+                                      ),
+                                    )
+                                  : Image.network(
+                                      fileUrl!,
+                                      width: 220,
+                                      height: 220,
+                                      fit: BoxFit.cover,
+                                      filterQuality: FilterQuality.low,
+                                      gaplessPlayback: true,
+                                      errorBuilder: (_, __, ___) =>
+                                          _fileAttachment(
+                                        context,
+                                        fileName ?? 'file',
+                                        isMine,
+                                        isVideo: false,
+                                        pending: pending,
+                                        progress: uploadProgress,
+                                      ),
                                     ),
-                                  )
-                                : Image.network(
-                                    fileUrl!,
-                                    width: 220,
-                                    height: 220,
-                                    fit: BoxFit.cover,
-                                    filterQuality: FilterQuality.low,
-                                    gaplessPlayback: true,
-                                    errorBuilder: (_, __, ___) =>
-                                        _fileAttachment(
-                                      context,
-                                      fileName ?? 'file',
-                                      isMine,
-                                      isVideo: false,
-                                      pending: pending,
-                                      progress: uploadProgress,
-                                    ),
-                                  ),
+                            ),
                           ),
                         )
-                      else if (fileUrl != null || localFilePath != null)
+                      else if (hasMedia)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _fileAttachment(
-                            context,
-                            fileName ?? 'file',
-                            isMine,
-                            isVideo: hasVideo,
-                            pending: pending,
-                            progress: uploadProgress,
+                          child: GestureDetector(
+                            onTap:
+                                hasVideo ? () => _openMediaViewer(context, true) : null,
+                            child: _fileAttachment(
+                              context,
+                              fileName ?? 'file',
+                              isMine,
+                              isVideo: hasVideo,
+                              pending: pending,
+                              progress: uploadProgress,
+                            ),
                           ),
                         ),
                       if (text.isNotEmpty)
@@ -1507,17 +1500,28 @@ class _Bubble extends StatelessWidget {
           ),
           if (isMine) ...[
             const SizedBox(width: 8),
-            AvatarCircle(
-              initials:
-                  senderName.isNotEmpty ? senderName[0].toUpperCase() : '?',
+            _RoleAvatar(
+              senderName: senderName,
+              senderAvatarUrl: senderAvatarUrl,
               color: AppColors.primary,
-              size: 28,
-              image: senderAvatarUrl != null
-                  ? NetworkImage(senderAvatarUrl!)
-                  : null,
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  void _openMediaViewer(BuildContext context, bool isVideo) {
+    final source = localFilePath ?? fileUrl;
+    if (source == null || source.isEmpty) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _MediaViewerScreen(
+          source: source,
+          isVideo: isVideo,
+          isLocal: localFilePath != null,
+          title: fileName,
+        ),
       ),
     );
   }
@@ -1615,6 +1619,209 @@ class _Bubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RoleAvatar extends StatelessWidget {
+  const _RoleAvatar({
+    required this.senderName,
+    required this.senderAvatarUrl,
+    required this.color,
+  });
+
+  final String senderName;
+  final String? senderAvatarUrl;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    if (senderAvatarUrl != null && senderAvatarUrl!.isNotEmpty) {
+      return AvatarCircle(
+        initials: '',
+        color: color,
+        size: 28,
+        image: NetworkImage(senderAvatarUrl!),
+      );
+    }
+
+    final isParent = senderName == 'Родитель';
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color.withValues(alpha: 0.15),
+      ),
+      child: Icon(
+        isParent ? Icons.family_restroom_rounded : Icons.child_care_rounded,
+        size: 16,
+        color: color,
+      ),
+    );
+  }
+}
+
+class _MediaViewerScreen extends StatefulWidget {
+  const _MediaViewerScreen({
+    required this.source,
+    required this.isVideo,
+    required this.isLocal,
+    this.title,
+  });
+
+  final String source;
+  final bool isVideo;
+  final bool isLocal;
+  final String? title;
+
+  @override
+  State<_MediaViewerScreen> createState() => _MediaViewerScreenState();
+}
+
+class _MediaViewerScreenState extends State<_MediaViewerScreen> {
+  VideoPlayerController? _controller;
+  Future<void>? _initializeVideo;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.isVideo) {
+      _controller = widget.isLocal
+          ? VideoPlayerController.file(File(widget.source))
+          : VideoPlayerController.networkUrl(Uri.parse(widget.source));
+      _initializeVideo = _controller!.initialize().then((_) {
+        if (!mounted) return;
+        setState(() {});
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(widget.title ?? ''),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: widget.isVideo ? _buildVideo() : _buildImage(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImage() {
+    final image = widget.isLocal
+        ? Image.file(
+            File(widget.source),
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          )
+        : Image.network(
+            widget.source,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.high,
+          );
+
+    return InteractiveViewer(
+      minScale: 0.8,
+      maxScale: 4,
+      child: image,
+    );
+  }
+
+  Widget _buildVideo() {
+    final controller = _controller;
+    if (controller == null) {
+      return const CircularProgressIndicator(color: Colors.white);
+    }
+
+    return FutureBuilder<void>(
+      future: _initializeVideo,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done ||
+            !controller.value.isInitialized) {
+          return const CircularProgressIndicator(color: Colors.white);
+        }
+
+        final aspectRatio = controller.value.aspectRatio > 0
+            ? controller.value.aspectRatio
+            : 16 / 9;
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AspectRatio(
+              aspectRatio: aspectRatio,
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (controller.value.isPlaying) {
+                      controller.pause();
+                    } else {
+                      controller.play();
+                    }
+                  });
+                },
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    VideoPlayer(controller),
+                    AnimatedOpacity(
+                      duration: const Duration(milliseconds: 180),
+                      opacity: controller.value.isPlaying ? 0 : 1,
+                      child: Container(
+                        width: 68,
+                        height: 68,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          size: 42,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            IconButton.filledTonal(
+              onPressed: () {
+                setState(() {
+                  if (controller.value.isPlaying) {
+                    controller.pause();
+                  } else {
+                    controller.play();
+                  }
+                });
+              },
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white12,
+                foregroundColor: Colors.white,
+              ),
+              icon: Icon(
+                controller.value.isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

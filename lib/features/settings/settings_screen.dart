@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:flutter/foundation.dart';
@@ -13,6 +14,7 @@ import '../../core/services/device_notification_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_language_sheet.dart';
 import '../../core/widgets/brand_header.dart';
+import '../auth/onboarding_screen.dart';
 import '../parent/children_list_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -109,24 +111,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
   }
 
-  Future<void> _editProfile() async {
-    final updated = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => const _EditProfileSheet(),
-    );
-    if (updated == true && mounted) {
-      final t = S.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(t.profileUpdated)),
-      );
-    }
-  }
-
   Future<void> _selectLanguage() async {
     await showAppLanguageSheet(context);
   }
@@ -198,32 +182,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  user?.displayName ?? user?.username ?? 'Parent',
+                  user?.displayName?.trim().isNotEmpty == true
+                      ? user!.displayName
+                      : t.parent,
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimaryLight,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '@${user?.username ?? ''}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondaryLight,
-                  ),
-                ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 8),
                 StatusBadge(
                   text: user?.role == UserRole.parent ? t.parent : t.child,
                   color: AppColors.primary,
                 ),
                 const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _editProfile,
-                  child: Text(
-                    t.editProfileDetails,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                Text(
+                  'Нажмите на фото, чтобы поставить аватар.',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondaryLight,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
@@ -247,14 +227,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     MaterialPageRoute(
                         builder: (_) => const ChildrenListScreen()),
                   ),
-                ),
-                const Divider(
-                    height: 1, indent: 56, color: AppColors.dividerLight),
-                _SettingsRow(
-                  icon: Icons.person_outline,
-                  iconColor: AppColors.primary,
-                  title: t.editProfile,
-                  onTap: _editProfile,
                 ),
               ],
             ),
@@ -374,9 +346,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () {
-                ref.read(sessionProvider.notifier).logout();
-                Navigator.of(context).popUntil((r) => r.isFirst);
+              onPressed: () async {
+                final navigator = Navigator.of(context, rootNavigator: true);
+                await ref.read(sessionProvider.notifier).logout();
+                unawaited(navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+                  (route) => false,
+                ));
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.dangerSoft,
@@ -402,169 +378,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 color: AppColors.textMuted.withValues(alpha: 0.6),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EditProfileSheet extends ConsumerStatefulWidget {
-  const _EditProfileSheet();
-
-  @override
-  ConsumerState<_EditProfileSheet> createState() => _EditProfileSheetState();
-}
-
-class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _usernameController;
-  bool _saving = false;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    final user = ref.read(sessionProvider).user;
-    _nameController = TextEditingController(text: user?.displayName ?? '');
-    _usernameController = TextEditingController(text: user?.username ?? '');
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _usernameController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _save() async {
-    final t = S.of(context);
-    if (_usernameController.text.trim().isEmpty) {
-      setState(() => _error = t.usernameCannotBeEmpty);
-      return;
-    }
-
-    setState(() {
-      _saving = true;
-      _error = null;
-    });
-
-    try {
-      await ref.read(sessionProvider.notifier).updateProfile(
-            username: _usernameController.text.trim(),
-            displayName: _nameController.text.trim(),
-          );
-      if (!mounted) return;
-      Navigator.of(context).pop(true);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _saving = false;
-        _error = e.toString();
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            t.editProfileTitle,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            t.updateProfileHint,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.textSecondaryLight,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: t.displayName,
-              filled: true,
-              fillColor: AppColors.backgroundLight,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.dividerLight),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.dividerLight),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _usernameController,
-            autocorrect: false,
-            textCapitalization: TextCapitalization.none,
-            decoration: InputDecoration(
-              labelText: t.username,
-              filled: true,
-              fillColor: AppColors.backgroundLight,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.dividerLight),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.dividerLight),
-              ),
-            ),
-          ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: Text(
-                _error!,
-                style: const TextStyle(
-                  color: AppColors.danger,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: _saving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text(
-                    t.saveChanges,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
           ),
         ],
       ),

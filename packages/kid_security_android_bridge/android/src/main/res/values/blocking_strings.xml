@@ -2,4 +2,10 @@
 <resources>
     <string name="blocking_accessibility_label">Kid Security — блокировка приложений</string>
     <string name="blocking_accessibility_description">Позволяет родителю блокировать выбранные приложения у ребёнка. Сервис закрывает заблокированные приложения сразу при их открытии.</string>
+    <string name="blocking_screen_default_app_name">This app</string>
+    <string name="blocking_screen_title">%1$s is blocked</string>
+    <string name="blocking_screen_subtitle">This app is currently unavailable on this device.</string>
+    <string name="blocking_screen_hint">Ask a parent to change the blocked apps list if you still need access.</string>
+    <string name="blocking_screen_home_button">Back to Home</string>
+    <string name="blocking_screen_open_app_button">Open Kid Security</string>
 </resources>

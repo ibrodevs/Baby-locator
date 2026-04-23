@@ -259,6 +259,55 @@ extension SExtras on S {
         'uz': 'Qidirish...',
       });
 
+  String get appBlockingTitle => _pick({
+        'en': 'App blocking',
+        'ru': 'Блокировка приложений',
+      });
+
+  String get appBlockingHeadline => _pick({
+        'en': 'Choose which apps should feel locked on this device.',
+        'ru':
+            'Выберите, какие приложения должны ощущаться как заблокированные на этом устройстве.',
+      });
+
+  String get appBlockingDescription => _pick({
+        'en':
+            'When a blocked app opens, Kid Security immediately closes it and shows a blocking screen through Android Accessibility Service.',
+        'ru':
+            'Когда заблокированное приложение открывается, Kid Security сразу закрывает его и показывает экран блокировки через службу специальных возможностей Android.',
+      });
+
+  String get appBlockingUnsupported => _pick({
+        'en': 'App blocking setup is available only on Android devices.',
+        'ru':
+            'Настройка блокировки приложений доступна только на Android-устройствах.',
+      });
+
+  String get noAppsFound => _pick({
+        'en': 'No apps found for this search.',
+        'ru': 'По этому запросу приложения не найдены.',
+      });
+
+  String get statusEnabled => _pick({
+        'en': 'Enabled',
+        'ru': 'Включено',
+      });
+
+  String get statusNeeded => _pick({
+        'en': 'Action needed',
+        'ru': 'Нужно действие',
+      });
+
+  String get optionalLabel => _pick({
+        'en': 'Optional',
+        'ru': 'Необязательно',
+      });
+
+  String get openAccessibilitySettingsLabel => _pick({
+        'en': 'Open accessibility settings',
+        'ru': 'Открыть настройки специальных возможностей',
+      });
+
   String limitAddedForApp(String appName) => _fill(
         _pick({
           'ar': 'تمت إضافة حد للتطبيق {appName}',

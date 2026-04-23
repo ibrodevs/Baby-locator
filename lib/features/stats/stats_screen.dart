@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/providers/session_providers.dart';
@@ -13,10 +13,22 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
+import '../activity/activity_screen.dart';
+import '../chat/chat_screen.dart';
+import '../map/map_screen.dart';
+import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
+import 'stats_menu_feature_screens.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
-  const StatsScreen({super.key});
+  const StatsScreen({
+    super.key,
+    this.showMenu = false,
+    this.initialSelectedChildId,
+  });
+
+  final bool showMenu;
+  final int? initialSelectedChildId;
 
   @override
   ConsumerState<StatsScreen> createState() => _StatsScreenState();
@@ -58,11 +70,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       }
     }
 
-    _poll?.cancel();
-    _poll = Timer.periodic(
-      const Duration(seconds: 15),
-      (_) => _fetchChildData(),
-    );
+    if (!widget.showMenu) {
+      _poll?.cancel();
+      _poll = Timer.periodic(
+        const Duration(seconds: 15),
+        (_) => _fetchChildData(),
+      );
+    }
   }
 
   Future<void> _syncChildren(List<Map<String, dynamic>> children) async {
@@ -92,12 +106,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       if (selectionChanged) {
         _selectedChildId = nextSelectedChildId;
         _stats = null;
-        _loading = true;
+        _loading = !widget.showMenu;
         _error = null;
         _selectedDate = DateTime.now();
         _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
         _blockedPackages = {};
         _blockedIdByPackage = {};
+      } else if (widget.showMenu) {
+        _loading = false;
       }
     });
 
@@ -105,14 +121,18 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       ref.read(selectedChildIdProvider.notifier).state = nextSelectedChildId;
     }
 
-    if (selectionChanged) {
+    if (selectionChanged && !widget.showMenu) {
       await _fetchChildData(showLoader: true);
     }
   }
 
   int _resolveInitialChildId(List<Map<String, dynamic>> list) {
     final providerChildId = ref.read(selectedChildIdProvider);
-    final preferredIds = [_selectedChildId, providerChildId].whereType<int>();
+    final preferredIds = [
+      _selectedChildId,
+      widget.initialSelectedChildId,
+      providerChildId,
+    ].whereType<int>();
     for (final id in preferredIds) {
       if (list.any((child) => child['id'] == id)) {
         return id;
@@ -208,12 +228,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     setState(() {
       _selectedChildId = id;
       _stats = null;
-      _loading = true;
+      _loading = !widget.showMenu;
       _error = null;
       _selectedDate = DateTime.now();
       _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
     });
-    await _fetchChildData(showLoader: true);
+    if (!widget.showMenu) {
+      await _fetchChildData(showLoader: true);
+    }
   }
 
   Future<void> _toggleLimit(Map<String, dynamic> app, bool enabled) async {
@@ -274,7 +296,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     children: [
                       Text(
                         t.enableDailyLimit,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -294,7 +316,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                     children: [
                       Text(
                         t.dailyLimit,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -340,7 +362,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                       ),
                       child: Text(
                         t.saveLimit,
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                        style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
                   ),
@@ -608,14 +630,21 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   String get _childName {
     final t = S.of(context);
     if (_selectedChildId == null) return t.childLabel;
-    final child = _children.firstWhere(
-      (c) => c['id'] == _selectedChildId,
-      orElse: () => {'display_name': t.childLabel, 'username': 'child'},
+    return _displayNameForChild(
+      _selectedChild ??
+          <String, dynamic>{
+            'display_name': t.childLabel,
+            'username': 'child',
+          },
     );
-    final displayName = child['display_name'] as String?;
-    return (displayName?.isNotEmpty ?? false)
-        ? displayName!
-        : child['username'] as String? ?? t.childLabel;
+  }
+
+  Map<String, dynamic>? get _selectedChild {
+    if (_selectedChildId == null) return null;
+    for (final child in _children) {
+      if (child['id'] == _selectedChildId) return child;
+    }
+    return null;
   }
 
   Map<String, dynamic> get _device => _asMap(_stats?['device']);
@@ -668,6 +697,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final selectedDateLabel =
         _formatDate(context, 'MMM d, yyyy', _selectedDate);
 
+    if (widget.showMenu) {
+      return Scaffold(
+        backgroundColor: Colors.transparent,
+        body: _buildMenuScreen(session),
+      );
+    }
+
     return SafeArea(
       child: Column(
         children: [
@@ -684,10 +720,22 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             ),
             titlePrefix: t.parentProfile,
             title: t.appName,
-            trailing: GearButton(
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: _openMenuScreen,
+                  icon: const Icon(
+                    Icons.grid_view_rounded,
+                    color: AppColors.textPrimaryLight,
+                  ),
+                ),
+                GearButton(
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  ),
+                ),
+              ],
             ),
           ),
           ChildSelectorChips(
@@ -703,6 +751,513 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
+  Widget _buildMenuScreen(dynamic session) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.primarySoft.withValues(alpha: 0.85),
+            AppColors.backgroundLight,
+            const Color(0xFFF7FAFF),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _refreshMenu,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+            children: [
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'Меню',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.navy,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _openManageChildren,
+                    icon: const Icon(
+                      Icons.people_alt_outlined,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    ),
+                    icon: const Icon(
+                      Icons.settings_outlined,
+                      color: AppColors.textPrimaryLight,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              if (_loading)
+                const Padding(
+                  padding: EdgeInsets.only(top: 120),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_children.isEmpty)
+                _buildMenuEmptyState()
+              else ...[
+                _buildMenuChildCard(session),
+                if (_children.length > 1) ...[
+                  const SizedBox(height: 16),
+                  _buildMenuChildSelector(),
+                ],
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(
+                      color: AppColors.danger,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 28),
+                _buildMenuGrid(),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuEmptyState() {
+    final t = S.of(context);
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Icon(
+              Icons.grid_view_rounded,
+              size: 38,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'Меню появится после добавления ребёнка',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            t.addChildForStats,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 14,
+              height: 1.45,
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _openManageChildren,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text(
+                'Добавить ребёнка',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuChildCard(dynamic session) {
+    final child = _selectedChild;
+    final childName = child != null ? _displayNameForChild(child) : _childName;
+    final avatarUrl = child?['avatar_url'] as String?;
+    final parentName = (session.user?.displayName as String?)?.trim() ?? '';
+    final parentLabel =
+        parentName.isEmpty ? 'Быстрый доступ' : 'Панель $parentName';
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            AppColors.primarySoft.withValues(alpha: 0.88),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          AvatarCircle(
+            size: 54,
+            initials: childName.isNotEmpty ? childName[0].toUpperCase() : '?',
+            color: AppColors.primary,
+            image: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  childName,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimaryLight,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  parentLabel,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'Выбран',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuChildSelector() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final child in _children)
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: _MenuChildChip(
+                label: _displayNameForChild(child),
+                avatarUrl: child['avatar_url'] as String?,
+                selected: child['id'] == _selectedChildId,
+                onTap: () => _setSelectedChild(child['id'] as int),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMenuGrid() {
+    final tiles = <_MenuTileData>[
+      _MenuTileData(
+        title: 'Онлайн звук\nвокруг ребенка',
+        icon: Icons.hearing_rounded,
+        accent: AppColors.success,
+        onTap: _openAroundForSelectedChild,
+      ),
+      _MenuTileData(
+        title: 'Лимиты на игры',
+        icon: Icons.sports_esports_rounded,
+        accent: AppColors.primary,
+        onTap: _openGameLimits,
+      ),
+      _MenuTileData(
+        title: 'Входящие чаты',
+        icon: Icons.forum_outlined,
+        accent: AppColors.accent,
+        onTap: _openChats,
+      ),
+      _MenuTileData(
+        title: 'Места на карте',
+        icon: Icons.map_outlined,
+        accent: AppColors.warning,
+        onTap: _openMapScreen,
+      ),
+      _MenuTileData(
+        title: 'История\nпередвижения',
+        icon: Icons.route_rounded,
+        accent: AppColors.navy,
+        onTap: _openHistory,
+      ),
+      _MenuTileData(
+        title: 'Статистика\nприложений',
+        icon: Icons.bar_chart_rounded,
+        accent: AppColors.primary,
+        onTap: _openStatsDetails,
+      ),
+      _MenuTileData(
+        title: 'Достижения\nребенка',
+        icon: Icons.emoji_events_outlined,
+        accent: AppColors.warning,
+        onTap: _openAchievements,
+      ),
+      _MenuTileData(
+        title: 'Громкий\nсигнал',
+        icon: Icons.notifications_active_outlined,
+        accent: AppColors.danger,
+        onTap: _openLoudSignal,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 560 ? 4 : 3;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: tiles.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 18,
+            mainAxisSpacing: 22,
+            childAspectRatio: 0.76,
+          ),
+          itemBuilder: (context, index) => _MenuFeatureTile(data: tiles[index]),
+        );
+      },
+    );
+  }
+
+  Future<void> _refreshMenu() async {
+    try {
+      await ref.read(parentChildrenProvider.notifier).refresh();
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        e.toString(),
+        type: AppFeedbackType.error,
+      );
+    }
+  }
+
+  String _displayNameForChild(Map<String, dynamic> child) {
+    final t = S.of(context);
+    final displayName = (child['display_name'] as String?)?.trim() ?? '';
+    if (displayName.isNotEmpty) return displayName;
+    final username = (child['username'] as String?)?.trim() ?? '';
+    return username.isNotEmpty ? username : t.childLabel;
+  }
+
+  Future<void> _openMenuScreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => StatsScreen(
+          showMenu: true,
+          initialSelectedChildId: _selectedChildId,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openManageChildren() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const Scaffold(
+          backgroundColor: AppColors.backgroundLight,
+          body: ChildrenListScreen(),
+        ),
+      ),
+    );
+    if (!mounted) return;
+    await _refreshMenu();
+  }
+
+  Future<void> _openStandaloneScreen(Widget screen) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => screen,
+      ),
+    );
+  }
+
+  Future<void> _openEmbeddedScreen(Widget screen) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: AppColors.backgroundLight,
+          body: screen,
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic>? _selectedMenuChildOrWarn() {
+    final child = _selectedChild;
+    if (child != null) return child;
+    showAppSnackBar(
+      context,
+      'Сначала добавьте ребёнка.',
+      type: AppFeedbackType.warning,
+    );
+    return null;
+  }
+
+  int? _selectedMenuChildIdOrWarn() {
+    final childId = _selectedChildId;
+    if (childId != null) return childId;
+    showAppSnackBar(
+      context,
+      'Сначала добавьте ребёнка.',
+      type: AppFeedbackType.warning,
+    );
+    return null;
+  }
+
+  Future<void> _openMapScreen() async {
+    await _openEmbeddedScreen(const MapScreen());
+  }
+
+  Future<void> _openChats() async {
+    final childId = _selectedMenuChildIdOrWarn();
+    if (childId == null) return;
+    await _openEmbeddedScreen(
+      ChatScreen(initialSelectedChildId: childId),
+    );
+  }
+
+  Future<void> _openHistory() async {
+    final childId = _selectedMenuChildIdOrWarn();
+    if (childId == null) return;
+    await _openEmbeddedScreen(
+      ActivityScreen(initialSelectedChildId: childId),
+    );
+  }
+
+  Future<void> _openAchievements() async {
+    final child = _selectedMenuChildOrWarn();
+    if (child == null) return;
+    await _openStandaloneScreen(
+      MenuAchievementsScreen(
+        childId: child['id'] as int,
+        childName: _displayNameForChild(child),
+        avatarUrl: child['avatar_url'] as String?,
+      ),
+    );
+  }
+
+  Future<void> _openStatsDetails() async {
+    final childId = _selectedMenuChildIdOrWarn();
+    if (childId == null) return;
+    await _openEmbeddedScreen(
+      StatsScreen(
+        showMenu: false,
+        initialSelectedChildId: childId,
+      ),
+    );
+  }
+
+  Future<void> _openGameLimits() async {
+    final child = _selectedMenuChildOrWarn();
+    if (child == null) return;
+    await _openStandaloneScreen(
+      MenuGameLimitsScreen(
+        childId: child['id'] as int,
+        childName: _displayNameForChild(child),
+        avatarUrl: child['avatar_url'] as String?,
+      ),
+    );
+  }
+
+  Future<void> _openLoudSignal() async {
+    final child = _selectedMenuChildOrWarn();
+    if (child == null) return;
+    await _openStandaloneScreen(
+      MenuLoudSignalScreen(
+        childId: child['id'] as int,
+        childName: _displayNameForChild(child),
+        avatarUrl: child['avatar_url'] as String?,
+      ),
+    );
+  }
+
+  Future<void> _openAroundForSelectedChild() async {
+    final child = _selectedMenuChildOrWarn();
+    if (child == null) return;
+    await _openStandaloneScreen(
+      MenuAroundSoundScreen(
+        childId: child['id'] as int,
+        childName: _displayNameForChild(child),
+        avatarUrl: child['avatar_url'] as String?,
+      ),
+    );
+  }
+
   Widget _buildBody(String selectedDateLabel) {
     final t = S.of(context);
     if (_loading) {
@@ -713,7 +1268,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       return Center(
         child: Text(
           t.addChildForStats,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 15,
             color: AppColors.textSecondaryLight,
             fontWeight: FontWeight.w600,
@@ -732,7 +1287,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             children: [
               Text(
                 t.insights,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.textMuted,
                   fontWeight: FontWeight.w800,
                   fontSize: 11,
@@ -802,7 +1357,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               Expanded(
                 child: Text(
                   t.manageAppLimits,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                   ),
@@ -892,7 +1447,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             children: [
               Text(
                 t.deviceStatus,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
               const Spacer(),
               StatusBadge(
@@ -993,7 +1549,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               children: [
                 Text(
                   t.dailyUsage,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -1237,7 +1796,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             children: [
               Text(
                 t.weeklyUsage,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
               const Spacer(),
               Text(
@@ -1383,6 +1943,142 @@ class _LimitEditResult {
 
   final int minutes;
   final bool enabled;
+}
+
+class _MenuTileData {
+  const _MenuTileData({
+    required this.title,
+    required this.icon,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color accent;
+  final Future<void> Function() onTap;
+}
+
+class _MenuFeatureTile extends StatelessWidget {
+  const _MenuFeatureTile({
+    required this.data,
+  });
+
+  final _MenuTileData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => unawaited(data.onTap()),
+      borderRadius: BorderRadius.circular(28),
+      child: Column(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.8),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: data.accent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    data.icon,
+                    size: 32,
+                    color: data.accent,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            data.title,
+            maxLines: 3,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.18,
+              color: AppColors.textPrimaryLight,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuChildChip extends StatelessWidget {
+  const _MenuChildChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.avatarUrl,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final String? avatarUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.white.withValues(alpha: 0.52),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : Colors.white.withValues(alpha: 0.7),
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AvatarCircle(
+              size: 28,
+              initials: label.isNotEmpty ? label[0].toUpperCase() : '?',
+              color: AppColors.primary,
+              image: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: AppColors.textPrimaryLight,
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _CalendarNavButton extends StatelessWidget {

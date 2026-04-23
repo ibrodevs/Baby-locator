@@ -332,10 +332,6 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.textMuted,
                                     letterSpacing: 0.5)),
-                            Text('${_radius.toInt()} m',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.primary)),
                           ],
                         ),
                         Slider(

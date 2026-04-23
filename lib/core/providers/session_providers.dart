@@ -112,7 +112,7 @@ class SessionNotifier extends StateNotifier<SessionState> {
 
   Future<void> registerChild({
     required String code,
-    required String displayName,
+    String? displayName,
   }) async {
     state = state.copyWith(loading: true, error: null);
     try {
@@ -429,8 +429,9 @@ class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
         lat: (locData['lat'] as num).toDouble(),
         lng: (locData['lng'] as num).toDouble(),
         address: (locData['address'] as String?) ?? '',
-        battery: (locData['battery'] as int?) ?? 0,
-        charging: (entry['charging'] as bool?) ?? false,
+        battery: (locData['battery'] as int?) ?? (entry['battery'] as int?) ?? 0,
+        charging:
+            (locData['charging'] as bool?) ?? (entry['charging'] as bool?) ?? false,
         updatedAt: DateTime.tryParse(locData['created_at'] as String? ?? '') ??
             DateTime.now(),
         active: (locData['active'] as bool?) ?? true,

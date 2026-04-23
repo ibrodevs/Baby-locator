@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
@@ -18,6 +15,7 @@ import '../activity/activity_screen.dart';
 import '../chat/chat_screen.dart';
 import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
+import '../stats/stats_menu_feature_screens.dart';
 import 'adaptive_map.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -140,44 +138,27 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _openAround(ChildLocation child) async {
     final childId = child.childId;
     if (childId == null || _startingAroundChildId == childId) return;
-    final t = S.of(context);
     setState(() => _startingAroundChildId = childId);
-    String? sessionToken;
     try {
-      final command = await ApiClient.instance.startAround(childId);
-      final liveSessionToken =
-          ((command['payload'] as Map?)?['session_token'] as String?) ?? '';
-      if (liveSessionToken.isEmpty) {
-        throw Exception(t.couldNotCreateLiveSession);
-      }
-      sessionToken = liveSessionToken;
       if (!mounted) return;
-      await showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => _AroundListenSheet(
-          childId: childId,
-          childName: child.name,
-          sessionToken: liveSessionToken,
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => MenuAroundSoundScreen(
+            childId: childId,
+            childName: child.name,
+            avatarUrl: child.avatarUrl,
+            autoStart: true,
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        t.failedGeneric(e.toString()),
+        S.of(context).failedGeneric(e.toString()),
         type: AppFeedbackType.error,
       );
     } finally {
-      if (sessionToken != null && sessionToken.isNotEmpty) {
-        try {
-          await ApiClient.instance.stopAround(
-            childId,
-            sessionToken: sessionToken,
-          );
-        } catch (_) {}
-      }
       if (mounted) setState(() => _startingAroundChildId = null);
     }
   }
@@ -662,231 +643,6 @@ class _ChargingStatusRow extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _AroundListenSheet extends StatefulWidget {
-  const _AroundListenSheet({
-    required this.childId,
-    required this.childName,
-    required this.sessionToken,
-  });
-
-  final int childId;
-  final String childName;
-  final String sessionToken;
-
-  @override
-  State<_AroundListenSheet> createState() => _AroundListenSheetState();
-}
-
-class _AroundListenSheetState extends State<_AroundListenSheet> {
-  final AudioPlayer _player = AudioPlayer();
-  final List<File> _clipQueue = [];
-  Timer? _pollTimer;
-  Timer? _startupWatchdog;
-  int? _lastClipId;
-  bool _loading = true;
-  bool _pollInFlight = false;
-  bool _isPlaying = false;
-  String? _error;
-  String _status = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _player.onPlayerComplete.listen((_) => unawaited(_playNext()));
-    WidgetsBinding.instance.addPostFrameCallback((_) => _start());
-  }
-
-  Future<void> _start() async {
-    await _pollLatestClip();
-    _pollTimer = Timer.periodic(
-      const Duration(milliseconds: 350),
-      (_) => unawaited(_pollLatestClip()),
-    );
-    _startupWatchdog = Timer(const Duration(seconds: 3), () {
-      if (!mounted || !_loading) return;
-      setState(() {
-        _status = S.of(context).waitingForFirstAudioClip;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    _startupWatchdog?.cancel();
-    unawaited(_player.dispose());
-    for (final file in _clipQueue) {
-      unawaited(_safeDelete(file));
-    }
-    super.dispose();
-  }
-
-  Future<void> _pollLatestClip() async {
-    if (_pollInFlight) return;
-    _pollInFlight = true;
-    try {
-      final clip = await ApiClient.instance.latestAroundAudio(
-        widget.childId,
-        sessionToken: widget.sessionToken,
-        afterId: _lastClipId,
-      );
-      if (!mounted) return;
-      if (clip == null) {
-        if (_loading) {
-          setState(() => _error = null);
-        }
-        return;
-      }
-
-      final clipMap = Map<String, dynamic>.from(clip);
-      final clipId = clipMap['id'] as int?;
-      final audioUrl = clipMap['audio_url'] as String? ?? '';
-      if (clipId == null || audioUrl.isEmpty) return;
-
-      final bytes = await ApiClient.instance.downloadAroundAudio(clipId);
-      final dir = await getTemporaryDirectory();
-      final localFile = File('${dir.path}/around_clip_$clipId.m4a');
-      await localFile.writeAsBytes(bytes, flush: true);
-
-      _lastClipId = clipId;
-      _clipQueue.add(localFile);
-
-      if (!_isPlaying) {
-        unawaited(_playNext());
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = null;
-        _status = S.of(context).listeningTo(widget.childName);
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-        _status = S.of(context).errorLabel;
-      });
-    } finally {
-      _pollInFlight = false;
-    }
-  }
-
-  Future<void> _playNext() async {
-    if (_clipQueue.isEmpty) {
-      _isPlaying = false;
-      return;
-    }
-    _isPlaying = true;
-    final file = _clipQueue.removeAt(0);
-    try {
-      await _player.play(DeviceFileSource(file.path));
-    } catch (_) {
-      await _safeDelete(file);
-      _isPlaying = false;
-      if (_clipQueue.isNotEmpty) {
-        unawaited(_playNext());
-      }
-      return;
-    }
-
-    Future<void>.delayed(const Duration(seconds: 3), () {
-      unawaited(_safeDelete(file));
-    });
-  }
-
-  Future<void> _safeDelete(File file) async {
-    if (await file.exists()) {
-      await file.delete();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 24,
-              offset: Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  !_loading && _error == null
-                      ? Icons.hearing_rounded
-                      : Icons.hearing_disabled_rounded,
-                  color: (!_loading && _error == null)
-                      ? AppColors.success
-                      : AppColors.textMuted,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    t.listeningTo(widget.childName),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimaryLight,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _status.isEmpty ? t.connectingToChildPhone : _status,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondaryLight,
-              ),
-            ),
-            const SizedBox(height: 14),
-            if (_loading && _error == null)
-              const LinearProgressIndicator(
-                color: AppColors.success,
-                backgroundColor: AppColors.chipGrey,
-              ),
-            if (_error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _error!,
-                style: const TextStyle(color: AppColors.danger, fontSize: 12),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Text(
-              t.aroundAudioInfo,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textMuted,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

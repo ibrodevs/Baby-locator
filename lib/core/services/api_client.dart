@@ -142,21 +142,28 @@ class ApiClient {
   }
 
   // === Invite Code ===
-  Future<Map<String, dynamic>> generateInviteCode() async {
-    return await _post('/api/auth/invite/', {});
+  Future<Map<String, dynamic>> generateInviteCode({int? childId}) async {
+    return await _post('/api/auth/invite/', {
+      if (childId != null) 'child_id': childId,
+    });
   }
 
-  Future<Map<String, dynamic>> getInviteCode() async {
-    return (await _get('/api/auth/invite/')) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> getInviteCode({int? childId}) async {
+    final uri = _u('/api/auth/invite/').replace(
+      queryParameters:
+          childId == null ? null : <String, String>{'child_id': '$childId'},
+    );
+    final r = await http.get(uri, headers: _headers(json: false));
+    return _decode(r) as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> registerChildWithCode({
     required String code,
-    required String displayName,
+    String? displayName,
   }) async {
     final data = await _post('/api/auth/register-child/', {
       'code': code,
-      'display_name': displayName,
+      if (displayName != null) 'display_name': displayName,
     });
     await _saveToken(data['token'] as String);
     return data;
@@ -168,21 +175,24 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> createChild({
-    required String username,
-    required String password,
+    String? username,
+    String? password,
     String? displayName,
+    String? gender,
   }) async {
     return await _post('/api/auth/children/', {
-      'username': username,
-      'password': password,
+      if (username != null) 'username': username,
+      if (password != null) 'password': password,
       if (displayName != null) 'display_name': displayName,
+      if (gender != null) 'gender': gender,
     });
   }
 
   Future<Map<String, dynamic>> updateChild(int childId,
-      {String? displayName}) async {
+      {String? displayName, String? gender}) async {
     final body = <String, dynamic>{};
     if (displayName != null) body['display_name'] = displayName;
+    if (gender != null) body['gender'] = gender;
     final r = await http.patch(
       _u('/api/auth/children/$childId/'),
       headers: _headers(),

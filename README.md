@@ -15,6 +15,7 @@ Parental GPS tracking app built with Flutter. Uses **Apple Maps on iOS** and
 - Bottom sheet with child card + quick actions (Call, Message, Safe Zone, History)
 - Multi-child switcher in the top bar
 - Profile and Settings screens
+- Android app blocking via Accessibility Service (child device)
 
 ## Project structure
 
@@ -87,6 +88,34 @@ flutter run -d <android emulator or device>
 No special work needed in app code — `MapService.isApple` picks the right
 renderer. You can force a specific platform during development by editing
 `lib/services/map_service.dart`.
+
+### 5. Android app blocking setup (Android 10+)
+
+The project now includes a production-style app blocking flow that uses
+Android Accessibility Service without root or private APIs.
+
+1. Open the child device app and go to `Settings` -> `App blocking`.
+2. Turn on the accessibility service:
+   `Kid Security — блокировка приложений`.
+3. Optionally enable Usage Access if you also want screen-time analytics and
+   richer parent-side app insights.
+4. Select the apps you want to block from the installed-apps list.
+5. Test by opening one of those apps:
+   Kid Security will press `BACK`/fallback to `HOME` and show its own blocking screen.
+
+Implementation notes:
+
+- Flutter UI lives in `lib/features/child/app_blocking_screen.dart`
+- Shared state and native sync live in `lib/core/services/app_blocking_service.dart`
+- Android bridge lives in `packages/kid_security_android_bridge/`
+- Accessibility enforcement lives in
+  `BlockingAccessibilityService.kt` and `AppBlockedActivity.kt`
+
+Safety rules already built in:
+
+- The app never blocks itself
+- Launcher / Settings / permission-controller packages are whitelisted
+- Blocking is simulated only; apps are not disabled, hidden, or uninstalled
 
 ## How it works
 

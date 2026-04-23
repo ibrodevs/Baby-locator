@@ -5,6 +5,7 @@ import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.media.AudioManager
 import android.os.Build
 import android.os.PowerManager
@@ -23,12 +24,14 @@ import java.util.concurrent.TimeUnit
 class KidSecurityAndroidBridgePlugin : FlutterPlugin {
     companion object {
         private const val DEVICE_STATS_CHANNEL = "kid_security/device_stats"
+        private const val APP_BLOCKING_CHANNEL = "kid_security/app_blocking"
         private const val VOLUME_CHANNEL = "kid_security/volume"
         private var savedVolume: Int = -1
     }
 
     private lateinit var applicationContext: Context
     private lateinit var deviceStatsChannel: MethodChannel
+    private lateinit var appBlockingChannel: MethodChannel
     private lateinit var volumeChannel: MethodChannel
     private val homePackages by lazy { resolveHomePackages() }
 
@@ -38,17 +41,23 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             binding.binaryMessenger,
             DEVICE_STATS_CHANNEL,
         )
+        appBlockingChannel = MethodChannel(
+            binding.binaryMessenger,
+            APP_BLOCKING_CHANNEL,
+        )
         volumeChannel = MethodChannel(
             binding.binaryMessenger,
             VOLUME_CHANNEL,
         )
 
         deviceStatsChannel.setMethodCallHandler(::handleDeviceStatsMethod)
+        appBlockingChannel.setMethodCallHandler(::handleAppBlockingMethod)
         volumeChannel.setMethodCallHandler(::handleVolumeMethod)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         deviceStatsChannel.setMethodCallHandler(null)
+        appBlockingChannel.setMethodCallHandler(null)
         volumeChannel.setMethodCallHandler(null)
     }
 
@@ -131,6 +140,60 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
         }
     }
 
+    private fun handleAppBlockingMethod(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            when (call.method) {
+                "listInstalledApps" -> {
+                    val includeSystemApps = call.argument<Boolean>("includeSystemApps") ?: false
+                    result.success(listInstalledApps(includeSystemApps))
+                }
+
+                "getBlockedPackages" -> {
+                    result.success(
+                        BlockingAccessibilityService.getBlockedPackages(applicationContext)
+                            .toList()
+                            .sorted(),
+                    )
+                }
+
+                "setBlockedPackages" -> {
+                    val packages = call.argument<List<String>>("packages") ?: emptyList()
+                    BlockingAccessibilityService.updatePackages(applicationContext, packages)
+                    result.success(true)
+                }
+
+                "isAccessibilityBlockingEnabled" -> {
+                    result.success(BlockingAccessibilityService.isEnabled(applicationContext))
+                }
+
+                "openAccessibilitySettings" -> {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    applicationContext.startActivity(intent)
+                    result.success(true)
+                }
+
+                "getForegroundPackage" -> {
+                    result.success(getForegroundPackage())
+                }
+
+                "goHome" -> {
+                    val intent = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_HOME)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    applicationContext.startActivity(intent)
+                    result.success(true)
+                }
+
+                else -> result.notImplemented()
+            }
+        } catch (error: Exception) {
+            result.error("bridge_error", error.message, null)
+        }
+    }
+
     private fun maximizeVolume(): Boolean {
         return try {
             val audioManager =
@@ -157,6 +220,57 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             savedVolume = -1
         } catch (_: Exception) {
         }
+    }
+
+    private fun listInstalledApps(includeSystemApps: Boolean): List<Map<String, Any>> {
+        val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+        }
+
+        return applicationContext.packageManager
+            .queryIntentActivities(launcherIntent, 0)
+            .asSequence()
+            .mapNotNull { resolveInfo ->
+                val activityInfo = resolveInfo.activityInfo ?: return@mapNotNull null
+                val packageName = activityInfo.packageName ?: return@mapNotNull null
+                if (
+                    BlockingAccessibilityService.isProtectedPackage(
+                        context = applicationContext,
+                        pkg = packageName,
+                        homePackages = homePackages,
+                    )
+                ) {
+                    return@mapNotNull null
+                }
+
+                val appInfo = activityInfo.applicationInfo ?: return@mapNotNull null
+                val isSystemApp = isSystemApp(appInfo)
+                if (!includeSystemApps && isSystemApp) {
+                    return@mapNotNull null
+                }
+
+                mapOf(
+                    "packageName" to packageName,
+                    "appName" to resolveInfo.loadLabel(applicationContext.packageManager)
+                        .toString()
+                        .ifBlank { packageName },
+                    "isSystemApp" to isSystemApp,
+                )
+            }
+            .distinctBy { it["packageName"] as String }
+            .sortedWith(
+                compareBy(
+                    { (it["appName"] as String).lowercase(Locale.getDefault()) },
+                    { it["packageName"] as String },
+                ),
+            )
+            .toList()
+    }
+
+    private fun isSystemApp(applicationInfo: ApplicationInfo): Boolean {
+        val flags = applicationInfo.flags
+        return (flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+            (flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
     }
 
     private fun getDeviceStats(days: Int): Map<String, Any?> {

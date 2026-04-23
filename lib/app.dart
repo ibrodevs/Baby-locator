@@ -13,8 +13,8 @@ import 'core/services/fcm_service.dart';
 import 'core/services/remote_device_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/onboarding_screen.dart';
+import 'features/auth/parent_setup_gate.dart';
 import 'features/child/child_root_screen.dart';
-import 'features/root/root_screen.dart';
 import 'features/sos/sos_alert_screen.dart';
 
 class KidSecurityApp extends ConsumerStatefulWidget {
@@ -130,7 +130,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       darkTheme: AppTheme.light,
       themeMode: ThemeMode.light,
       home: switch (session.user?.role) {
-        UserRole.parent => const RootScreen(),
+        UserRole.parent => const ParentSetupGate(),
         UserRole.child => const ChildRootScreen(),
         _ => const OnboardingScreen(),
       },

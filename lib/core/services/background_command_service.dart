@@ -17,11 +17,10 @@ import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'api_client.dart';
+import 'app_blocking_service.dart';
 import 'child_webrtc_service.dart';
 
 bool _backgroundServiceConfigured = false;
-const MethodChannel _deviceStatsChannel =
-    MethodChannel('kid_security/device_stats');
 
 /// Initialises and configures the background service.
 /// Call once from main() before runApp.
@@ -127,11 +126,11 @@ class _BackgroundCommandHandler {
 
   static const _locationHeartbeat = Duration(minutes: 1);
   static const _deviceStatsInterval = Duration(minutes: 2);
-  static const _blockedAppsCheckInterval = Duration(milliseconds: 650);
   static const _minimumMovementMeters = 15.0;
   static const _maximumQuietPeriod = Duration(minutes: 10);
 
   final ServiceInstance _service;
+  final AppBlockingService _appBlocking = AppBlockingService.instance;
 
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioRecorder _recorder = AudioRecorder();
@@ -141,7 +140,6 @@ class _BackgroundCommandHandler {
   Timer? _pollTimer;
   Timer? _telemetryTimer;
   Timer? _deviceStatsTimer;
-  Timer? _blockedAppsTimer;
   Timer? _alarmStopTimer;
   StreamSubscription<Position>? _positionSub;
   StreamSubscription<BatteryState>? _batterySub;
@@ -173,10 +171,6 @@ class _BackgroundCommandHandler {
     await _startTelemetry();
     if (Platform.isAndroid) {
       await _enforceBlockedApps();
-      _blockedAppsTimer = Timer.periodic(
-        _blockedAppsCheckInterval,
-        (_) => unawaited(_enforceBlockedApps()),
-      );
     }
 
     // Listen for stop command from the main isolate.
@@ -207,7 +201,6 @@ class _BackgroundCommandHandler {
     _pollTimer?.cancel();
     _telemetryTimer?.cancel();
     _deviceStatsTimer?.cancel();
-    _blockedAppsTimer?.cancel();
     _alarmStopTimer?.cancel();
     await _positionSub?.cancel();
     await _batterySub?.cancel();
@@ -510,11 +503,7 @@ class _BackgroundCommandHandler {
 
   // ---- App Blocking ----
 
-  static const _blockedAppsKey = 'blocked_apps';
-
   Future<void> _syncBlockedApps(List<String> packages) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_blockedAppsKey, packages);
     await _pushPackagesToNativeService(packages);
     await _enforceBlockedApps();
   }
@@ -522,31 +511,24 @@ class _BackgroundCommandHandler {
   Future<void> _pushPackagesToNativeService(List<String> packages) async {
     if (!Platform.isAndroid) return;
     try {
-      await _deviceStatsChannel.invokeMethod<bool>(
-        'setBlockedPackages',
-        {'packages': packages},
-      );
+      await _appBlocking.syncBlockedPackages(packages);
     } catch (_) {
-      // AccessibilityService is a best-effort enforcement; the polling
-      // fallback below still runs.
+      // AccessibilityService is a best-effort enforcement.
     }
   }
 
   Future<void> _enforceBlockedApps() async {
     if (!Platform.isAndroid) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final packages =
-          (prefs.getStringList(_blockedAppsKey) ?? const []).toSet();
+      final packages = await _appBlocking.loadBlockedPackages();
       if (packages.isEmpty) return;
 
-      final foregroundPackage = await _deviceStatsChannel
-          .invokeMethod<String>('getForegroundPackage');
+      final foregroundPackage = await _appBlocking.getForegroundPackage();
       if (foregroundPackage != null && packages.contains(foregroundPackage)) {
-        await _deviceStatsChannel.invokeMethod<bool>('goHome');
+        await _appBlocking.goHome();
       }
     } catch (_) {
-      // Best-effort only. Blocking keeps retrying on the timer.
+      // Best-effort only.
     }
   }
 
