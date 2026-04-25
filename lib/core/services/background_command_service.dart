@@ -18,7 +18,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'api_client.dart';
 import 'app_blocking_service.dart';
-import 'child_webrtc_service.dart';
 
 bool _backgroundServiceConfigured = false;
 
@@ -73,13 +72,20 @@ Future<void> _onStart(ServiceInstance service) async {
 /// Reads the auth token from SharedPreferences so the background isolate
 /// can make authenticated API calls.
 Future<void> startChildBackgroundService() async {
+  final hasChildSession = await ApiClient.instance.ensureChildSession();
+  if (!hasChildSession) return;
   final service = FlutterBackgroundService();
   final isRunning = await service.isRunning();
   if (isRunning) return;
   await service.startService();
 }
 
-Future<void> wakeChildBackgroundService() async {
+Future<void> wakeChildBackgroundService({
+  String? commandType,
+  Map<String, dynamic>? payload,
+}) async {
+  final hasChildSession = await ApiClient.instance.ensureChildSession();
+  if (!hasChildSession) return;
   await initBackgroundCommandService();
   final service = FlutterBackgroundService();
   final wasRunning = await service.isRunning();
@@ -87,6 +93,12 @@ Future<void> wakeChildBackgroundService() async {
   await Future<void>.delayed(
     Duration(milliseconds: wasRunning ? 150 : 350),
   );
+  if (commandType != null && commandType.isNotEmpty) {
+    service.invoke('executeCommand', {
+      'command_type': commandType,
+      'payload': payload ?? const <String, dynamic>{},
+    });
+  }
   service.invoke('pollNow');
 }
 
@@ -135,7 +147,6 @@ class _BackgroundCommandHandler {
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioRecorder _recorder = AudioRecorder();
   final Battery _battery = Battery();
-  final ChildWebRTCService _webrtcService = ChildWebRTCService();
 
   Timer? _pollTimer;
   Timer? _telemetryTimer;
@@ -161,8 +172,11 @@ class _BackgroundCommandHandler {
   ExtraTranslations get _t => ExtraTranslations(_localeCode);
 
   Future<void> start() async {
-    // Load the auth token so ApiClient can authenticate.
-    await ApiClient.instance.loadToken();
+    final hasChildSession = await ApiClient.instance.ensureChildSession();
+    if (!hasChildSession) {
+      await _service.stopSelf();
+      return;
+    }
     _localeCode = await _preferredLocaleCode();
 
     await _alarmPlayer.setReleaseMode(ReleaseMode.loop);
@@ -183,16 +197,41 @@ class _BackgroundCommandHandler {
       await _pollCommands();
     });
 
+    _service.on('executeCommand').listen((raw) async {
+      final event = raw;
+      if (event == null) return;
+      final data = <String, dynamic>{};
+      event.forEach((key, value) {
+        data[key.toString()] = value;
+      });
+      final type = data['command_type'] as String? ?? '';
+      if (type.isEmpty) return;
+      final payload = data['payload'] is Map
+          ? Map<String, dynamic>.from(data['payload'] as Map)
+          : <String, dynamic>{};
+      try {
+        await _handleCommand({
+          'command_type': type,
+          'payload': payload,
+        });
+      } catch (e) {
+        debugPrint('[BackgroundCommand] executeCommand failed: $type $e');
+      }
+    });
+
     // Listen for stop-alarm command from the main isolate (parent triggered).
     _service.on('stopAlarm').listen((_) async {
       await _stopAlarm();
     });
 
     // Start polling immediately, then frequently enough that a wake-up miss
-    // still keeps remote commands responsive.
+    // still keeps remote commands responsive. 1s is the sweet spot — fast
+    // enough to keep "around" startup under 3 seconds even when FCM is
+    // delayed by Doze, slow enough that battery impact stays minimal because
+    // the request is a tiny GET that returns 204 most of the time.
     await _pollCommands();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 2),
+      const Duration(seconds: 1),
       (_) => _pollCommands(),
     );
   }
@@ -206,7 +245,7 @@ class _BackgroundCommandHandler {
     await _batterySub?.cancel();
     await _alarmPlayer.stop();
     await _stopAroundSession();
-    await _webrtcService.stopMonitoring();
+    _service.invoke('webrtc_monitor_stop_ui');
   }
 
   Future<void> _startTelemetry() async {
@@ -433,6 +472,12 @@ class _BackgroundCommandHandler {
     if (_polling) return;
     _polling = true;
     try {
+      final hasChildSession = await ApiClient.instance.ensureChildSession();
+      if (!hasChildSession) {
+        await _cleanup();
+        await _service.stopSelf();
+        return;
+      }
       final commands = await ApiClient.instance.pendingDeviceCommands();
       for (final item in commands) {
         final command = Map<String, dynamic>.from(item as Map);
@@ -447,6 +492,12 @@ class _BackgroundCommandHandler {
             errorMessage: e.toString(),
           );
         }
+      }
+    } on ApiException catch (e) {
+      if (e.statusCode == 401 || e.statusCode == 403) {
+        await _cleanup();
+        await _service.stopSelf();
+        return;
       }
     } catch (_) {
       // Network error — will retry next cycle.
@@ -487,7 +538,7 @@ class _BackgroundCommandHandler {
         await _startWebrtcSession(sessionToken);
         return;
       case 'webrtc_monitor_stop':
-        await _webrtcService.stopMonitoring();
+        _service.invoke('webrtc_monitor_stop_ui');
         _resetNotification();
         return;
       case 'sync_blocked_apps':
@@ -655,20 +706,15 @@ class _BackgroundCommandHandler {
   // ---- WebRTC live audio ----
 
   Future<void> _startWebrtcSession(String sessionToken) async {
-    // If already running for this token, the service will ignore the call.
-    // Different session → the service resets and rejoins.
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
         title: 'Kid Security',
         content: _t.liveAudioStreamingToParent,
       );
     }
-    try {
-      await _webrtcService.startMonitoring(sessionToken);
-    } catch (e) {
-      _resetNotification();
-      rethrow;
-    }
+    _service.invoke('webrtc_monitor_start_ui', {
+      'session_token': sessionToken,
+    });
   }
 
   // ---- Around (microphone) ----
@@ -677,11 +723,6 @@ class _BackgroundCommandHandler {
     if (_activeAroundSession == sessionToken) return;
     await _stopAroundSession();
 
-    final hasPermission = await _recorder.hasPermission();
-    if (!hasPermission) {
-      throw Exception('Microphone permission not granted');
-    }
-
     _activeAroundSession = sessionToken;
 
     if (_service case final AndroidServiceInstance androidService) {
@@ -689,6 +730,17 @@ class _BackgroundCommandHandler {
         title: 'Kid Security',
         content: _t.listeningToSurroundings,
       );
+    }
+
+    try {
+      // Validate the microphone pipeline immediately. The old implementation
+      // returned success before the first real capture/upload attempt, so the
+      // parent could wait forever on 204 responses while the child silently
+      // retried in the background.
+      await _captureAroundClip();
+    } catch (e) {
+      await _stopAroundSession(expectedSession: sessionToken);
+      rethrow;
     }
 
     unawaited(_runAroundLoop(sessionToken));
@@ -716,7 +768,8 @@ class _BackgroundCommandHandler {
     while (_activeAroundSession == sessionToken) {
       try {
         await _captureAroundClip();
-      } catch (_) {
+      } catch (e) {
+        debugPrint('[BackgroundCommand] around capture failed: $e');
         // Recording or upload failed — wait a bit and retry so the session
         // stays alive instead of dying on a single error.
         await Future<void>.delayed(const Duration(seconds: 1));
@@ -769,6 +822,8 @@ class _BackgroundCommandHandler {
           if (await file.exists()) await file.delete();
         }
       }
+    } catch (e) {
+      throw Exception('Around capture/upload failed: $e');
     } finally {
       _capturingAround = false;
     }

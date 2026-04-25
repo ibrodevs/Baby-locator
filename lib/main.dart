@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,30 +13,35 @@ import 'core/services/fcm_service.dart';
 
 Future<void> _bootstrapApp(ProviderContainer container) async {
   try {
-    // Initialize Firebase.
-    await Firebase.initializeApp();
-
-    // Initialize FCM (push notifications).
-    await FcmService.instance.initialize();
-
-    // Configure background service (registers the isolate entry point).
-    await initBackgroundCommandService();
-  } catch (error, stackTrace) {
-    debugPrint('Startup service initialization failed: $error');
-    debugPrintStack(stackTrace: stackTrace);
-  }
-
-  try {
-    await container.read(appLocaleProvider.notifier).bootstrap();
+    await container
+        .read(appLocaleProvider.notifier)
+        .bootstrap()
+        .timeout(const Duration(seconds: 3));
   } catch (error, stackTrace) {
     debugPrint('Locale bootstrap failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 
   try {
-    await container.read(sessionProvider.notifier).bootstrap();
+    await container
+        .read(sessionProvider.notifier)
+        .bootstrap()
+        .timeout(const Duration(seconds: 8));
   } catch (error, stackTrace) {
     debugPrint('Session bootstrap failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  unawaited(_initializeStartupServices());
+}
+
+Future<void> _initializeStartupServices() async {
+  try {
+    await Firebase.initializeApp().timeout(const Duration(seconds: 5));
+    await FcmService.instance.initialize().timeout(const Duration(seconds: 8));
+    await initBackgroundCommandService().timeout(const Duration(seconds: 5));
+  } catch (error, stackTrace) {
+    debugPrint('Startup service initialization failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 }

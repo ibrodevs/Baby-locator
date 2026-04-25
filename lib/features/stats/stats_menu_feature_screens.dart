@@ -231,7 +231,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                 const SizedBox(height: 12),
                 Text(
                   _status.isEmpty
-                      ? 'Нажмите кнопку ниже, чтобы начать слушать окружение рядом с ребёнком.'
+                      ? 'Нажмите кнопку ниже, чтобы начать непрерывно слушать звук рядом с ребёнком.'
                       : _status,
                   style: const TextStyle(
                     fontSize: 14,

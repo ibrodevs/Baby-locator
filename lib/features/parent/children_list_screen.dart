@@ -1,17 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
+import '../auth/parent_setup_flow_screen.dart';
 
 class ChildrenListScreen extends ConsumerStatefulWidget {
   const ChildrenListScreen({super.key});
@@ -74,13 +73,13 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
   }
 
   Future<void> _inviteChild() async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => const _InviteCodeSheet(),
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ParentSetupFlowScreen(
+          onFinished: () => Navigator.of(context).pop(true),
+        ),
+      ),
     );
     if (result == true) _load();
   }
@@ -136,7 +135,7 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.person_add, color: Colors.white),
         label: Text(
-          t.inviteChild,
+          t.addChild,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w800,
@@ -164,7 +163,7 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                     if (_children.isEmpty)
                       Center(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
                           child: Text(t.noChildrenYet,
                               textAlign: TextAlign.center),
                         ),
@@ -258,197 +257,6 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                 ],
               ),
             ),
-    );
-  }
-}
-
-class _InviteCodeSheet extends StatefulWidget {
-  const _InviteCodeSheet();
-  @override
-  State<_InviteCodeSheet> createState() => _InviteCodeSheetState();
-}
-
-class _InviteCodeSheetState extends State<_InviteCodeSheet> {
-  String? _code;
-  bool _busy = false;
-  String? _err;
-
-  @override
-  void initState() {
-    super.initState();
-    _generateOrFetch();
-  }
-
-  Future<void> _generateOrFetch() async {
-    setState(() {
-      _busy = true;
-      _err = null;
-    });
-    try {
-      final data = await ApiClient.instance.generateInviteCode();
-      setState(() {
-        _code = data['code'] as String?;
-        _busy = false;
-      });
-    } catch (e) {
-      setState(() {
-        _err = e.toString();
-        _busy = false;
-      });
-    }
-  }
-
-  void _copyCode() {
-    if (_code == null) return;
-    Clipboard.setData(ClipboardData(text: _code!));
-    showAppSnackBar(
-      context,
-      S.of(context).codeCopied,
-      type: AppFeedbackType.success,
-    );
-  }
-
-  void _shareCode() {
-    if (_code == null) return;
-    final t = S.of(context);
-    SharePlus.instance.share(ShareParams(text: t.inviteShareText(_code!)));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = S.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 28,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 28,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            t.inviteTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: AppColors.navy,
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            t.inviteSubtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondaryLight,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 28),
-          if (_busy)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
-              child: CircularProgressIndicator(),
-            )
-          else if (_err != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Column(
-                children: [
-                  Text(_err!,
-                      style: const TextStyle(
-                          color: AppColors.danger, fontSize: 13)),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _generateOrFetch,
-                    child: Text(t.generateCode),
-                  ),
-                ],
-              ),
-            )
-          else if (_code != null) ...[
-            // Code display card
-            GestureDetector(
-              onTap: _copyCode,
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 22, horizontal: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundLight,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _code!,
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.navy,
-                            letterSpacing: 3,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Icon(Icons.copy_rounded,
-                            color: AppColors.primary, size: 24),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      t.inviteCodeLabel,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Share button
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton.icon(
-                onPressed: _shareCode,
-                icon: const Icon(Icons.ios_share_rounded, size: 20),
-                label: Text(
-                  t.shareCode,
-                  style: const TextStyle(
-                      fontSize: 17, fontWeight: FontWeight.w800),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                t.getHelp,
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }
@@ -564,7 +372,8 @@ class _EditChildSheetState extends State<_EditChildSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(t.editChildProfile,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
           const SizedBox(height: 6),
           Text('@$username',
               style: const TextStyle(
@@ -608,7 +417,7 @@ class _EditChildSheetState extends State<_EditChildSheet> {
             child: TextButton(
               onPressed: _busy ? null : _pickAvatar,
               child: Text(t.changePhoto,
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ),
           const SizedBox(height: 10),
@@ -638,7 +447,7 @@ class _EditChildSheetState extends State<_EditChildSheet> {
                         color: Colors.white, strokeWidth: 2))
                 : Text(t.save,
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                        const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(height: 10),
           TextButton(
@@ -646,7 +455,7 @@ class _EditChildSheetState extends State<_EditChildSheet> {
             style: TextButton.styleFrom(foregroundColor: AppColors.danger),
             child: Text(
               t.deleteChild,
-              style: TextStyle(fontWeight: FontWeight.w700),
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
         ],
@@ -656,16 +465,13 @@ class _EditChildSheetState extends State<_EditChildSheet> {
 }
 
 class _F extends StatelessWidget {
-  const _F(
-      {required this.controller, required this.label, this.obscure = false});
+  const _F({required this.controller, required this.label});
   final TextEditingController controller;
   final String label;
-  final bool obscure;
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      obscureText: obscure,
       autocorrect: false,
       textCapitalization: TextCapitalization.none,
       decoration: InputDecoration(

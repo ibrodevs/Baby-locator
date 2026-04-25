@@ -175,4 +175,15 @@ class DeviceStatsService {
     if (kIsWeb || !Platform.isAndroid) return;
     await _channel.invokeMethod<void>('openBatteryOptimizationSettings');
   }
+
+  /// Triggers the system dialog asking the user to whitelist the app from
+  /// battery optimization. Returns true if the request was shown or the app
+  /// is already whitelisted. Best-effort — some OEMs suppress it.
+  Future<bool> requestIgnoreBatteryOptimizations() async {
+    if (kIsWeb || !Platform.isAndroid) return true;
+    final result = await _channel.invokeMethod<bool>(
+      'requestIgnoreBatteryOptimizations',
+    );
+    return result ?? false;
+  }
 }

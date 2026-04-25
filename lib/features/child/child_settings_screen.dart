@@ -10,6 +10,7 @@ import '../../core/providers/locale_provider.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 import '../../core/widgets/brand_header.dart';
 import 'child_permissions_screen.dart';
 
@@ -62,6 +63,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
     final selectedLocale = ref.watch(appLocaleProvider);
     final session = ref.watch(sessionProvider);
     final user = session.user;
+    final palette = ChildPalette.of(context);
     final selectedLanguageLabel = selectedLocale == null
         ? t.systemDefault
         : languageOptionFor(selectedLocale)?.nativeName ??
@@ -79,14 +81,14 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.child_care_rounded,
-                      color: AppColors.primary, size: 26),
+                  Icon(Icons.child_care_rounded,
+                      color: palette.primary, size: 26),
                   const SizedBox(width: 8),
                   Text(
                     t.childSettingsTitle,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.navy,
+                    style: TextStyle(
+                      color: palette.titleColor,
                       fontSize: 22,
                       fontWeight: FontWeight.w900,
                     ),
@@ -97,6 +99,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
 
             // Profile card — rounded kid style
             _KidCard(
+              accent: palette.primary,
               child: Column(
                 children: [
                   GestureDetector(
@@ -108,7 +111,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                           initials: (user?.displayName.isNotEmpty ?? false)
                               ? user!.displayName[0].toUpperCase()
                               : 'K',
-                          color: AppColors.primary,
+                          color: palette.primary,
                           size: 80,
                           image: user?.avatarUrl != null
                               ? NetworkImage(user!.avatarUrl!)
@@ -116,8 +119,8 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                         ),
                         Container(
                           padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
+                          decoration: BoxDecoration(
+                            color: palette.primary,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(Icons.camera_alt,
@@ -146,7 +149,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                   const SizedBox(height: 4),
                   StatusBadge(
                     text: t.child,
-                    color: AppColors.primary,
+                    color: palette.primary,
                   ),
                 ],
               ),
@@ -158,10 +161,13 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
             _KidSectionTitle(title: t.general),
             const SizedBox(height: 8),
             _KidCard(
+              accent: palette.primary,
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   _KidSettingsRow(
+                    accent: palette.primary,
+                    accentSoft: palette.primarySoft,
                     icon: Icons.verified_user_outlined,
                     title: 'Разрешения',
                     onTap: () => Navigator.of(context).push(
@@ -173,6 +179,8 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                   const Divider(
                       height: 1, indent: 56, color: AppColors.dividerLight),
                   _KidSettingsRow(
+                    accent: palette.primary,
+                    accentSoft: palette.primarySoft,
                     icon: Icons.language_rounded,
                     title: t.language,
                     trailingText: selectedLanguageLabel,
@@ -181,6 +189,8 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                   const Divider(
                       height: 1, indent: 56, color: AppColors.dividerLight),
                   _KidSettingsRow(
+                    accent: palette.primary,
+                    accentSoft: palette.primarySoft,
                     icon: Icons.help_outline_rounded,
                     title: t.helpAndSupport,
                     onTap: () {},
@@ -188,6 +198,8 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                   const Divider(
                       height: 1, indent: 56, color: AppColors.dividerLight),
                   _KidSettingsRow(
+                    accent: palette.primary,
+                    accentSoft: palette.primarySoft,
                     icon: Icons.info_outline_rounded,
                     title: t.about,
                     onTap: () {},
@@ -195,6 +207,8 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                   const Divider(
                       height: 1, indent: 56, color: AppColors.dividerLight),
                   _KidSettingsRow(
+                    accent: palette.primary,
+                    accentSoft: palette.primarySoft,
                     icon: Icons.privacy_tip_outlined,
                     title: t.privacyPolicy,
                     onTap: () {},
@@ -249,9 +263,11 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
 class _KidCard extends StatelessWidget {
   const _KidCard({
     required this.child,
+    this.accent = AppColors.primary,
     this.padding = const EdgeInsets.all(16),
   });
   final Widget child;
+  final Color accent;
   final EdgeInsets padding;
 
   @override
@@ -263,7 +279,7 @@ class _KidCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
+            color: accent.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -297,11 +313,15 @@ class _KidSettingsRow extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.onTap,
+    required this.accent,
+    required this.accentSoft,
     this.trailingText,
   });
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final Color accent;
+  final Color accentSoft;
   final String? trailingText;
 
   @override
@@ -316,10 +336,10 @@ class _KidSettingsRow extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.primarySoft,
+                color: accentSoft,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 20),
+              child: Icon(icon, color: accent, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -374,6 +394,7 @@ class _LanguageSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = S.of(context);
     final selectedLocale = ref.watch(appLocaleProvider);
+    final palette = ChildPalette.of(context);
 
     return SafeArea(
       child: Padding(
@@ -390,6 +411,7 @@ class _LanguageSheet extends ConsumerWidget {
             _LanguageTile(
               title: t.systemDefault,
               selected: selectedLocale == null,
+              accent: palette.primary,
               onTap: () async {
                 await ref.read(appLocaleProvider.notifier).setLocale(null);
                 if (context.mounted) Navigator.of(context).pop();
@@ -413,6 +435,7 @@ class _LanguageSheet extends ConsumerWidget {
                     title: option.nativeName,
                     subtitle: subtitle,
                     selected: selected,
+                    accent: palette.primary,
                     onTap: () async {
                       await ref
                           .read(appLocaleProvider.notifier)
@@ -435,11 +458,13 @@ class _LanguageTile extends StatelessWidget {
     required this.title,
     this.subtitle,
     required this.selected,
+    required this.accent,
     required this.onTap,
   });
   final String title;
   final String? subtitle;
   final bool selected;
+  final Color accent;
   final VoidCallback onTap;
 
   @override
@@ -454,7 +479,7 @@ class _LanguageTile extends StatelessWidget {
           : Text(subtitle!,
               style: const TextStyle(color: AppColors.textSecondaryLight)),
       trailing: selected
-          ? const Icon(Icons.check_rounded, color: AppColors.primary)
+          ? Icon(Icons.check_rounded, color: accent)
           : null,
     );
   }

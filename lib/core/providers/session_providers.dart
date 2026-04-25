@@ -12,6 +12,7 @@ class SessionUser {
     required this.username,
     required this.role,
     required this.displayName,
+    this.gender,
     this.parentId,
     this.avatarUrl,
   });
@@ -20,6 +21,7 @@ class SessionUser {
   final String username;
   final UserRole role;
   final String displayName;
+  final String? gender;
   final int? parentId;
   final String? avatarUrl;
 
@@ -28,6 +30,7 @@ class SessionUser {
         username: j['username'] as String,
         role: _roleFrom(j['role'] as String?),
         displayName: (j['display_name'] as String?) ?? '',
+        gender: j['gender'] as String?,
         parentId: j['parent'] as int?,
         avatarUrl: j['avatar_url'] as String?,
       );
@@ -35,6 +38,7 @@ class SessionUser {
   SessionUser copyWith({
     String? username,
     String? displayName,
+    String? gender,
     String? avatarUrl,
   }) =>
       SessionUser(
@@ -42,6 +46,7 @@ class SessionUser {
         username: username ?? this.username,
         role: role,
         displayName: displayName ?? this.displayName,
+        gender: gender ?? this.gender,
         parentId: parentId,
         avatarUrl: avatarUrl ?? this.avatarUrl,
       );
@@ -59,20 +64,28 @@ class SessionUser {
 }
 
 class SessionState {
-  SessionState({this.user, this.loading = false, this.error});
+  SessionState({
+    this.user,
+    this.loading = false,
+    this.error,
+    this.initialized = false,
+  });
   final SessionUser? user;
   final bool loading;
   final String? error;
+  final bool initialized;
 
   SessionState copyWith(
           {SessionUser? user,
           bool? loading,
           String? error,
+          bool? initialized,
           bool clearUser = false}) =>
       SessionState(
         user: clearUser ? null : user ?? this.user,
         loading: loading ?? this.loading,
         error: error,
+        initialized: initialized ?? this.initialized,
       );
 }
 
@@ -80,13 +93,23 @@ class SessionNotifier extends StateNotifier<SessionState> {
   SessionNotifier() : super(SessionState());
 
   Future<void> bootstrap() async {
-    await ApiClient.instance.loadToken();
-    if (ApiClient.instance.token == null) return;
     try {
-      final j = await ApiClient.instance.me();
-      state = state.copyWith(user: SessionUser.fromJson(j));
+      await ApiClient.instance.loadToken().timeout(const Duration(seconds: 3));
+      if (ApiClient.instance.token == null) {
+        state = state.copyWith(initialized: true);
+        return;
+      }
+
+      final j =
+          await ApiClient.instance.me().timeout(const Duration(seconds: 6));
+      await ApiClient.instance.persistAuthenticatedUser(j);
+      state = state.copyWith(
+        user: SessionUser.fromJson(j),
+        initialized: true,
+      );
     } catch (_) {
       await ApiClient.instance.logout();
+      state = SessionState(initialized: true);
     }
   }
 
@@ -103,9 +126,15 @@ class SessionNotifier extends StateNotifier<SessionState> {
         displayName: displayName,
       );
       state = SessionState(
-          user: SessionUser.fromJson(data['user'] as Map<String, dynamic>));
+        user: SessionUser.fromJson(data['user'] as Map<String, dynamic>),
+        initialized: true,
+      );
     } catch (e) {
-      state = state.copyWith(loading: false, error: e.toString());
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
       rethrow;
     }
   }
@@ -121,9 +150,15 @@ class SessionNotifier extends StateNotifier<SessionState> {
         displayName: displayName,
       );
       state = SessionState(
-          user: SessionUser.fromJson(data['user'] as Map<String, dynamic>));
+        user: SessionUser.fromJson(data['user'] as Map<String, dynamic>),
+        initialized: true,
+      );
     } catch (e) {
-      state = state.copyWith(loading: false, error: e.toString());
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
       rethrow;
     }
   }
@@ -139,9 +174,15 @@ class SessionNotifier extends StateNotifier<SessionState> {
         password: password,
       );
       state = SessionState(
-          user: SessionUser.fromJson(data['user'] as Map<String, dynamic>));
+        user: SessionUser.fromJson(data['user'] as Map<String, dynamic>),
+        initialized: true,
+      );
     } catch (e) {
-      state = state.copyWith(loading: false, error: e.toString());
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
       rethrow;
     }
   }
@@ -169,16 +210,21 @@ class SessionNotifier extends StateNotifier<SessionState> {
       );
       state = SessionState(
         user: SessionUser.fromJson(data),
+        initialized: true,
       );
     } catch (e) {
-      state = state.copyWith(loading: false, error: e.toString());
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
       rethrow;
     }
   }
 
   Future<void> logout() async {
     await ApiClient.instance.logout();
-    state = SessionState();
+    state = SessionState(initialized: true);
   }
 }
 
@@ -429,9 +475,11 @@ class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
         lat: (locData['lat'] as num).toDouble(),
         lng: (locData['lng'] as num).toDouble(),
         address: (locData['address'] as String?) ?? '',
-        battery: (locData['battery'] as int?) ?? (entry['battery'] as int?) ?? 0,
-        charging:
-            (locData['charging'] as bool?) ?? (entry['charging'] as bool?) ?? false,
+        battery:
+            (locData['battery'] as int?) ?? (entry['battery'] as int?) ?? 0,
+        charging: (locData['charging'] as bool?) ??
+            (entry['charging'] as bool?) ??
+            false,
         updatedAt: DateTime.tryParse(locData['created_at'] as String? ?? '') ??
             DateTime.now(),
         active: (locData['active'] as bool?) ?? true,

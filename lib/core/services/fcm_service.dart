@@ -64,7 +64,10 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       commandType == 'sync_blocked_apps' ||
       commandType == 'webrtc_monitor_start' ||
       commandType == 'webrtc_monitor_stop') {
-    await wakeChildBackgroundService();
+    await wakeChildBackgroundService(
+      commandType: commandType,
+      payload: Map<String, dynamic>.from(data),
+    );
   }
 
   // Handle parent notifications in background — show local notification
@@ -209,7 +212,12 @@ class FcmService {
         commandType == 'sync_blocked_apps' ||
         commandType == 'webrtc_monitor_start' ||
         commandType == 'webrtc_monitor_stop') {
-      unawaited(wakeChildBackgroundService());
+      unawaited(
+        wakeChildBackgroundService(
+          commandType: commandType,
+          payload: Map<String, dynamic>.from(data),
+        ),
+      );
     }
 
     // Handle parent notifications in foreground

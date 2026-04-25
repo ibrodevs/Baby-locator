@@ -86,6 +86,10 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
                     result.success(true)
                 }
 
+                "requestIgnoreBatteryOptimizations" -> {
+                    result.success(requestIgnoreBatteryOptimizations())
+                }
+
                 "getForegroundPackage" -> {
                     result.success(getForegroundPackage())
                 }
@@ -319,6 +323,30 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
                 }
             }
         applicationContext.startActivity(intent)
+    }
+
+    @Suppress("BatteryLife")
+    private fun requestIgnoreBatteryOptimizations(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        if (isIgnoringBatteryOptimizations()) return true
+        return try {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = android.net.Uri.parse("package:${applicationContext.packageName}")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            applicationContext.startActivity(intent)
+            true
+        } catch (_: Exception) {
+            try {
+                val fallback = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                applicationContext.startActivity(fallback)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
     }
 
     private fun collectUsageDays(days: Int): List<Map<String, Any?>> {

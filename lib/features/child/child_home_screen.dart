@@ -17,6 +17,7 @@ import '../../core/services/app_blocking_service.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 import '../../core/widgets/brand_header.dart';
 import '../auth/onboarding_screen.dart';
 import '../map/adaptive_map.dart';
@@ -282,6 +283,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     final t = S.of(context);
     final loc = ref.watch(childLocationProvider);
     final user = ref.watch(sessionProvider).user;
+    final palette = ChildPalette.of(context);
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -295,7 +297,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                     initials: (user?.displayName.isNotEmpty ?? false)
                         ? user!.displayName[0].toUpperCase()
                         : 'C',
-                    color: AppColors.primary,
+                    color: palette.primary,
                     size: 40,
                     image: user?.avatarUrl != null
                         ? NetworkImage(user!.avatarUrl!)

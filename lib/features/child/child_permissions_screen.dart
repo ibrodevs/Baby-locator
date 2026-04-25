@@ -6,11 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:record/record.dart';
 
 import '../../core/services/app_blocking_service.dart';
 import '../../core/services/device_stats_service.dart';
+import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 
 class ChildPermissionsScreen extends StatefulWidget {
   const ChildPermissionsScreen({super.key});
@@ -23,12 +26,14 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
     with WidgetsBindingObserver {
   final DeviceStatsService _deviceStats = const DeviceStatsService();
   final AppBlockingService _appBlocking = AppBlockingService.instance;
+  final LocationService _locationService = LocationService();
 
   bool _loading = true;
   String? _error;
 
   bool _locationServiceEnabled = false;
   LocationPermission _locationPermission = LocationPermission.denied;
+  bool _backgroundLocationGranted = false;
   bool _microphoneGranted = false;
   AuthorizationStatus _notificationStatus = AuthorizationStatus.notDetermined;
   bool _usageAccessGranted = false;
@@ -82,6 +87,7 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
       bool usageAccessGranted = false;
       bool accessibilityEnabled = false;
       bool batteryOptimizationDisabled = true;
+      bool backgroundLocationGranted = false;
 
       if (!kIsWeb && Platform.isAndroid) {
         try {
@@ -102,12 +108,23 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
           batteryOptimizationDisabled =
               await _deviceStats.isIgnoringBatteryOptimizations();
         } catch (_) {}
+
+        try {
+          backgroundLocationGranted =
+              (await ph.Permission.locationAlways.status).isGranted;
+        } catch (_) {}
+      } else if (!kIsWeb && Platform.isIOS) {
+        backgroundLocationGranted =
+            locationPermission == LocationPermission.always;
+      } else {
+        backgroundLocationGranted = true;
       }
 
       if (!mounted) return;
       setState(() {
         _locationServiceEnabled = locationServiceEnabled;
         _locationPermission = locationPermission;
+        _backgroundLocationGranted = backgroundLocationGranted;
         _microphoneGranted = microphoneGranted;
         _notificationStatus = notificationSettings.authorizationStatus;
         _usageAccessGranted = usageAccessGranted;
@@ -129,9 +146,6 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
       _locationPermission == LocationPermission.always ||
       _locationPermission == LocationPermission.whileInUse;
 
-  bool get _locationAlwaysGranted =>
-      _locationPermission == LocationPermission.always;
-
   bool get _notificationGranted =>
       _notificationStatus == AuthorizationStatus.authorized ||
       _notificationStatus == AuthorizationStatus.provisional;
@@ -141,6 +155,33 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
       await Geolocator.requestPermission();
       await _loadStatuses(showLoader: false);
     } catch (_) {}
+  }
+
+  Future<void> _requestMicrophonePermission() async {
+    try {
+      final status = await ph.Permission.microphone.status;
+      if (status.isPermanentlyDenied) {
+        await ph.openAppSettings();
+      } else {
+        final result = await ph.Permission.microphone.request();
+        if (result.isPermanentlyDenied) {
+          await ph.openAppSettings();
+        }
+      }
+    } catch (_) {}
+    await _loadStatuses(showLoader: false);
+  }
+
+  Future<void> _requestBackgroundLocation() async {
+    try {
+      final granted = await _locationService.requestBackgroundPermission();
+      if (!granted && mounted) {
+        // On Android 11+ the system only opens Settings for "Allow all the
+        // time" — open the app page as a fallback so the user can toggle it.
+        await ph.openAppSettings();
+      }
+    } catch (_) {}
+    await _loadStatuses(showLoader: false);
   }
 
   Future<void> _openLocationSettings() async {
@@ -174,13 +215,24 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
 
   Future<void> _openBatteryOptimizationSettings() async {
     try {
-      await _deviceStats.openBatteryOptimizationSettings();
-    } catch (_) {}
+      // First try the direct system prompt — it actually removes the
+      // optimization in one tap when the user accepts.
+      final shown = await _deviceStats.requestIgnoreBatteryOptimizations();
+      if (!shown) {
+        await _deviceStats.openBatteryOptimizationSettings();
+      }
+    } catch (_) {
+      try {
+        await _deviceStats.openBatteryOptimizationSettings();
+      } catch (_) {}
+    }
+    await _loadStatuses(showLoader: false);
   }
 
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final palette = ChildPalette.of(context);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -207,15 +259,18 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               _IntroCard(
+                palette: palette,
                 loading: _loading,
                 grantedCount: [
                   _locationGranted,
+                  _backgroundLocationGranted,
                   _microphoneGranted,
                   _notificationGranted,
                   _usageAccessGranted,
                   _accessibilityEnabled,
                   _batteryOptimizationDisabled,
                 ].where((it) => it).length,
+                totalCount: 7,
               ),
               if (_error != null) ...[
                 const SizedBox(height: 12),
@@ -223,14 +278,13 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
               ],
               const SizedBox(height: 16),
               _PermissionTile(
+                palette: palette,
                 icon: Icons.location_on_outlined,
                 title: 'Геолокация',
                 description: _locationServiceEnabled
-                    ? (_locationAlwaysGranted
-                        ? 'Доступ разрешён всегда, геолокация может работать в фоне.'
-                        : _locationGranted
-                            ? 'Доступ есть, но для фонового отслеживания лучше включить "Разрешить всегда".'
-                            : 'Разрешение на геолокацию пока не выдано.')
+                    ? (_locationGranted
+                        ? 'Доступ к геолокации выдан.'
+                        : 'Разрешение на геолокацию пока не выдано.')
                     : 'Служба геолокации на устройстве сейчас выключена.',
                 granted: _locationGranted && _locationServiceEnabled,
                 actionLabel: _locationGranted ? t.openAppSettings : 'Выдать доступ',
@@ -240,17 +294,39 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
               ),
               const SizedBox(height: 12),
               _PermissionTile(
+                palette: palette,
+                icon: Icons.my_location_rounded,
+                title: 'Геолокация в фоне',
+                description: _backgroundLocationGranted
+                    ? 'Разрешено «Всегда» — местоположение отправляется даже при выключенном экране.'
+                    : _locationGranted
+                        ? 'Без «Разрешить всегда» Android перестаёт присылать координаты, когда экран гаснет или приложение свёрнуто. Это главная причина, почему отслеживание «перестаёт работать».'
+                        : 'Сначала выдайте обычное разрешение на геолокацию, затем включите «Разрешить всегда».',
+                granted: _backgroundLocationGranted,
+                actionLabel: _backgroundLocationGranted
+                    ? t.openAppSettings
+                    : 'Разрешить всегда',
+                onPressed: _backgroundLocationGranted
+                    ? _openLocationSettings
+                    : _requestBackgroundLocation,
+              ),
+              const SizedBox(height: 12),
+              _PermissionTile(
+                palette: palette,
                 icon: Icons.mic_none_rounded,
                 title: 'Микрофон',
                 description: _microphoneGranted
                     ? 'Разрешение на микрофон уже выдано.'
-                    : 'Без этого разрешения функция прослушивания вокруг не сможет работать.',
+                    : 'Без этого разрешения функция «Вокруг» не сможет слышать звук рядом с ребёнком.',
                 granted: _microphoneGranted,
-                actionLabel: _microphoneGranted ? t.openAppSettings : 'Открыть настройки',
-                onPressed: _openLocationSettings,
+                actionLabel: _microphoneGranted ? t.openAppSettings : 'Разрешить микрофон',
+                onPressed: _microphoneGranted
+                    ? _openLocationSettings
+                    : _requestMicrophonePermission,
               ),
               const SizedBox(height: 12),
               _PermissionTile(
+                palette: palette,
                 icon: Icons.notifications_none_rounded,
                 title: t.notifications,
                 description: _notificationGranted
@@ -266,6 +342,7 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
               if (!kIsWeb && Platform.isAndroid) ...[
                 const SizedBox(height: 12),
                 _PermissionTile(
+                  palette: palette,
                   icon: Icons.hourglass_top_rounded,
                   title: t.allowUsageAccess,
                   description: _usageAccessGranted
@@ -277,6 +354,7 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
                 ),
                 const SizedBox(height: 12),
                 _PermissionTile(
+                  palette: palette,
                   icon: Icons.accessibility_new_rounded,
                   title: t.enableAccessibilityService,
                   description: t.accessibilityServiceDescription,
@@ -286,6 +364,7 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
                 ),
                 const SizedBox(height: 12),
                 _PermissionTile(
+                  palette: palette,
                   icon: Icons.battery_charging_full_rounded,
                   title: t.disableBatteryOptimization,
                   description: t.batteryOptimizationDescription,
@@ -304,27 +383,27 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
 
 class _IntroCard extends StatelessWidget {
   const _IntroCard({
+    required this.palette,
     required this.loading,
     required this.grantedCount,
+    required this.totalCount,
   });
 
+  final ChildPalette palette;
   final bool loading;
   final int grantedCount;
+  final int totalCount;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF4D8DFF), Color(0xFF72B6FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: palette.heroGradient,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.18),
+            color: palette.primary.withValues(alpha: 0.18),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -351,7 +430,7 @@ class _IntroCard extends StatelessWidget {
           Text(
             loading
                 ? 'Проверяем, какие доступы уже включены...'
-                : 'Выдано разрешений: $grantedCount из 6',
+                : 'Выдано разрешений: $grantedCount из $totalCount',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -390,6 +469,7 @@ class _StatusMessage extends StatelessWidget {
 
 class _PermissionTile extends StatelessWidget {
   const _PermissionTile({
+    required this.palette,
     required this.icon,
     required this.title,
     required this.description,
@@ -398,6 +478,7 @@ class _PermissionTile extends StatelessWidget {
     required this.onPressed,
   });
 
+  final ChildPalette palette;
   final IconData icon;
   final String title;
   final String description;
@@ -471,10 +552,9 @@ class _PermissionTile extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: granted
-                    ? AppColors.primarySoft
-                    : AppColors.primary,
-                foregroundColor:
-                    granted ? AppColors.primary : Colors.white,
+                    ? palette.primarySoft
+                    : palette.primary,
+                foregroundColor: granted ? palette.primary : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:permission_handler/permission_handler.dart' as ph;
 
 import 'api_client.dart';
 
@@ -16,6 +17,7 @@ class ChildWebRTCService {
   MediaStream? _localStream;
   Timer? _pollTimer;
   bool _isActive = false;
+  bool _stopping = false;
   String? _sessionToken;
   int _lastSignalId = 0;
 
@@ -65,17 +67,46 @@ class ChildWebRTCService {
       // Ensure ApiClient has the auth token loaded (important in background).
       await ApiClient.instance.loadToken();
 
-      // 1. Capture microphone audio. Keep echo/noise/gain on for clearer speech.
-      _localStream = await navigator.mediaDevices.getUserMedia({
-        'audio': {
-          'echoCancellation': true,
-          'noiseSuppression': true,
-          'autoGainControl': true,
-          'channelCount': 1,
-          'sampleRate': 48000,
-        },
-        'video': false,
-      });
+      // Microphone must already be granted — the background isolate cannot
+      // show a system permission dialog. If it isn't, fail fast and surface
+      // the reason to the parent via a signaling message so the UI stops
+      // showing "connecting..." for 15 seconds.
+      final micStatus = await ph.Permission.microphone.status;
+      if (!micStatus.isGranted) {
+        await _sendSignal('error', {
+          'reason': 'microphone_permission_denied',
+          'message':
+              'Ребёнок не дал разрешение на микрофон. Откройте приложение '
+                  'на телефоне ребёнка и разрешите доступ к микрофону.',
+        });
+        throw StateError('microphone_permission_denied');
+      }
+
+      // 1. Capture microphone audio. We deliberately turn echo/noise/gain
+      //    OFF here — the parent wants to hear the *ambient* sounds around
+      //    the child (TV, voices, traffic), not just speech. Aggressive DSP
+      //    silences anything that doesn't look like a person talking right
+      //    next to the phone, which is exactly the opposite of what we want.
+      try {
+        _localStream = await navigator.mediaDevices.getUserMedia({
+          'audio': {
+            'echoCancellation': false,
+            'noiseSuppression': false,
+            'autoGainControl': true,
+            'channelCount': 1,
+            'sampleRate': 48000,
+          },
+          'video': false,
+        });
+      } catch (e) {
+        await _sendSignal('error', {
+          'reason': 'mic_capture_failed',
+          'message': 'Не удалось включить микрофон на телефоне ребёнка. '
+              'Проверьте, что разрешение на микрофон активно и '
+              'микрофон не используется другим приложением.',
+        });
+        rethrow;
+      }
 
       // 2. Create WebRTC peer connection.
       _peerConnection = await createPeerConnection(_iceServers);
@@ -100,7 +131,9 @@ class ChildWebRTCService {
         debugPrint('[ChildWebRTC] connection state: $state');
         if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
             state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
-          stopMonitoring();
+          // Defer teardown — closing from inside the state callback races
+          // with the iOS EventChannel and crashes at postEvent → sink(event).
+          Future.microtask(stopMonitoring);
         }
       };
 
@@ -114,6 +147,16 @@ class ChildWebRTCService {
       );
     } catch (e) {
       debugPrint('[ChildWebRTC] startMonitoring error: $e');
+      // Only send a generic error if we haven't already sent a more specific
+      // one above (mic permission / mic capture). A generic signal still
+      // saves the parent from sitting on a 12-second timeout.
+      try {
+        await _sendSignal('error', {
+          'reason': 'startup_failed',
+          'message': 'Соединение с микрофоном ребёнка не установилось. '
+              'Попробуйте ещё раз через несколько секунд.',
+        });
+      } catch (_) {}
       await stopMonitoring();
       rethrow;
     }
@@ -184,21 +227,52 @@ class ChildWebRTCService {
         type: type,
         payload: payload,
       );
+    } on ApiException catch (e) {
+      if (e.statusCode == 410) {
+        debugPrint('[ChildWebRTC] session already closed, stopping quietly');
+        await stopMonitoring();
+        return;
+      }
+      debugPrint('[ChildWebRTC] sendSignal error: $e');
     } catch (e) {
       debugPrint('[ChildWebRTC] sendSignal error: $e');
     }
   }
 
   Future<void> stopMonitoring() async {
+    if (_stopping) return;
+    _stopping = true;
+
     _isActive = false;
     _pollTimer?.cancel();
     _pollTimer = null;
-    await _peerConnection?.close();
+
+    final pc = _peerConnection;
     _peerConnection = null;
-    _localStream?.getTracks().forEach((track) => track.stop());
-    await _localStream?.dispose();
+    if (pc != null) {
+      // Detach Dart callbacks before close so native EventChannel cannot
+      // post into a half-disposed peer connection (iOS sink crash fix).
+      pc.onIceCandidate = null;
+      pc.onConnectionState = null;
+      pc.onIceConnectionState = null;
+      pc.onSignalingState = null;
+      pc.onIceGatheringState = null;
+      pc.onAddStream = null;
+      pc.onRemoveStream = null;
+      pc.onTrack = null;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      try {
+        await pc.close();
+      } catch (_) {}
+    }
+
+    try {
+      _localStream?.getTracks().forEach((track) => track.stop());
+      await _localStream?.dispose();
+    } catch (_) {}
     _localStream = null;
     _sessionToken = null;
     _lastSignalId = 0;
+    _stopping = false;
   }
 }

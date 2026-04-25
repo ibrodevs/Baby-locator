@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/locale_provider.dart';
 import 'core/providers/session_providers.dart';
+import 'core/services/child_live_audio_service.dart';
 import 'core/services/child_notification_service.dart';
 import 'core/services/device_notification_service.dart';
 import 'core/services/fcm_service.dart';
@@ -14,6 +15,7 @@ import 'core/services/remote_device_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/onboarding_screen.dart';
 import 'features/auth/parent_setup_gate.dart';
+import 'features/auth/splash_screen.dart';
 import 'features/child/child_root_screen.dart';
 import 'features/sos/sos_alert_screen.dart';
 
@@ -27,6 +29,7 @@ class KidSecurityApp extends ConsumerStatefulWidget {
 class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     with WidgetsBindingObserver {
   ProviderSubscription<SessionState>? _sessionSubscription;
+  bool _splashDone = false;
 
   @override
   void initState() {
@@ -68,6 +71,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     if (user?.role == UserRole.parent) {
       unawaited(ref.read(parentChildrenProvider.notifier).refresh());
       ChildNotificationService.instance.stop();
+      await ChildLiveAudioService.instance.stop();
       await DeviceNotificationService.instance.syncParentSession(user!.id);
       // Stop child background service if we switch to parent.
       await RemoteDeviceService.instance.stop();
@@ -75,6 +79,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       ref.read(parentChildrenProvider.notifier).clear();
       DeviceNotificationService.instance.stop();
       await ChildNotificationService.instance.start();
+      await ChildLiveAudioService.instance.start();
       // Start the child background service — it must keep running even
       // when the app is in background or the UI is disposed.
       await RemoteDeviceService.instance.start();
@@ -83,6 +88,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       ref.read(parentChildrenProvider.notifier).clear();
       DeviceNotificationService.instance.stop();
       ChildNotificationService.instance.stop();
+      await ChildLiveAudioService.instance.stop();
       await RemoteDeviceService.instance.stop();
     }
   }
@@ -129,11 +135,36 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       theme: AppTheme.light,
       darkTheme: AppTheme.light,
       themeMode: ThemeMode.light,
-      home: switch (session.user?.role) {
-        UserRole.parent => const ParentSetupGate(),
-        UserRole.child => const ChildRootScreen(),
-        _ => const OnboardingScreen(),
-      },
+      home: _buildHome(session),
+    );
+  }
+
+  Widget _buildHome(SessionState session) {
+    final destination = switch (session.user?.role) {
+      UserRole.parent => const ParentSetupGate(),
+      UserRole.child => const ChildRootScreen(),
+      _ => const OnboardingScreen(),
+    };
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 1.04, end: 1.0).animate(animation),
+          child: child,
+        ),
+      ),
+      child: _splashDone && session.initialized
+          ? KeyedSubtree(key: const ValueKey('app'), child: destination)
+          : SplashScreen(
+              key: const ValueKey('splash'),
+              onFinished: () {
+                if (mounted) setState(() => _splashDone = true);
+              },
+            ),
     );
   }
 }

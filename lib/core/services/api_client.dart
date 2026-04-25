@@ -33,21 +33,70 @@ class ApiClient {
   static final ApiClient instance = ApiClient._();
 
   String? _token;
+  String? _sessionRole;
+  int? _sessionUserId;
   String? get token => _token;
+  String? get sessionRole => _sessionRole;
+  int? get sessionUserId => _sessionUserId;
+  bool get hasChildSession => _token != null && _sessionRole == 'child';
 
   Future<void> loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token');
+    _sessionRole = prefs.getString('auth_role');
+    _sessionUserId = prefs.getInt('auth_user_id');
   }
 
-  Future<void> _saveToken(String? t) async {
+  Future<void> _saveSession(
+    String? t, {
+    Map<String, dynamic>? user,
+  }) async {
     _token = t;
+    _sessionRole = user?['role'] as String?;
+    final rawUserId = user?['id'];
+    if (rawUserId is int) {
+      _sessionUserId = rawUserId;
+    } else if (rawUserId != null) {
+      _sessionUserId = int.tryParse('$rawUserId');
+    } else {
+      _sessionUserId = null;
+    }
     final prefs = await SharedPreferences.getInstance();
     if (t == null) {
       await prefs.remove('auth_token');
+      await prefs.remove('auth_role');
+      await prefs.remove('auth_user_id');
     } else {
       await prefs.setString('auth_token', t);
+      if (_sessionRole != null && _sessionRole!.isNotEmpty) {
+        await prefs.setString('auth_role', _sessionRole!);
+      } else {
+        await prefs.remove('auth_role');
+      }
+      if (_sessionUserId != null) {
+        await prefs.setInt('auth_user_id', _sessionUserId!);
+      } else {
+        await prefs.remove('auth_user_id');
+      }
     }
+  }
+
+  Future<void> persistAuthenticatedUser(Map<String, dynamic> user) async {
+    await _saveSession(_token, user: user);
+  }
+
+  Future<bool> ensureChildSession() async {
+    await loadToken();
+    if (_token == null) return false;
+    if (_sessionRole == 'child') return true;
+    if (_sessionRole != null && _sessionRole != 'child') return false;
+    try {
+      final user = await me();
+      await persistAuthenticatedUser(user);
+    } catch (_) {
+      return false;
+    }
+    return hasChildSession;
   }
 
   Map<String, String> _headers({bool json = true}) {
@@ -107,7 +156,10 @@ class ApiClient {
       'password': password,
       if (displayName != null) 'display_name': displayName,
     });
-    await _saveToken(data['token'] as String);
+    await _saveSession(
+      data['token'] as String,
+      user: data['user'] as Map<String, dynamic>?,
+    );
     return data;
   }
 
@@ -119,7 +171,10 @@ class ApiClient {
       'username': username,
       'password': password,
     });
-    await _saveToken(data['token'] as String);
+    await _saveSession(
+      data['token'] as String,
+      user: data['user'] as Map<String, dynamic>?,
+    );
     return data;
   }
 
@@ -134,11 +189,13 @@ class ApiClient {
     final body = <String, dynamic>{};
     if (username != null) body['username'] = username;
     if (displayName != null) body['display_name'] = displayName;
-    return await _patch('/api/auth/me/', body);
+    final data = await _patch('/api/auth/me/', body);
+    await persistAuthenticatedUser(data);
+    return data;
   }
 
   Future<void> logout() async {
-    await _saveToken(null);
+    await _saveSession(null);
   }
 
   // === Invite Code ===
@@ -165,7 +222,10 @@ class ApiClient {
       'code': code,
       if (displayName != null) 'display_name': displayName,
     });
-    await _saveToken(data['token'] as String);
+    await _saveSession(
+      data['token'] as String,
+      user: data['user'] as Map<String, dynamic>?,
+    );
     return data;
   }
 

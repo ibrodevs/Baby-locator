@@ -27,6 +27,46 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+def patch_flutter_webrtc_event_sink
+  plugin_file = File.expand_path(
+    File.join(
+      __dir__,
+      '.symlinks',
+      'plugins',
+      'flutter_webrtc',
+      'ios',
+      'Classes',
+      'FlutterWebRTCPlugin.m',
+    ),
+  )
+  return unless File.exist?(plugin_file)
+
+  source = File.read(plugin_file)
+  broken = <<~OBJC
+    void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+          sink(event);
+        });
+    }
+  OBJC
+  fixed = <<~OBJC
+    void postEvent(FlutterEventSink _Nonnull sink, id _Nullable event) {
+        FlutterEventSink retainedSink = [sink copy];
+        if (!retainedSink) {
+          return;
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+          retainedSink(event);
+        });
+    }
+  OBJC
+  return unless source.include?(broken)
+
+  File.write(plugin_file, source.sub(broken, fixed))
+  puts 'Patched flutter_webrtc iOS event sink lifetime bug'
+end
+
 target 'Runner' do
   use_frameworks!
 
@@ -37,6 +77,7 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  patch_flutter_webrtc_event_sink
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
@@ -49,5 +90,4 @@ post_install do |installer|
     end
   end
 end
-
 

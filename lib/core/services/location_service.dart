@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _preferredLocaleKey = 'preferred_locale';
@@ -45,24 +46,74 @@ class LocationService {
     if (p == LocationPermission.denied) {
       p = await Geolocator.requestPermission();
     }
-    if (!kIsWeb &&
-        Platform.isAndroid &&
-        requireBackground &&
-        p == LocationPermission.whileInUse) {
-      return LocationPermissionStatus.backgroundDenied;
-    }
-    if (!kIsWeb && Platform.isIOS && p == LocationPermission.whileInUse) {
-      try {
-        p = await Geolocator.requestPermission();
-      } catch (_) {}
-    }
+
     if (p == LocationPermission.deniedForever) {
       return LocationPermissionStatus.deniedForever;
     }
     if (p == LocationPermission.denied) {
       return LocationPermissionStatus.denied;
     }
+
+    // Background upgrade. Geolocator on Android stops at whileInUse; we need
+    // the ACCESS_BACKGROUND_LOCATION runtime grant so the foreground service
+    // keeps receiving updates once the screen is off.
+    if (requireBackground && !kIsWeb) {
+      if (Platform.isAndroid && p == LocationPermission.whileInUse) {
+        final always = await ph.Permission.locationAlways.request();
+        if (!always.isGranted) {
+          return LocationPermissionStatus.backgroundDenied;
+        }
+        p = await Geolocator.checkPermission();
+      } else if (Platform.isIOS && p == LocationPermission.whileInUse) {
+        try {
+          p = await Geolocator.requestPermission();
+        } catch (_) {}
+        if (p == LocationPermission.whileInUse) {
+          return LocationPermissionStatus.backgroundDenied;
+        }
+      }
+    }
+
     return LocationPermissionStatus.granted;
+  }
+
+  /// Best-effort request for Android's ACCESS_BACKGROUND_LOCATION.
+  /// Must be called AFTER whileInUse has been granted — Android will silently
+  /// deny otherwise.
+  Future<bool> requestBackgroundPermission() async {
+    if (kIsWeb) return true;
+    if (!Platform.isAndroid && !Platform.isIOS) return true;
+
+    final fg = await Geolocator.checkPermission();
+    if (fg == LocationPermission.denied || fg == LocationPermission.deniedForever) {
+      final requested = await Geolocator.requestPermission();
+      if (requested == LocationPermission.denied ||
+          requested == LocationPermission.deniedForever) {
+        return false;
+      }
+    }
+
+    if (Platform.isAndroid) {
+      final status = await ph.Permission.locationAlways.status;
+      if (status.isGranted) return true;
+      final result = await ph.Permission.locationAlways.request();
+      return result.isGranted;
+    }
+
+    // iOS: Geolocator will promote to always on the second call.
+    final p = await Geolocator.requestPermission();
+    return p == LocationPermission.always;
+  }
+
+  Future<bool> hasBackgroundPermission() async {
+    if (kIsWeb) return true;
+    if (Platform.isAndroid) {
+      return (await ph.Permission.locationAlways.status).isGranted;
+    }
+    if (Platform.isIOS) {
+      return (await Geolocator.checkPermission()) == LocationPermission.always;
+    }
+    return true;
   }
 
   Future<LocationFix?> currentOnce() async {
