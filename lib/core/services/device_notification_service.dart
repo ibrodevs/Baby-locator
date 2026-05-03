@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api_client.dart';
 import 'chat_visibility_service.dart';
+import 'fcm_service.dart';
 import 'notification_dedupe_store.dart';
 
 class NotificationSettingsModel {
@@ -81,6 +83,10 @@ class DeviceNotificationService {
   static const _androidChannelName = 'Kid Security Alerts';
   static const _androidChannelDescription =
       'Notifications about children activity, battery, and safe zones.';
+  static const _sosChannelId = 'kid_security_sos';
+  static const _sosChannelName = 'SOS Alerts';
+  static const _sosChannelDescription =
+      'Critical SOS alerts that require immediate attention.';
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
@@ -105,7 +111,32 @@ class DeviceNotificationService {
       ),
     );
 
-    await _plugin.initialize(initializationSettings);
+    await _plugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (response) {
+        FcmService.instance.handleNotificationPayloadString(response.payload);
+      },
+    );
+    if (Platform.isAndroid) {
+      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      await androidPlugin?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _androidChannelId,
+          _androidChannelName,
+          description: _androidChannelDescription,
+          importance: Importance.high,
+        ),
+      );
+      await androidPlugin?.createNotificationChannel(
+        const AndroidNotificationChannel(
+          _sosChannelId,
+          _sosChannelName,
+          description: _sosChannelDescription,
+          importance: Importance.max,
+        ),
+      );
+    }
     _settings = await NotificationSettingsStore.load();
     _initialized = true;
   }
@@ -227,11 +258,21 @@ class DeviceNotificationService {
         // Check user settings.
         if (!_shouldShow(alertType)) continue;
 
-        await _showNotification(
-          id: id,
-          title: title,
-          body: message.isNotEmpty ? message : childName,
-        );
+        if (alertType == 'sos') {
+          await _showSosNotification(
+            id: id,
+            title: title,
+            body: message.isNotEmpty ? message : childName,
+            childId: childId,
+            childName: childName,
+          );
+        } else {
+          await _showNotification(
+            id: id,
+            title: title,
+            body: message.isNotEmpty ? message : childName,
+          );
+        }
       }
 
       // Persist shown IDs.
@@ -252,6 +293,7 @@ class DeviceNotificationService {
   }
 
   bool _shouldShow(String alertType) {
+    if (alertType == 'sos') return true;
     if (alertType == 'chat_message' || alertType == 'task_assigned') {
       return true;
     }
@@ -283,6 +325,51 @@ class DeviceNotificationService {
           presentSound: true,
         ),
       ),
+    );
+  }
+
+  Future<void> _showSosNotification({
+    required int id,
+    required String title,
+    required String body,
+    required int? childId,
+    required String childName,
+  }) async {
+    final payload = <String, dynamic>{
+      'notification_type': 'sos',
+      'title': title,
+      'body': body,
+      'alert_id': id,
+      if (childId != null) 'child_id': childId,
+      'child_name': childName.isNotEmpty ? childName : 'Child',
+    };
+    await _plugin.show(
+      id & 0x7fffffff,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _sosChannelId,
+          _sosChannelName,
+          channelDescription: _sosChannelDescription,
+          importance: Importance.max,
+          priority: Priority.max,
+          category: AndroidNotificationCategory.alarm,
+          visibility: NotificationVisibility.public,
+          fullScreenIntent: true,
+          ongoing: true,
+          autoCancel: false,
+          additionalFlags: Int32List.fromList(const [4]),
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          interruptionLevel: InterruptionLevel.timeSensitive,
+        ),
+      ),
+      payload: jsonEncode(payload),
     );
   }
 

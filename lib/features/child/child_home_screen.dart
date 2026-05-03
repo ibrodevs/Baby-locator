@@ -14,7 +14,9 @@ import 'package:record/record.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/app_blocking_service.dart';
+import '../../core/services/child_permission_status_service.dart';
 import '../../core/services/device_stats_service.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
@@ -33,6 +35,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   final _svc = LocationService();
   final _battery = Battery();
   final _deviceStats = const DeviceStatsService();
+  final _permissionStatus = const ChildPermissionStatusService();
   final _appBlocking = AppBlockingService.instance;
   StreamSubscription<LocationFix>? _sub;
   StreamSubscription<BatteryState>? _batterySub;
@@ -250,10 +253,14 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
         charging: _batteryState == BatteryState.charging ||
             _batteryState == BatteryState.full,
       );
+      final permissionSnapshot = await _permissionStatus.read();
       if (mounted) {
         setState(() => _usageAccessGranted = payload.usageAccessGranted);
       }
-      await ApiClient.instance.syncDeviceStats(payload.toJson());
+      await ApiClient.instance.syncDeviceStats({
+        ...payload.toJson(),
+        ...permissionSnapshot.toSyncJson(),
+      });
       if (_apiError != null && mounted) setState(() => _apiError = null);
     } on SocketException {
       // No internet – ignore silently, will retry on next timer tick.
@@ -299,9 +306,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                         : 'C',
                     color: palette.primary,
                     size: 40,
-                    image: user?.avatarUrl != null
-                        ? NetworkImage(user!.avatarUrl!)
-                        : null,
+                    image: avatarImageProvider(user?.avatarUrl),
                   ),
                   const SizedBox(width: 10),
                   Expanded(

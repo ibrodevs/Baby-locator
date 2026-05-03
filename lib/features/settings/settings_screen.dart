@@ -4,18 +4,20 @@ import 'dart:io' show File;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/providers/locale_provider.dart';
 import '../../core/providers/session_providers.dart';
-import '../../core/services/api_client.dart';
 import '../../core/services/device_notification_service.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_language_sheet.dart';
 import '../../core/widgets/brand_header.dart';
 import '../auth/onboarding_screen.dart';
 import '../parent/children_list_screen.dart';
+import 'parent_child_permissions_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -48,17 +50,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _pickAvatar() async {
     if (kIsWeb) return;
+    final user = ref.read(sessionProvider).user;
+    if (user == null) return;
     final picker = ImagePicker();
     final xFile =
         await picker.pickImage(source: ImageSource.gallery, maxWidth: 512);
     if (xFile == null) return;
     try {
-      final result = await ApiClient.instance.uploadAvatar(File(xFile.path));
+      final path = await LocalAvatarStore.instance
+          .saveUserAvatar(user.id, File(xFile.path));
       if (!mounted) return;
-      final url = result['avatar_url'] as String?;
-      if (url != null) {
-        ref.read(sessionProvider.notifier).updateAvatar(url);
-      }
+      ref.read(sessionProvider.notifier).updateAvatar(path);
     } catch (e) {
       if (mounted) {
         final t = S.of(context);
@@ -164,9 +166,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             : 'P',
                         color: AppColors.primary,
                         size: 80,
-                        image: user?.avatarUrl != null
-                            ? NetworkImage(user!.avatarUrl!)
-                            : null,
+                        image: avatarImageProvider(user?.avatarUrl),
                       ),
                       Container(
                         padding: const EdgeInsets.all(6),
@@ -182,7 +182,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  user?.displayName?.trim().isNotEmpty == true
+                  user?.displayName.trim().isNotEmpty == true
                       ? user!.displayName
                       : t.parent,
                   style: const TextStyle(
@@ -198,7 +198,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Нажмите на фото, чтобы поставить аватар.',
+                  ExtraL10n.of(context).tapAvatarToSet,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14,
@@ -228,6 +228,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         builder: (_) => const ChildrenListScreen()),
                   ),
                 ),
+                if (user?.role == UserRole.parent) ...[
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.dividerLight),
+                  _SettingsRow(
+                    icon: Icons.verified_user_outlined,
+                    iconColor: AppColors.success,
+                    title: ExtraL10n.of(context).childPermissionsTitle,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ParentChildPermissionsScreen(),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
@@ -9,6 +10,7 @@ class MessengerSafetyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -20,12 +22,12 @@ class MessengerSafetyScreen extends StatelessWidget {
                   icon: const Icon(Icons.arrow_back_ios_new, size: 18),
                   onPressed: () => Navigator.of(context).maybePop(),
                 ),
-                const Expanded(
+                Expanded(
                   child: Padding(
                     padding: EdgeInsets.only(right: 48),
                     child: Center(
                       child: Text(
-                        'Kid Security',
+                        t.appName,
                         style: TextStyle(
                           color: AppColors.navy,
                           fontSize: 18,
@@ -46,19 +48,20 @@ class MessengerSafetyScreen extends StatelessWidget {
                         vertical: 22, horizontal: 16),
                     child: Column(
                       children: [
-                        _BigScoreRing(value: 0.92, label: '92%', sub: 'SECURE'),
+                        _BigScoreRing(
+                            value: 0.92, label: '92%', sub: _secureLabel(context)),
                         const SizedBox(height: 14),
-                        const Text(
-                          'Messenger Safety\nScore',
+                        Text(
+                          _messengerSafetyScoreTitle(context),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                               fontSize: 22, fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          "Your child's digital interactions are currently within safe parameters across all platforms.",
+                        Text(
+                          _messengerSafetyScoreSummary(context),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: AppColors.textSecondaryLight,
                             fontSize: 13,
                           ),
@@ -68,12 +71,12 @@ class MessengerSafetyScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Row(
-                    children: const [
-                      Text('Live Intercepts',
+                    children: [
+                      Text(_liveIntercepts(context),
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w800)),
-                      Spacer(),
-                      StatusBadge(text: 'REAL-TIME', color: AppColors.success),
+                      const Spacer(),
+                      StatusBadge(text: _realTime(context), color: AppColors.success),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -81,7 +84,7 @@ class MessengerSafetyScreen extends StatelessWidget {
                     name: 'Alex (School Friend)',
                     time: '2m ago',
                     preview: '"Hey, are you joining the group call…"',
-                    tag: 'Safe Content',
+                    tag: _safeContent(context),
                     tagColor: AppColors.success,
                     onTap: () => Navigator.of(context).push(MaterialPageRoute(
                         builder: (_) => const WhatsAppDetailScreen())),
@@ -91,7 +94,7 @@ class MessengerSafetyScreen extends StatelessWidget {
                     name: 'Unknown User',
                     time: '14m ago',
                     preview: '"Hey, I saw your post! Where do you…"',
-                    tag: 'PII Request   Flagged',
+                    tag: _piiRequestFlagged(context),
                     tagColor: AppColors.danger,
                   ),
                   const SizedBox(height: 10),
@@ -99,7 +102,7 @@ class MessengerSafetyScreen extends StatelessWidget {
                     name: 'Dima Kuznetsov',
                     time: '1h ago',
                     preview: '"Check out this new game link l…"',
-                    tag: 'External Link',
+                    tag: _externalLink(context),
                     tagColor: AppColors.textSecondaryLight,
                   ),
                   const SizedBox(height: 18),
@@ -112,26 +115,26 @@ class MessengerSafetyScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Sentiment Analysis',
+                        Text(_sentimentAnalysis(context),
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800)),
                         const SizedBox(height: 14),
                         _SentimentBar(
-                            label: 'Positive',
+                            label: _positiveLabel(context),
                             value: 0.78,
                             percent: '78%',
                             color: Colors.greenAccent),
                         const SizedBox(height: 12),
                         _SentimentBar(
-                            label: 'Anxious/Stressed',
+                            label: _anxiousStressed(context),
                             value: 0.12,
                             percent: '12%',
                             color: Colors.orangeAccent),
                         const SizedBox(height: 14),
-                        const Text(
-                          '"Conversations are mostly academic and casual. No signs of cyberbullying detected."',
+                        Text(
+                          '"${_sentimentSummary(context)}"',
                           style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -146,7 +149,7 @@ class MessengerSafetyScreen extends StatelessWidget {
                       Expanded(
                         child: _MiniStat(
                           icon: Icons.block,
-                          label: 'BLOCKED RISKS',
+                          label: _blockedRisks(context),
                           value: '12',
                         ),
                       ),
@@ -154,7 +157,7 @@ class MessengerSafetyScreen extends StatelessWidget {
                       Expanded(
                         child: _MiniStat(
                           icon: Icons.access_time,
-                          label: 'TOTAL SCREEN TIME',
+                          label: _totalScreenTime(context),
                           value: '3h 45m',
                         ),
                       ),
@@ -169,6 +172,65 @@ class MessengerSafetyScreen extends StatelessWidget {
     );
   }
 }
+
+String _mPick(BuildContext context, Map<String, String> values) =>
+    values[Localizations.localeOf(context).languageCode] ?? values['en']!;
+
+String _secureLabel(BuildContext context) =>
+    _mPick(context, {'en': 'SECURE', 'ru': 'БЕЗОПАСНО'});
+
+String _messengerSafetyScoreTitle(BuildContext context) => _mPick(context, {
+      'en': 'Messenger Safety Score',
+      'ru': 'Индекс безопасности мессенджеров',
+    });
+
+String _messengerSafetyScoreSummary(BuildContext context) => _mPick(context, {
+      'en':
+          "Your child's digital interactions are currently within safe parameters across all platforms.",
+      'ru':
+          'Цифровое общение ребёнка сейчас находится в безопасных пределах на всех платформах.',
+    });
+
+String _liveIntercepts(BuildContext context) => _mPick(context, {
+      'en': 'Live Intercepts',
+      'ru': 'Перехваты в реальном времени',
+    });
+
+String _realTime(BuildContext context) =>
+    _mPick(context, {'en': 'REAL-TIME', 'ru': 'РЕАЛЬНОЕ ВРЕМЯ'});
+
+String _safeContent(BuildContext context) =>
+    _mPick(context, {'en': 'Safe Content', 'ru': 'Безопасный контент'});
+
+String _piiRequestFlagged(BuildContext context) => _mPick(context, {
+      'en': 'PII Request   Flagged',
+      'ru': 'Запрос личных данных · Помечено',
+    });
+
+String _externalLink(BuildContext context) =>
+    _mPick(context, {'en': 'External Link', 'ru': 'Внешняя ссылка'});
+
+String _sentimentAnalysis(BuildContext context) =>
+    _mPick(context, {'en': 'Sentiment Analysis', 'ru': 'Анализ тональности'});
+
+String _positiveLabel(BuildContext context) =>
+    _mPick(context, {'en': 'Positive', 'ru': 'Позитив'});
+
+String _anxiousStressed(BuildContext context) =>
+    _mPick(context, {'en': 'Anxious/Stressed', 'ru': 'Тревога / стресс'});
+
+String _sentimentSummary(BuildContext context) => _mPick(context, {
+      'en':
+          'Conversations are mostly academic and casual. No signs of cyberbullying detected.',
+      'ru':
+          'Переписки в основном учебные и повседневные. Признаков кибербуллинга не обнаружено.',
+    });
+
+String _blockedRisks(BuildContext context) =>
+    _mPick(context, {'en': 'BLOCKED RISKS', 'ru': 'ЗАБЛОКИРОВАННЫЕ РИСКИ'});
+
+String _totalScreenTime(BuildContext context) =>
+    _mPick(context, {'en': 'TOTAL SCREEN TIME', 'ru': 'ОБЩЕЕ ЭКРАННОЕ ВРЕМЯ'});
 
 class _BigScoreRing extends StatelessWidget {
   const _BigScoreRing(

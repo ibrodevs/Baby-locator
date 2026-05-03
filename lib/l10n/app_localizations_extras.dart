@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 
 String pickLocalizedExtra(String localeName, Map<String, String> values) {
@@ -11,6 +12,530 @@ String fillLocalizedExtra(String template, Map<String, Object> values) {
     result = result.replaceAll('{${entry.key}}', '${entry.value}');
   }
   return result;
+}
+
+class ExtraL10n {
+  ExtraL10n(this.localeName);
+
+  factory ExtraL10n.of(BuildContext context) =>
+      ExtraL10n(S.of(context).localeName);
+
+  final String localeName;
+
+  String _pick(Map<String, String> values) =>
+      pickLocalizedExtra(localeName, values);
+  String _fill(String template, Map<String, Object> values) =>
+      fillLocalizedExtra(template, values);
+
+  String get okAction => _pick({
+        'en': 'OK',
+        'ru': 'ОК',
+      });
+
+  String get childLabel => _pick({
+        'en': 'Child',
+        'ru': 'Ребёнок',
+      });
+
+  String get menuLabel => _pick({
+        'en': 'Menu',
+        'ru': 'Меню',
+      });
+
+  String get childPermissionsTitle => _pick({
+        'en': 'Child permissions',
+        'ru': 'Разрешения ребёнка',
+      });
+
+  String get tapAvatarToSet => _pick({
+        'en': 'Tap the photo to set an avatar.',
+        'ru': 'Нажмите на фото, чтобы поставить аватар.',
+      });
+
+  String get permissionsTitle => _pick({
+        'en': 'Permissions',
+        'ru': 'Разрешения',
+      });
+
+  String get addChildToSeePermissions => _pick({
+        'en': 'Add a child first to see their permissions.',
+        'ru': 'Сначала добавьте ребёнка, чтобы увидеть его разрешения.',
+      });
+
+  String get statusesNotSyncedYet => _pick({
+        'en': 'Statuses have not synced yet',
+        'ru': 'Статусы ещё не синхронизированы',
+      });
+
+  String lastSyncAt(String time) => _fill(
+        _pick({
+          'en': 'Last synced: {time}',
+          'ru': 'Последняя синхронизация: {time}',
+        }),
+        {'time': time},
+      );
+
+  String get locationEnabledTitle => _pick({
+        'en': 'Location enabled',
+        'ru': 'Геолокация включена',
+      });
+
+  String get locationEnabledDescription => _pick({
+        'en': 'Location services on the child phone.',
+        'ru': 'Службы геолокации на телефоне ребёнка.',
+      });
+
+  String get locationPermissionTitle => _pick({
+        'en': 'Location access',
+        'ru': 'Доступ к геолокации',
+      });
+
+  String get locationPermissionDescription => _pick({
+        'en': 'Regular permission to access location.',
+        'ru': 'Обычное разрешение на доступ к местоположению.',
+      });
+
+  String get backgroundLocationTitle => _pick({
+        'en': 'Background location',
+        'ru': 'Фоновая геолокация',
+      });
+
+  String get backgroundLocationDescription => _pick({
+        'en': 'Permission to see the child location in the background.',
+        'ru': 'Разрешение видеть местоположение ребёнка в фоне.',
+      });
+
+  String get notificationsCommandsDescription => _pick({
+        'en': 'Needed for commands, alerts, and signals.',
+        'ru': 'Нужно для команд, оповещений и сигналов.',
+      });
+
+  String get microphoneTitle => _pick({
+        'en': 'Microphone',
+        'ru': 'Микрофон',
+      });
+
+  String get aroundAudioDescription => _pick({
+        'en': 'Needed to listen to audio around the child.',
+        'ru': 'Нужно для прослушивания звука вокруг ребёнка.',
+      });
+
+  String get usageAccessDescriptionParent => _pick({
+        'en': 'Needed for app statistics and screen-time limits.',
+        'ru': 'Нужно для статистики приложений и ограничений времени.',
+      });
+
+  String get accessibilityDescriptionParent => _pick({
+        'en': 'Needed to actually block restricted apps.',
+        'ru': 'Нужно, чтобы реально блокировать запрещённые приложения.',
+      });
+
+  String get noBatteryRestrictionsTitle => _pick({
+        'en': 'No battery restrictions',
+        'ru': 'Без ограничений батареи',
+      });
+
+  String get noBatteryRestrictionsDescription => _pick({
+        'en': 'Helps keep the app from being stopped by Android.',
+        'ru': 'Помогает приложению не отключаться системой на Android.',
+      });
+
+  String get allowedLabel => _pick({
+        'en': 'Allowed',
+        'ru': 'Разрешено',
+      });
+
+  String get notAllowedLabel => _pick({
+        'en': 'Not allowed',
+        'ru': 'Не разрешено',
+      });
+
+  String get chooseBoyOrGirl => _pick({
+        'en': 'Choose: boy or girl.',
+        'ru': 'Выберите вариант: сын или дочка.',
+      });
+
+  String get enterChildNamePrompt => _pick({
+        'en': 'Enter the child name.',
+        'ru': 'Введите имя ребёнка.',
+      });
+
+  String setupFailed(String error) => _fill(
+        _pick({
+          'en': 'Could not finish setup: {error}',
+          'ru': 'Не удалось завершить настройку: {error}',
+        }),
+        {'error': error},
+      );
+
+  String get codeCopied => _pick({
+        'en': 'Code copied.',
+        'ru': 'Код скопирован.',
+      });
+
+  String inviteShareTextShort(String code) => _fill(
+        _pick({
+          'en':
+              'Install Kid Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+          'ru':
+              'Установите Kid Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+        }),
+        {'code': code},
+      );
+
+  String get familySetupTitle => _pick({
+        'en': 'Family setup',
+        'ru': 'Настройка семьи',
+      });
+
+  String familySetupSubtitle(String name) => _fill(
+        _pick({
+          'en': 'Let’s quickly connect your child, {name}.',
+          'ru': 'Поможем быстро подключить ребёнка, {name}.',
+        }),
+        {'name': name},
+      );
+
+  String get continueLabel => _pick({
+        'en': 'Continue',
+        'ru': 'Продолжить',
+      });
+
+  String get saveNameLabel => _pick({
+        'en': 'Save name',
+        'ru': 'Сохранить имя',
+      });
+
+  String get finishSetupLabel => _pick({
+        'en': 'Finish setup',
+        'ru': 'Завершить настройку',
+      });
+
+  String get nextLabel => _pick({
+        'en': 'Next',
+        'ru': 'Дальше',
+      });
+
+  String get openAppLabel => _pick({
+        'en': 'Open app',
+        'ru': 'Открыть приложение',
+      });
+
+  String get boyOrGirlQuestion => _pick({
+        'en': 'Do you have a son or a daughter?',
+        'ru': 'У вас сын или дочка?',
+      });
+
+  String get familySetupStartSubtitle => _pick({
+        'en': 'We’ll start by creating the child profile.',
+        'ru': 'С этого начнем создание профиля ребёнка.',
+      });
+
+  String get sonLabel => _pick({
+        'en': 'Son',
+        'ru': 'Сын',
+      });
+
+  String get createBoyProfile => _pick({
+        'en': 'Create a boy profile',
+        'ru': 'Создать профиль мальчика',
+      });
+
+  String get daughterLabel => _pick({
+        'en': 'Daughter',
+        'ru': 'Дочка',
+      });
+
+  String get createGirlProfile => _pick({
+        'en': 'Create a girl profile',
+        'ru': 'Создать профиль девочки',
+      });
+
+  String get exampleGirlName => _pick({
+        'en': 'Kate',
+        'ru': 'Катя',
+      });
+
+  String get exampleBoyName => _pick({
+        'en': 'Ivan',
+        'ru': 'Иван',
+      });
+
+  String get nameYourDaughter => _pick({
+        'en': 'What is your daughter’s name?',
+        'ru': 'Как зовут вашу дочку?',
+      });
+
+  String get nameYourSon => _pick({
+        'en': 'What is your son’s name?',
+        'ru': 'Как зовут вашего сына?',
+      });
+
+  String get childSeesNameAfterCode => _pick({
+        'en':
+            'The child will see this name right after signing in with the code.',
+        'ru': 'Это имя сразу увидит ребёнок после входа по коду.',
+      });
+
+  String get addPhotoTitle => _pick({
+        'en': 'Let’s add a photo',
+        'ru': 'Добавим фото',
+      });
+
+  String get addPhotoSubtitle => _pick({
+        'en':
+            'This photo will appear in the child profile. You can skip it and add it later.',
+        'ru':
+            'Это фото появится в профиле ребёнка. Можно пропустить и добавить позже.',
+      });
+
+  String get selectPhotoLabel => _pick({
+        'en': 'Choose photo',
+        'ru': 'Выбрать фото',
+      });
+
+  String get chooseAnotherPhotoLabel => _pick({
+        'en': 'Tap to choose another photo',
+        'ru': 'Нажмите, чтобы выбрать другое фото',
+      });
+
+  String get congratulationsLabel => _pick({
+        'en': 'Congratulations!',
+        'ru': 'Поздравляем!',
+      });
+
+  String get childProfileReady => _pick({
+        'en':
+            'The child profile is ready. Now connect the child phone with the code.',
+        'ru':
+            'Профиль ребёнка уже готов. Осталось подключить телефон ребёнка по коду.',
+      });
+
+  String get installChildAppTitle => _pick({
+        'en': 'Install the app for the child',
+        'ru': 'Установите приложение для ребёнка',
+      });
+
+  String openChildAppAndEnterCode(String childName) => _fill(
+        _pick({
+          'en': 'Open the app on {childName}’s phone and enter this code.',
+          'ru':
+              'Откройте приложение на телефоне {childName} и введите этот код.',
+        }),
+        {'childName': childName},
+      );
+
+  String get numericCodeLabel => _pick({
+        'en': 'Numeric code',
+        'ru': 'Числовой код',
+      });
+
+  String get tapToCopyLabel => _pick({
+        'en': 'Tap to copy',
+        'ru': 'Нажмите, чтобы скопировать',
+      });
+
+  String get inviteChildLabel => _pick({
+        'en': 'Invite child',
+        'ru': 'Пригласить ребёнка',
+      });
+
+  String get childCodeNoLoginPassword => _pick({
+        'en':
+            'The child phone no longer needs a login and password: just open the app and enter the code.',
+        'ru':
+            'На телефоне ребёнка теперь не нужен логин и пароль: достаточно открыть приложение и ввести код.',
+      });
+
+  String get locationTitle => _pick({
+        'en': 'Location',
+        'ru': 'Геолокация',
+      });
+
+  String get locationGrantedDescription => _pick({
+        'en': 'Location access has been granted.',
+        'ru': 'Доступ к геолокации выдан.',
+      });
+
+  String get locationNotGrantedDescription => _pick({
+        'en': 'Location permission has not been granted yet.',
+        'ru': 'Разрешение на геолокацию пока не выдано.',
+      });
+
+  String get locationServiceOffDescription => _pick({
+        'en': 'Location services are currently turned off on this device.',
+        'ru': 'Служба геолокации на устройстве сейчас выключена.',
+      });
+
+  String get grantAccessLabel => _pick({
+        'en': 'Grant access',
+        'ru': 'Выдать доступ',
+      });
+
+  String get backgroundLocationGrantedDescription => _pick({
+        'en': 'Always allowed — location is sent even when the screen is off.',
+        'ru':
+            'Разрешено «Всегда» — местоположение отправляется даже при выключенном экране.',
+      });
+
+  String get backgroundLocationNeedAlwaysDescription => _pick({
+        'en':
+            'Without “Allow all the time”, Android stops sending coordinates when the screen turns off or the app is minimized. This is the main reason tracking seems to stop working.',
+        'ru':
+            'Без «Разрешить всегда» Android перестаёт присылать координаты, когда экран гаснет или приложение свёрнуто. Это главная причина, почему отслеживание «перестаёт работать».',
+      });
+
+  String get backgroundLocationNeedLocationFirst => _pick({
+        'en':
+            'First grant normal location permission, then enable “Allow all the time”.',
+        'ru':
+            'Сначала выдайте обычное разрешение на геолокацию, затем включите «Разрешить всегда».',
+      });
+
+  String get allowAllTheTimeLabel => _pick({
+        'en': 'Allow all the time',
+        'ru': 'Разрешить всегда',
+      });
+
+  String get microphoneGrantedDescription => _pick({
+        'en': 'Microphone permission has already been granted.',
+        'ru': 'Разрешение на микрофон уже выдано.',
+      });
+
+  String get microphoneNeededDescription => _pick({
+        'en':
+            'Without this permission, the Around feature will not be able to hear audio near the child.',
+        'ru':
+            'Без этого разрешения функция «Вокруг» не сможет слышать звук рядом с ребёнком.',
+      });
+
+  String get allowMicrophoneLabel => _pick({
+        'en': 'Allow microphone',
+        'ru': 'Разрешить микрофон',
+      });
+
+  String get notificationsGrantedDescription => _pick({
+        'en': 'Notifications are allowed.',
+        'ru': 'Уведомления разрешены.',
+      });
+
+  String get notificationsNeededDescription => _pick({
+        'en':
+            'Allow notifications so you do not miss commands and important events.',
+        'ru':
+            'Разрешите уведомления, чтобы не пропускать команды и важные события.',
+      });
+
+  String get allowNotificationsLabel => _pick({
+        'en': 'Allow notifications',
+        'ru': 'Разрешить уведомления',
+      });
+
+  String get usageAccessAlreadyGranted => _pick({
+        'en': 'Access to app usage stats has already been granted.',
+        'ru': 'Доступ к статистике приложений уже выдан.',
+      });
+
+  String get openSettingsLabel => _pick({
+        'en': 'Open settings',
+        'ru': 'Открыть настройки',
+      });
+
+  String get permissionStatusTitle => _pick({
+        'en': 'Permission status',
+        'ru': 'Статус разрешений',
+      });
+
+  String get checkingPermissionsStatus => _pick({
+        'en': 'Checking which permissions are already enabled...',
+        'ru': 'Проверяем, какие доступы уже включены...',
+      });
+
+  String grantedPermissionsCount(int granted, int total) => _fill(
+        _pick({
+          'en': 'Granted permissions: {granted} of {total}',
+          'ru': 'Выдано разрешений: {granted} из {total}',
+        }),
+        {'granted': granted, 'total': total},
+      );
+
+  String get grantedLabel => _pick({
+        'en': 'Granted',
+        'ru': 'Выдано',
+      });
+
+  String get notGrantedLabel => _pick({
+        'en': 'Not granted',
+        'ru': 'Не выдано',
+      });
+
+  String get menuAppearsAfterAddingChild => _pick({
+        'en': 'The menu will appear after you add a child',
+        'ru': 'Меню появится после добавления ребёнка',
+      });
+
+  String get quickAccessLabel => _pick({
+        'en': 'Quick access',
+        'ru': 'Быстрый доступ',
+      });
+
+  String parentPanelLabel(String name) => _fill(
+        _pick({
+          'en': '{name} panel',
+          'ru': 'Панель {name}',
+        }),
+        {'name': name},
+      );
+
+  String get selectedLabel => _pick({
+        'en': 'Selected',
+        'ru': 'Выбран',
+      });
+
+  String get onlineAroundSoundMenuTitle => _pick({
+        'en': 'Live audio\naround child',
+        'ru': 'Онлайн звук\nвокруг ребенка',
+      });
+
+  String get gameLimitsMenuTitle => _pick({
+        'en': 'Game limits',
+        'ru': 'Лимиты на игры',
+      });
+
+  String get incomingChatsMenuTitle => _pick({
+        'en': 'Incoming chats',
+        'ru': 'Входящие чаты',
+      });
+
+  String get mapPlacesMenuTitle => _pick({
+        'en': 'Places on map',
+        'ru': 'Места на карте',
+      });
+
+  String get movementHistoryMenuTitle => _pick({
+        'en': 'Movement\nhistory',
+        'ru': 'История\nпередвижения',
+      });
+
+  String get appStatsMenuTitle => _pick({
+        'en': 'App\nstatistics',
+        'ru': 'Статистика\nприложений',
+      });
+
+  String get childAchievementsMenuTitle => _pick({
+        'en': 'Child\nachievements',
+        'ru': 'Достижения\nребенка',
+      });
+
+  String get loudSignalMenuTitle => _pick({
+        'en': 'Loud\nsignal',
+        'ru': 'Громкий\nсигнал',
+      });
+
+  String get addChildFirstWarning => _pick({
+        'en': 'Add a child first.',
+        'ru': 'Сначала добавьте ребёнка.',
+      });
 }
 
 extension SExtras on S {
@@ -1880,6 +2405,733 @@ class ExtraTranslations {
         'uz': 'Baland signal ijro etilmoqda...',
       });
 
+  String get okAction => _pick({
+        'ar': 'حسناً',
+        'az': 'Oldu',
+        'de': 'OK',
+        'en': 'OK',
+        'es': 'OK',
+        'fr': 'OK',
+        'hy': 'Լավ',
+        'it': 'OK',
+        'ka': 'კარგი',
+        'kk': 'OK',
+        'ky': 'Макул',
+        'pl': 'OK',
+        'pt': 'OK',
+        'ru': 'ОК',
+        'tg': 'Хуб',
+        'tk': 'Bolýar',
+        'uz': 'OK',
+      });
+
+  String get signInAsParent => _pick({
+        'ar': 'تسجيل الدخول كوالد',
+        'az': 'Valideyn kimi daxil ol',
+        'de': 'Als Elternteil anmelden',
+        'en': 'Sign in as parent',
+        'es': 'Iniciar sesión como padre',
+        'fr': 'Se connecter en tant que parent',
+        'hy': 'Մուտք գործել որպես ծնող',
+        'it': 'Accedi come genitore',
+        'ka': 'შესვლა როგორც მშობელი',
+        'kk': 'Ата-ана ретінде кіру',
+        'ky': 'Ата-эне катары кирүү',
+        'pl': 'Zaloguj się jako rodzic',
+        'pt': 'Entrar como responsável',
+        'ru': 'Войти как родитель',
+        'tg': 'Ҳамчун волид ворид шавед',
+        'tk': 'Ene-ata hökmünde gir',
+        'uz': 'Ota-ona sifatida kirish',
+      });
+
+  String get enterInviteCodeError => _pick({
+        'ar': 'أدخل رمز الدعوة',
+        'az': 'Dəvət kodunu daxil edin',
+        'de': 'Gib den Einladungscode ein',
+        'en': 'Enter the invite code',
+        'es': 'Introduce el código de invitación',
+        'fr': "Saisissez le code d'invitation",
+        'hy': 'Մուտքագրեք հրավերի կոդը',
+        'it': 'Inserisci il codice di invito',
+        'ka': 'შეიყვანეთ მოსაწვევის კოდი',
+        'kk': 'Шақыру кодын енгізіңіз',
+        'ky': 'Чакыруу кодун киргизиңиз',
+        'pl': 'Wpisz kod zaproszenia',
+        'pt': 'Digite o código de convite',
+        'ru': 'Введите код приглашения',
+        'tg': 'Рамзи даъватро ворид кунед',
+        'tk': 'Çakylyk koduny giriziň',
+        'uz': 'Taklif kodini kiriting',
+      });
+
+  String get whatsappChatTitle => _pick({
+        'ar': 'واتساب: ليو وأليكس',
+        'az': 'WhatsApp: Leo və Alex',
+        'de': 'WhatsApp: Leo und Alex',
+        'en': 'WhatsApp: Leo & Alex',
+        'es': 'WhatsApp: Leo y Alex',
+        'fr': 'WhatsApp : Leo et Alex',
+        'hy': 'WhatsApp․ Leo և Alex',
+        'it': 'WhatsApp: Leo e Alex',
+        'ka': 'WhatsApp: ლეო და ალექსი',
+        'kk': 'WhatsApp: Leo мен Alex',
+        'ky': 'WhatsApp: Leo жана Alex',
+        'pl': 'WhatsApp: Leo i Alex',
+        'pt': 'WhatsApp: Leo e Alex',
+        'ru': 'WhatsApp: Лео и Алекс',
+        'tg': 'WhatsApp: Leo ва Alex',
+        'tk': 'WhatsApp: Leo we Alex',
+        'uz': 'WhatsApp: Leo va Alex',
+      });
+
+  String monitoringActiveLastSynced(String time) => _fill(
+        _pick({
+          'ar': 'المراقبة نشطة · آخر مزامنة منذ {time}',
+          'az': 'Monitorinq aktivdir · Son sinxronizasiya {time} əvvəl',
+          'de': 'Überwachung aktiv · Zuletzt vor {time} synchronisiert',
+          'en': 'Monitoring active · Last synced {time} ago',
+          'es': 'Monitorización activa · Última sincronización hace {time}',
+          'fr': 'Surveillance active · Dernière synchro il y a {time}',
+          'hy': 'Դիտարկումն ակտիվ է · Վերջին համաժամեցումը {time} առաջ',
+          'it': 'Monitoraggio attivo · Ultima sincronizzazione {time} fa',
+          'ka': 'მონიტორინგი აქტიურია · ბოლო სინქრონიზაცია {time} წინ',
+          'kk': 'Бақылау белсенді · Соңғы синхрондау {time} бұрын',
+          'ky': 'Байкоо активдүү · Акыркы шайкештештирүү {time} мурун',
+          'pl': 'Monitoring aktywny · Ostatnia synchronizacja {time} temu',
+          'pt': 'Monitoramento ativo · Última sincronização há {time}',
+          'ru': 'Мониторинг активен · Последняя синхронизация {time} назад',
+          'tg': 'Назорат фаъол аст · Ҳамоҳангсозии охирин {time} пеш',
+          'tk': 'Gözegçilik işjeň · Soňky utgaşdyrma {time} öň',
+          'uz': 'Monitoring faol · Oxirgi sinxronlash {time} oldin',
+        }),
+        {'time': time},
+      );
+
+  String get safetyScoreUpper => _pick({
+        'ar': 'مستوى الأمان',
+        'az': 'TƏHLÜKƏSİZLİK XALI',
+        'de': 'SICHERHEITSWERT',
+        'en': 'SAFETY SCORE',
+        'es': 'PUNTUACIÓN DE SEGURIDAD',
+        'fr': 'SCORE DE SÉCURITÉ',
+        'hy': 'ԱՆՎՏԱՆԳՈՒԹՅԱՆ ԳՆԱՀԱՏԱԿԱՆ',
+        'it': 'PUNTEGGIO SICUREZZA',
+        'ka': 'უსაფრთხოების ქულა',
+        'kk': 'ҚАУІПСІЗДІК БАҒАСЫ',
+        'ky': 'КООПСУЗДУК УПАЙЫ',
+        'pl': 'WYNIK BEZPIECZEŃSTWA',
+        'pt': 'PONTUAÇÃO DE SEGURANÇA',
+        'ru': 'ИНДЕКС БЕЗОПАСНОСТИ',
+        'tg': 'ХОЛИ АМНИЯТ',
+        'tk': 'HOWPSUZLYK BAHASY',
+        'uz': 'XAVFSIZLIK BAHOSI',
+      });
+
+  String get conversationAnalysis => _pick({
+        'ar': 'تحليل المحادثة',
+        'az': 'Söhbət təhlili',
+        'de': 'Gesprächsanalyse',
+        'en': 'Conversation Analysis',
+        'es': 'Análisis de la conversación',
+        'fr': 'Analyse de la conversation',
+        'hy': 'Զրույցի վերլուծություն',
+        'it': 'Analisi della conversazione',
+        'ka': 'საუბრის ანალიზი',
+        'kk': 'Әңгіме талдауы',
+        'ky': 'Баарлашууну талдоо',
+        'pl': 'Analiza rozmowy',
+        'pt': 'Análise da conversa',
+        'ru': 'Анализ переписки',
+        'tg': 'Таҳлили сӯҳбат',
+        'tk': 'Söhbet seljermesi',
+        'uz': 'Suhbat tahlili',
+      });
+
+  String get conversationAnalysisSummary => _pick({
+        'ar':
+            'اكتشف الذكاء الاصطناعي نقاشاً بنّاءً حول المسؤوليات الدراسية. التفاعل موثوق ومنخفض المخاطر.',
+        'az':
+            'Süni intellekt dərs məsuliyyətləri barədə konstruktiv söhbət aşkar etdi. Ünsiyyət etibarlı və aşağı risklidir.',
+        'de':
+            'Die KI hat eine konstruktive Unterhaltung über schulische Pflichten erkannt. Die Interaktion wirkt vertrauensvoll und risikoarm.',
+        'en':
+            'AI detected a constructive discussion about academic responsibilities. Interaction remains high-trust and low-risk.',
+        'es':
+            'La IA detectó una conversación constructiva sobre responsabilidades académicas. La interacción sigue siendo confiable y de bajo riesgo.',
+        'fr':
+            "L'IA a détecté une discussion constructive sur les responsabilités scolaires. L'échange reste fiable et peu risqué.",
+        'hy':
+            'ԱԲ-ն հայտնաբերել է կառուցողական քննարկում ուսումնական պարտականությունների մասին։ Շփումը վստահելի է և ցածր ռիսկային։',
+        'it':
+            'L’IA ha rilevato una discussione costruttiva sulle responsabilità scolastiche. L’interazione resta affidabile e a basso rischio.',
+        'ka':
+            'AI-მ დააფიქსირა კონსტრუქციული საუბარი სასკოლო პასუხისმგებლობებზე. კომუნიკაცია სანდოა და დაბალი რისკის.',
+        'kk':
+            'ЖИ оқу міндеттері туралы сындарлы әңгімені анықтады. Қарым-қатынас сенімді және тәуекелі төмен.',
+        'ky':
+            'ЖИ окуу милдеттери жөнүндө пайдалуу сүйлөшүүнү аныктады. Баарлашуу ишенимдүү жана тобокелдиги төмөн.',
+        'pl':
+            'AI wykryła konstruktywną rozmowę o obowiązkach szkolnych. Interakcja pozostaje oparta na zaufaniu i niskim ryzyku.',
+        'pt':
+            'A IA detectou uma conversa construtiva sobre responsabilidades acadêmicas. A interação continua confiável e de baixo risco.',
+        'ru':
+            'ИИ обнаружил конструктивное обсуждение учебных обязанностей. Общение остаётся доверительным и с низким риском.',
+        'tg':
+            'Зеҳни сунъӣ муҳокимаи созандаро дар бораи масъулиятҳои дарсӣ муайян кард. Муошират боэътимод ва камхатар аст.',
+        'tk':
+            'AI okuw jogapkärçilikleri barada oňyn söhbeti anyklady. Aragatnaşyk ynamly we töwekgelçiligi pes bolup galýar.',
+        'uz':
+            'Sun’iy intellekt o‘quv mas’uliyatlari haqidagi konstruktiv suhbatni aniqladi. Muloqot ishonchli va past xavfli.',
+      });
+
+  String get positiveIntent => _pick({
+        'ar': 'نية إيجابية',
+        'az': 'MÜSBƏT NİYYƏT',
+        'de': 'POSITIVE ABSICHT',
+        'en': 'POSITIVE INTENT',
+        'es': 'INTENCIÓN POSITIVA',
+        'fr': 'INTENTION POSITIVE',
+        'hy': 'ԴՐԱԿԱՆ ՆՊԱՏԱԿ',
+        'it': 'INTENTO POSITIVO',
+        'ka': 'დადებითი განზრახვა',
+        'kk': 'ОҢ НИЕТ',
+        'ky': 'ОҢ НИЕТ',
+        'pl': 'POZYTYWNA INTENCJA',
+        'pt': 'INTENÇÃO POSITIVA',
+        'ru': 'ПОЗИТИВНОЕ НАМЕРЕНИЕ',
+        'tg': 'НИЯТИ МУСБАТ',
+        'tk': 'OŇYBARA MAKSAT',
+        'uz': 'IJOBIY NIYAT',
+      });
+
+  String get homeworkLabel => _pick({
+        'ar': 'الواجب',
+        'az': 'EV TAPŞIRIĞI',
+        'de': 'HAUSAUFGABEN',
+        'en': 'HOMEWORK',
+        'es': 'TAREA',
+        'fr': 'DEVOIRS',
+        'hy': 'ՏՆԱՅԻՆ ԱՇԽԱՏԱՆՔ',
+        'it': 'COMPITI',
+        'ka': 'საშინაო დავალება',
+        'kk': 'ҮЙ ТАПСЫРМАСЫ',
+        'ky': 'ҮЙ ТАПШЫРМАСЫ',
+        'pl': 'PRACA DOMOWA',
+        'pt': 'LIÇÃO DE CASA',
+        'ru': 'ДОМАШНЕЕ ЗАДАНИЕ',
+        'tg': 'ВАЗИФАИ ХОНАГӢ',
+        'tk': 'ÖÝ IŞI',
+        'uz': 'UYGA VAZIFA',
+      });
+
+  String get gamingLabel => _pick({
+        'ar': 'الألعاب',
+        'az': 'OYUN',
+        'de': 'GAMING',
+        'en': 'GAMING',
+        'es': 'VIDEOJUEGOS',
+        'fr': 'JEUX',
+        'hy': 'ԽԱՂԵՐ',
+        'it': 'GIOCHI',
+        'ka': 'თამაშები',
+        'kk': 'ОЙЫН',
+        'ky': 'ОЮН',
+        'pl': 'GRY',
+        'pt': 'JOGOS',
+        'ru': 'ИГРЫ',
+        'tg': 'БОЗИҲО',
+        'tk': 'OÝUN',
+        'uz': 'O‘YINLAR',
+      });
+
+  String todayAtTime(String time) => _fill(
+        _pick({
+          'ar': 'اليوم، {time}',
+          'az': 'BU GÜN, {time}',
+          'de': 'HEUTE, {time}',
+          'en': 'TODAY, {time}',
+          'es': 'HOY, {time}',
+          'fr': "AUJOURD'HUI, {time}",
+          'hy': 'ԱՅՍՕՐ, {time}',
+          'it': 'OGGI, {time}',
+          'ka': 'დღეს, {time}',
+          'kk': 'БҮГІН, {time}',
+          'ky': 'БҮГҮН, {time}',
+          'pl': 'DZIŚ, {time}',
+          'pt': 'HOJE, {time}',
+          'ru': 'СЕГОДНЯ, {time}',
+          'tg': 'ИМРӮЗ, {time}',
+          'tk': 'ŞUGÜN, {time}',
+          'uz': 'BUGUN, {time}',
+        }),
+        {'time': time},
+      );
+
+  String get msgHistoryAssignment => _pick({
+        'ar': 'مرحباً ليو، هل أنهيت واجب التاريخ للغد؟ إنه ضخم.',
+        'az': 'Salam Leo, sabah üçün tarix tapşırığını bitirdin? Çox böyükdür.',
+        'de':
+            'Hey Leo, hast du die Geschichtsaufgabe für morgen fertig? Die ist riesig.',
+        'en':
+            'Hey Leo, did you finish the history assignment for tomorrow? It’s huge.',
+        'es':
+            'Hola Leo, ¿terminaste la tarea de historia para mañana? Es enorme.',
+        'fr':
+            "Salut Leo, tu as fini le devoir d'histoire pour demain ? Il est énorme.",
+        'hy': 'Բարև, Leo, վաղվա պատմության առաջադրանքն ավարտե՞լ ես։ Շատ մեծ է։',
+        'it':
+            'Ehi Leo, hai finito il compito di storia per domani? È lunghissimo.',
+        'ka': 'ჰეი ლეო, ხვალისთვის ისტორიის დავალება დაასრულე? ძალიან დიდია.',
+        'kk':
+            'Сәлем, Leo, ертеңге берілген тарих тапсырмасын бітірдің бе? Өте үлкен екен.',
+        'ky':
+            'Салам, Leo, эртеңки тарых тапшырмасын бүтүрдүңбү? Абдан чоң экен.',
+        'pl':
+            'Hej Leo, skończyłeś już zadanie z historii na jutro? Jest ogromne.',
+        'pt':
+            'Oi Leo, você terminou a tarefa de história para amanhã? Está enorme.',
+        'ru':
+            'Привет, Лео, ты закончил задание по истории на завтра? Оно огромное.',
+        'tg':
+            'Салом, Leo, вазифаи таърихро барои пагоҳ тамом кардӣ? Хеле калон аст.',
+        'tk':
+            'Salam Leo, ertir üçin taryh tabşyrygyny gutardyňmy? Gaty uly eken.',
+        'uz':
+            'Salom Leo, ertaga uchun tarix vazifasini tugatdingmi? Juda katta ekan.',
+      });
+
+  String get msgAlmostFinish => _pick({
+        'ar':
+            'تقريباً. بقي فقط جزء الثورة الصناعية. هل تريد أن ندخل ديسكورد بعد ذلك؟',
+        'az':
+            'Demək olar. Sadəcə sənaye inqilabı hissəsini bitirməliyəm. Sonra Discord-a keçək?',
+        'de':
+            'Fast. Ich muss nur noch den Teil über die industrielle Revolution fertig machen. Wollen wir danach auf Discord?',
+        'en':
+            'Almost. Just need to finish the part about the industrial revolution. Want to jump on Discord after?',
+        'es':
+            'Casi. Solo me falta terminar la parte sobre la revolución industrial. ¿Entramos a Discord después?',
+        'fr':
+            "Presque. Il me reste juste la partie sur la révolution industrielle. On va sur Discord après ?",
+        'hy':
+            'Համարյա։ Մնացել է միայն արդյունաբերական հեղափոխության մասը։ Հետո ուզո՞ւմ ես Discord մտնենք։',
+        'it':
+            'Quasi. Devo solo finire la parte sulla rivoluzione industriale. Poi andiamo su Discord?',
+        'ka':
+            'თითქმის. მხოლოდ ინდუსტრიული რევოლუციის ნაწილი მაქვს დასასრულებელი. მერე Discord-ზე გადავიდეთ?',
+        'kk':
+            'Дайын деуге болады. Өнеркәсіптік революция туралы бөлікті ғана аяқтауым керек. Сосын Discord-қа кірейік пе?',
+        'ky':
+            'Аз калды. Индустриялык революция тууралуу бөлүгүн гана бүтүрүшүм керек. Анан Discord-ка кирелиби?',
+        'pl':
+            'Prawie. Muszę tylko dokończyć część o rewolucji przemysłowej. Wchodzimy potem na Discorda?',
+        'pt':
+            'Quase. Só preciso terminar a parte sobre a revolução industrial. Quer entrar no Discord depois?',
+        'ru':
+            'Почти. Осталось закончить часть про промышленную революцию. Потом зайдём в Discord?',
+        'tg':
+            'Қариб тамом. Фақат қисми инқилоби саноатиро ба охир расондан лозим. Баъд ба Discord дароем?',
+        'tk':
+            'Tas diýen ýaly. Diňe senagat öwrülişigi baradaky bölegi gutarmaly. Soň Discord-a geçelimi?',
+        'uz':
+            'Deyarli. Faqat sanoat inqilobi haqidagi qismini tugatishim qoldi. Keyin Discordga o‘tamizmi?',
+      });
+
+  String get msgHomeworkFirst => _pick({
+        'ar':
+            'أكيد، لكن لننهِ الواجب أولاً حتى لا نقع في مشكلة. أمي تراجع درجاتي اليوم.',
+        'az':
+            'Olar, amma əvvəl ev tapşırığını edək ki, problem olmasın. Anam bu gün qiymətlərimi yoxlayır.',
+        'de':
+            'Klar, aber lass uns erst die Hausaufgaben machen, damit wir keinen Ärger bekommen. Meine Mutter schaut sich heute meine Noten an.',
+        'en':
+            "Sure, but let's do homework first so we don't get in trouble. My mom is checking my grades today.",
+        'es':
+            'Claro, pero hagamos la tarea primero para no meternos en problemas. Mi mamá está revisando mis notas hoy.',
+        'fr':
+            "Oui, mais faisons d'abord les devoirs pour éviter les ennuis. Ma mère vérifie mes notes aujourd'hui.",
+        'hy':
+            'Լավ, բայց նախ տնայինը անենք, որ խնդիր չունենանք։ Մայրս այսօր գնահատականներս է նայում։',
+        'it':
+            'Certo, ma facciamo prima i compiti così non avremo problemi. Mia madre controlla i miei voti oggi.',
+        'ka':
+            'კი, მაგრამ ჯერ საშინაო დავალება გავაკეთოთ, რომ პრობლემები არ შეგვექმნას. დღეს დედაჩემი ჩემს ნიშნებს ამოწმებს.',
+        'kk':
+            'Әрине, бірақ әуелі үй тапсырмасын орындайық, әйтпесе қиындыққа қаламыз. Бүгін анам бағаларымды тексереді.',
+        'ky':
+            'Макул, бирок адегенде үй тапшырмасын кылалы, болбосо уруш угуп калабыз. Бүгүн апам бааларымды текшерет.',
+        'pl':
+            'Jasne, ale najpierw zróbmy pracę domową, żeby nie mieć kłopotów. Moja mama dziś sprawdza moje oceny.',
+        'pt':
+            'Claro, mas vamos fazer a lição primeiro para não termos problema. Minha mãe vai olhar minhas notas hoje.',
+        'ru':
+            'Конечно, но давай сначала сделаем домашку, чтобы не попасть в неприятности. Мама сегодня проверяет мои оценки.',
+        'tg':
+            'Хуб, вале аввал вазифаи хонагиро мекунем, то ба мушкил наафтем. Имрӯз модарам баҳоҳоямро мебинад.',
+        'tk':
+            'Bolýar, ýöne ilki öý işini edeli, kynçylyk bolmasyn. Ejem şu gün bahalarymy barlaýar.',
+        'uz':
+            'Mayli, lekin avval uy vazifasini qilaylik, muammoga qolmaylik. Bugun onam baholarimni tekshiradi.',
+      });
+
+  String keywordLogged(String keyword) => _fill(
+        _pick({
+          'ar': 'تم تسجيل الكلمة المفتاحية: {keyword}',
+          'az': 'AÇAR SÖZ QEYDƏ ALINDI: {keyword}',
+          'de': 'SCHLÜSSELWORT ERKANNT: {keyword}',
+          'en': 'KEYWORD LOGGED: {keyword}',
+          'es': 'PALABRA CLAVE REGISTRADA: {keyword}',
+          'fr': 'MOT-CLÉ ENREGISTRÉ : {keyword}',
+          'hy': 'ԳՐԱՆՑՎԵԼ Է ԲԱՆԱԼԻ ԲԱՌԸ՝ {keyword}',
+          'it': 'PAROLA CHIAVE RILEVATA: {keyword}',
+          'ka': 'საკვანძო სიტყვა დაფიქსირდა: {keyword}',
+          'kk': 'ТҮЙІН СӨЗ ТІРКЕЛДІ: {keyword}',
+          'ky': 'АЧКЫЧ СӨЗ КАТТАЛДЫ: {keyword}',
+          'pl': 'WYKRYTO SŁOWO KLUCZOWE: {keyword}',
+          'pt': 'PALAVRA-CHAVE REGISTRADA: {keyword}',
+          'ru': 'ЗАФИКСИРОВАНО КЛЮЧЕВОЕ СЛОВО: {keyword}',
+          'tg': 'КАЛИМАИ КАЛИДӢ САБТ ШУД: {keyword}',
+          'tk': 'AÇAR SÖZ HASABA ALNDY: {keyword}',
+          'uz': 'KALIT SO‘Z QAYD ETILDI: {keyword}',
+        }),
+        {'keyword': keyword},
+      );
+
+  String get msgSmartMove => _pick({
+        'ar': 'تصرف ذكي. سأراسلك عندما أنتهي.',
+        'az': 'Ağıllı qərardır. Bitirəndə sənə yazaram.',
+        'de': 'Gute Idee. Ich schreibe dir, wenn ich fertig bin.',
+        'en': "Smart move. I'll message you when I'm done.",
+        'es': 'Buena idea. Te escribo cuando termine.',
+        'fr': "Bonne idée. Je t'écris quand j'ai fini.",
+        'hy': 'Լավ միտք է։ Ավարտեմ, կգրեմ քեզ։',
+        'it': 'Ottima idea. Ti scrivo quando ho finito.',
+        'ka': 'კარგი აზრია. როცა დავასრულებ, მოგწერ.',
+        'kk': 'Дұрыс шешім. Бітіргенде саған жазамын.',
+        'ky': 'Туура ой. Бүткөндө сага жазам.',
+        'pl': 'Dobry ruch. Napiszę, gdy skończę.',
+        'pt': 'Boa ideia. Te mando mensagem quando eu terminar.',
+        'ru': 'Хорошая мысль. Напишу тебе, когда закончу.',
+        'tg': 'Қарори хуб. Вақте тамом кардам, ба ту менависам.',
+        'tk': 'Gowy pikir. Gutaramda saňa ýazaryn.',
+        'uz': 'To‘g‘ri qaror. Tugatganimda senga yozaman.',
+      });
+
+  String get secureLabel => _pick({
+        'ar': 'آمن',
+        'az': 'TƏHLÜKƏSİZ',
+        'de': 'SICHER',
+        'en': 'SECURE',
+        'es': 'SEGURO',
+        'fr': 'SÛR',
+        'hy': 'ԱՆՎՏԱՆԳ',
+        'it': 'SICURO',
+        'ka': 'უსაფრთხო',
+        'kk': 'ҚАУІПСІЗ',
+        'ky': 'КООПСУЗ',
+        'pl': 'BEZPIECZNIE',
+        'pt': 'SEGURO',
+        'ru': 'БЕЗОПАСНО',
+        'tg': 'БЕХАТАР',
+        'tk': 'HOWPSUZ',
+        'uz': 'XAVFSIZ',
+      });
+
+  String get messengerSafetyScoreTitle => _pick({
+        'ar': 'مؤشر أمان المراسلة',
+        'az': 'Messenger Təhlükəsizlik Xalı',
+        'de': 'Messenger-Sicherheitswert',
+        'en': 'Messenger Safety Score',
+        'es': 'Puntuación de seguridad del mensajero',
+        'fr': 'Score de sécurité de la messagerie',
+        'hy': 'Մեսենջերի անվտանգության գնահատական',
+        'it': 'Punteggio sicurezza messaggistica',
+        'ka': 'მესენჯერის უსაფრთხოების ქულა',
+        'kk': 'Мессенджер қауіпсіздік бағасы',
+        'ky': 'Мессенжер коопсуздук упайы',
+        'pl': 'Wynik bezpieczeństwa komunikatorów',
+        'pt': 'Pontuação de segurança do mensageiro',
+        'ru': 'Индекс безопасности мессенджеров',
+        'tg': 'Холи амнияти паёмрасон',
+        'tk': 'Habarlaşma howpsuzlyk bahasy',
+        'uz': 'Messenger xavfsizlik bahosi',
+      });
+
+  String get messengerSafetyScoreSummary => _pick({
+        'ar':
+            'التفاعلات الرقمية لطفلك ضمن الحدود الآمنة حالياً على جميع المنصات.',
+        'az':
+            'Uşağınızın rəqəmsal ünsiyyəti hazırda bütün platformalarda təhlükəsiz çərçivədədir.',
+        'de':
+            'Die digitalen Interaktionen deines Kindes liegen derzeit plattformübergreifend im sicheren Bereich.',
+        'en':
+            "Your child's digital interactions are currently within safe parameters across all platforms.",
+        'es':
+            'Las interacciones digitales de tu hijo están actualmente dentro de parámetros seguros en todas las plataformas.',
+        'fr':
+            "Les interactions numériques de votre enfant restent actuellement dans des paramètres sûrs sur toutes les plateformes.",
+        'hy':
+            'Ձեր երեխայի թվային շփումները այս պահին բոլոր հարթակներում ապահով սահմաններում են։',
+        'it':
+            'Le interazioni digitali di tuo figlio sono attualmente entro parametri sicuri su tutte le piattaforme.',
+        'ka':
+            'თქვენი ბავშვის ციფრული კომუნიკაცია ამჟამად ყველა პლატფორმაზე უსაფრთხო ფარგლებშია.',
+        'kk':
+            'Балаңыздың цифрлық қарым-қатынасы қазір барлық платформаларда қауіпсіз шектерде.',
+        'ky':
+            'Балаңыздын санариптик баарлашуусу азыр бардык платформаларда коопсуз деңгээлде.',
+        'pl':
+            'Cyfrowe interakcje Twojego dziecka mieszczą się obecnie w bezpiecznych granicach na wszystkich platformach.',
+        'pt':
+            'As interações digitais da sua criança estão atualmente dentro de parâmetros seguros em todas as plataformas.',
+        'ru':
+            'Цифровое общение ребёнка сейчас находится в безопасных пределах на всех платформах.',
+        'tg':
+            'Муоширати рақамии кӯдаки шумо ҳоло дар ҳамаи платформаҳо дар доираи бехатар аст.',
+        'tk':
+            'Çagaňyzyň sanly aragatnaşygy häzir ähli platformalarda howpsuz çäklerde.',
+        'uz':
+            'Farzandingizning raqamli muloqoti hozir barcha platformalarda xavfsiz me’yorlarda.',
+      });
+
+  String get liveIntercepts => _pick({
+        'ar': 'اعتراضات مباشرة',
+        'az': 'Canlı tutmalar',
+        'de': 'Live-Abfänge',
+        'en': 'Live Intercepts',
+        'es': 'Intercepciones en vivo',
+        'fr': 'Interceptions en direct',
+        'hy': 'Ուղիղ որսումներ',
+        'it': 'Intercettazioni live',
+        'ka': 'ცოცხალი გადაჭერები',
+        'kk': 'Тікелей ұстап алулар',
+        'ky': 'Түз эфир кармоолору',
+        'pl': 'Przechwycenia na żywo',
+        'pt': 'Interceptações ao vivo',
+        'ru': 'Перехваты в реальном времени',
+        'tg': 'Қабулҳои зинда',
+        'tk': 'Göni tutmalar',
+        'uz': 'Jonli ushlashlar',
+      });
+
+  String get realTime => _pick({
+        'ar': 'لحظي',
+        'az': 'REAL VAXT',
+        'de': 'ECHTZEIT',
+        'en': 'REAL-TIME',
+        'es': 'EN TIEMPO REAL',
+        'fr': 'TEMPS RÉEL',
+        'hy': 'ԻՐԱԿԱՆ ԺԱՄԱՆԱԿ',
+        'it': 'TEMPO REALE',
+        'ka': 'რეალურ დროში',
+        'kk': 'НАҚТЫ УАҚЫТ',
+        'ky': 'РЕАЛДУУ УБАКЫТ',
+        'pl': 'CZAS RZECZYWISTY',
+        'pt': 'TEMPO REAL',
+        'ru': 'РЕАЛЬНОЕ ВРЕМЯ',
+        'tg': 'ВАКТИ ҲАҚИҚӢ',
+        'tk': 'HÄZIRKI WAGT',
+        'uz': 'REAL VAQT',
+      });
+
+  String get safeContent => _pick({
+        'ar': 'محتوى آمن',
+        'az': 'Təhlükəsiz məzmun',
+        'de': 'Sicherer Inhalt',
+        'en': 'Safe Content',
+        'es': 'Contenido seguro',
+        'fr': 'Contenu sûr',
+        'hy': 'Անվտանգ բովանդակություն',
+        'it': 'Contenuto sicuro',
+        'ka': 'უსაფრთხო კონტენტი',
+        'kk': 'Қауіпсіз мазмұн',
+        'ky': 'Коопсуз мазмун',
+        'pl': 'Bezpieczna treść',
+        'pt': 'Conteúdo seguro',
+        'ru': 'Безопасный контент',
+        'tg': 'Мундариҷаи бехатар',
+        'tk': 'Howpsuz mazmun',
+        'uz': 'Xavfsiz kontent',
+      });
+
+  String get piiRequestFlagged => _pick({
+        'ar': 'طلب بيانات شخصية · تم التنبيه',
+        'az': 'Şəxsi məlumat sorğusu · Qeyd edildi',
+        'de': 'PII-Anfrage · Markiert',
+        'en': 'PII Request   Flagged',
+        'es': 'Solicitud de datos personales · Marcada',
+        'fr': 'Demande de données perso · Signalée',
+        'hy': 'Անձնական տվյալների հարցում · Նշված է',
+        'it': 'Richiesta dati personali · Segnalata',
+        'ka': 'პირადი მონაცემების მოთხოვნა · მონიშნულია',
+        'kk': 'Жеке дерек сұрауы · Белгіленді',
+        'ky': 'Жеке маалымат суранычы · Белгиленди',
+        'pl': 'Prośba o dane osobowe · Oznaczono',
+        'pt': 'Pedido de dados pessoais · Sinalizado',
+        'ru': 'Запрос личных данных · Помечено',
+        'tg': 'Дархости маълумоти шахсӣ · Нишон дода шуд',
+        'tk': 'Şahsy maglumat soragy · Bellendi',
+        'uz': 'Shaxsiy ma’lumot so‘rovi · Belgilandi',
+      });
+
+  String get externalLink => _pick({
+        'ar': 'رابط خارجي',
+        'az': 'Xarici keçid',
+        'de': 'Externer Link',
+        'en': 'External Link',
+        'es': 'Enlace externo',
+        'fr': 'Lien externe',
+        'hy': 'Արտաքին հղում',
+        'it': 'Link esterno',
+        'ka': 'გარე ბმული',
+        'kk': 'Сыртқы сілтеме',
+        'ky': 'Тышкы шилтеме',
+        'pl': 'Link zewnętrzny',
+        'pt': 'Link externo',
+        'ru': 'Внешняя ссылка',
+        'tg': 'Пайванди беруна',
+        'tk': 'Daşarky baglanyşyk',
+        'uz': 'Tashqi havola',
+      });
+
+  String get sentimentAnalysis => _pick({
+        'ar': 'تحليل المشاعر',
+        'az': 'Emosiya təhlili',
+        'de': 'Stimmungsanalyse',
+        'en': 'Sentiment Analysis',
+        'es': 'Análisis de sentimiento',
+        'fr': 'Analyse du sentiment',
+        'hy': 'Զգացմունքային վերլուծություն',
+        'it': 'Analisi del sentiment',
+        'ka': 'სენტიმენტის ანალიზი',
+        'kk': 'Көңіл-күй талдауы',
+        'ky': 'Сезим талдоосу',
+        'pl': 'Analiza nastroju',
+        'pt': 'Análise de sentimento',
+        'ru': 'Анализ тональности',
+        'tg': 'Таҳлили эҳсосот',
+        'tk': 'Duýgy seljermesi',
+        'uz': 'Kayfiyat tahlili',
+      });
+
+  String get positiveLabel => _pick({
+        'ar': 'إيجابي',
+        'az': 'Müsbət',
+        'de': 'Positiv',
+        'en': 'Positive',
+        'es': 'Positivo',
+        'fr': 'Positif',
+        'hy': 'Դրական',
+        'it': 'Positivo',
+        'ka': 'დადებითი',
+        'kk': 'Оң',
+        'ky': 'Оң',
+        'pl': 'Pozytywny',
+        'pt': 'Positivo',
+        'ru': 'Позитив',
+        'tg': 'Мусбат',
+        'tk': 'Oňyn',
+        'uz': 'Ijobiy',
+      });
+
+  String get anxiousStressed => _pick({
+        'ar': 'قلق أو توتر',
+        'az': 'Narahat / stressli',
+        'de': 'Ängstlich / gestresst',
+        'en': 'Anxious/Stressed',
+        'es': 'Ansioso/estresado',
+        'fr': 'Anxieux / stressé',
+        'hy': 'Անհանգիստ / սթրեսային',
+        'it': 'Ansioso / stressato',
+        'ka': 'შფოთვა / სტრესი',
+        'kk': 'Мазасыз / күйзелген',
+        'ky': 'Тынчсыз / стрессте',
+        'pl': 'Zestresowany / spięty',
+        'pt': 'Ansioso / estressado',
+        'ru': 'Тревога / стресс',
+        'tg': 'Нигарон / зери стресс',
+        'tk': 'Aladaly / stresli',
+        'uz': 'Xavotirli / stressda',
+      });
+
+  String get sentimentSummary => _pick({
+        'ar':
+            'المحادثات في الغالب دراسية وعادية. لم يتم رصد أي مؤشرات على تنمر إلكتروني.',
+        'az':
+            'Söhbətlər əsasən dərs və gündəlik mövzulardadır. Kiberzorakılıq əlaməti aşkarlanmadı.',
+        'de':
+            'Die Gespräche sind überwiegend schulisch und alltäglich. Es wurden keine Anzeichen von Cybermobbing erkannt.',
+        'en':
+            'Conversations are mostly academic and casual. No signs of cyberbullying detected.',
+        'es':
+            'Las conversaciones son mayormente académicas y casuales. No se detectaron señales de ciberacoso.',
+        'fr':
+            'Les conversations sont surtout scolaires et ordinaires. Aucun signe de cyberharcèlement détecté.',
+        'hy':
+            'Զրույցները հիմնականում ուսումնական և առօրյա են։ Կիբերբուլիինգի նշաններ չեն հայտնաբերվել։',
+        'it':
+            'Le conversazioni sono per lo più scolastiche e informali. Nessun segnale di cyberbullismo rilevato.',
+        'ka':
+            'საუბრები უმეტესად სასწავლო და ყოველდღიურია. კიბერბულინგის ნიშნები არ დაფიქსირდა.',
+        'kk':
+            'Әңгімелер көбіне оқу мен күнделікті тақырыптар туралы. Кибербуллинг белгілері анықталған жоқ.',
+        'ky':
+            'Сүйлөшүүлөр негизинен окуу жана жөнөкөй темаларда. Кибербуллинг белгилери табылган жок.',
+        'pl':
+            'Rozmowy są głównie szkolne i codzienne. Nie wykryto oznak cyberprzemocy.',
+        'pt':
+            'As conversas são principalmente acadêmicas e casuais. Nenhum sinal de cyberbullying detectado.',
+        'ru':
+            'Переписки в основном учебные и повседневные. Признаков кибербуллинга не обнаружено.',
+        'tg':
+            'Сӯҳбатҳо асосан дарсӣ ва оддӣ мебошанд. Нишонаҳои озори интернетӣ ёфт нашуданд.',
+        'tk':
+            'Söhbetler esasan okuw we gündelik mowzuklarda. Kiberzorlugyň alamatlary tapylmady.',
+        'uz':
+            'Suhbatlar asosan o‘qish va oddiy mavzularda. Kiberbulling belgilari aniqlanmadi.',
+      });
+
+  String get blockedRisks => _pick({
+        'ar': 'المخاطر المحظورة',
+        'az': 'Bloklanan risklər',
+        'de': 'Blockierte Risiken',
+        'en': 'BLOCKED RISKS',
+        'es': 'RIESGOS BLOQUEADOS',
+        'fr': 'RISQUES BLOQUÉS',
+        'hy': 'ԱՐԳԵԼԱՓԱԿՎԱԾ ՌԻՍԿԵՐ',
+        'it': 'RISCHI BLOCCATI',
+        'ka': 'დაბლოკილი რისკები',
+        'kk': 'БҰҒАТТАЛҒАН ҚАУІПТЕР',
+        'ky': 'БӨГӨТТӨЛГӨН КОРКУНУЧТАР',
+        'pl': 'ZABLOKOWANE RYZYKA',
+        'pt': 'RISCOS BLOQUEADOS',
+        'ru': 'ЗАБЛОКИРОВАННЫЕ РИСКИ',
+        'tg': 'ХАТАРҲОИ МАСДУД',
+        'tk': 'BLOKLANAN TÖWEKGELLIKLER',
+        'uz': 'BLOKLANGAN XAVFLAR',
+      });
+
+  String get totalScreenTime => _pick({
+        'ar': 'إجمالي وقت الشاشة',
+        'az': 'Ümumi ekran vaxtı',
+        'de': 'Gesamte Bildschirmzeit',
+        'en': 'TOTAL SCREEN TIME',
+        'es': 'TIEMPO TOTAL DE PANTALLA',
+        'fr': "TEMPS D'ÉCRAN TOTAL",
+        'hy': 'ԸՆԴՀԱՆՈՒՐ ԷԿՐԱՆԱՅԻՆ ԺԱՄԱՆԱԿ',
+        'it': 'TEMPO SCHERMO TOTALE',
+        'ka': 'სულ ეკრანის დრო',
+        'kk': 'ЖАЛПЫ ЭКРАН УАҚЫТЫ',
+        'ky': 'ЖАЛПЫ ЭКРАН УБАКТЫСЫ',
+        'pl': 'ŁĄCZNY CZAS EKRANU',
+        'pt': 'TEMPO TOTAL DE TELA',
+        'ru': 'ОБЩЕЕ ЭКРАННОЕ ВРЕМЯ',
+        'tg': 'ВАҚТИ УМУМИИ ЭКРАН',
+        'tk': 'UMUMY EKRAN WAGTY',
+        'uz': 'UMUMIY EKRAN VAQTI',
+      });
+
   String get liveAudioStreamingToParent => _pick({
         'ar': 'يتم إرسال الصوت المباشر للوالد...',
         'az': 'Canlı ətraf səsi valideynə ötürülür...',
@@ -1918,5 +3170,505 @@ class ExtraTranslations {
         'tg': 'Гӯш кардани муҳит...',
         'tk': 'Daş-töwerek diňlenýär...',
         'uz': 'Atrof tinglanmoqda...',
+      });
+
+  String get menuLabel => _pick({
+        'en': 'Menu',
+        'ru': 'Меню',
+      });
+
+  String get childPermissionsTitle => _pick({
+        'en': 'Child permissions',
+        'ru': 'Разрешения ребёнка',
+      });
+
+  String get tapAvatarToSet => _pick({
+        'en': 'Tap the photo to set an avatar.',
+        'ru': 'Нажмите на фото, чтобы поставить аватар.',
+      });
+
+  String get permissionsTitle => _pick({
+        'en': 'Permissions',
+        'ru': 'Разрешения',
+      });
+
+  String get addChildToSeePermissions => _pick({
+        'en': 'Add a child first to see their permissions.',
+        'ru': 'Сначала добавьте ребёнка, чтобы увидеть его разрешения.',
+      });
+
+  String get statusesNotSyncedYet => _pick({
+        'en': 'Statuses have not synced yet',
+        'ru': 'Статусы ещё не синхронизированы',
+      });
+
+  String lastSyncAt(String time) => _fill(
+        _pick({
+          'en': 'Last synced: {time}',
+          'ru': 'Последняя синхронизация: {time}',
+        }),
+        {'time': time},
+      );
+
+  String get locationEnabledTitle => _pick({
+        'en': 'Location enabled',
+        'ru': 'Геолокация включена',
+      });
+
+  String get locationEnabledDescription => _pick({
+        'en': 'Location services on the child phone.',
+        'ru': 'Службы геолокации на телефоне ребёнка.',
+      });
+
+  String get locationPermissionTitle => _pick({
+        'en': 'Location access',
+        'ru': 'Доступ к геолокации',
+      });
+
+  String get locationPermissionDescription => _pick({
+        'en': 'Regular permission to access location.',
+        'ru': 'Обычное разрешение на доступ к местоположению.',
+      });
+
+  String get backgroundLocationTitle => _pick({
+        'en': 'Background location',
+        'ru': 'Фоновая геолокация',
+      });
+
+  String get backgroundLocationDescription => _pick({
+        'en': 'Permission to see the child location in the background.',
+        'ru': 'Разрешение видеть местоположение ребёнка в фоне.',
+      });
+
+  String get notificationsCommandsDescription => _pick({
+        'en': 'Needed for commands, alerts, and signals.',
+        'ru': 'Нужно для команд, оповещений и сигналов.',
+      });
+
+  String get microphoneTitle => _pick({
+        'en': 'Microphone',
+        'ru': 'Микрофон',
+      });
+
+  String get aroundAudioDescription => _pick({
+        'en': 'Needed to listen to audio around the child.',
+        'ru': 'Нужно для прослушивания звука вокруг ребёнка.',
+      });
+
+  String get usageAccessDescriptionParent => _pick({
+        'en': 'Needed for app statistics and screen-time limits.',
+        'ru': 'Нужно для статистики приложений и ограничений времени.',
+      });
+
+  String get accessibilityDescriptionParent => _pick({
+        'en': 'Needed to actually block restricted apps.',
+        'ru': 'Нужно, чтобы реально блокировать запрещённые приложения.',
+      });
+
+  String get noBatteryRestrictionsTitle => _pick({
+        'en': 'No battery restrictions',
+        'ru': 'Без ограничений батареи',
+      });
+
+  String get noBatteryRestrictionsDescription => _pick({
+        'en': 'Helps keep the app from being stopped by Android.',
+        'ru': 'Помогает приложению не отключаться системой на Android.',
+      });
+
+  String get allowedLabel => _pick({
+        'en': 'Allowed',
+        'ru': 'Разрешено',
+      });
+
+  String get notAllowedLabel => _pick({
+        'en': 'Not allowed',
+        'ru': 'Не разрешено',
+      });
+
+  String get chooseBoyOrGirl => _pick({
+        'en': 'Choose: boy or girl.',
+        'ru': 'Выберите вариант: сын или дочка.',
+      });
+
+  String get enterChildNamePrompt => _pick({
+        'en': 'Enter the child name.',
+        'ru': 'Введите имя ребёнка.',
+      });
+
+  String setupFailed(String error) => _fill(
+        _pick({
+          'en': 'Could not finish setup: {error}',
+          'ru': 'Не удалось завершить настройку: {error}',
+        }),
+        {'error': error},
+      );
+
+  String get codeCopied => _pick({
+        'en': 'Code copied.',
+        'ru': 'Код скопирован.',
+      });
+
+  String inviteShareTextShort(String code) => _fill(
+        _pick({
+          'en':
+              'Install Kid Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+          'ru':
+              'Установите Kid Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+        }),
+        {'code': code},
+      );
+
+  String get familySetupTitle => _pick({
+        'en': 'Family setup',
+        'ru': 'Настройка семьи',
+      });
+
+  String familySetupSubtitle(String name) => _fill(
+        _pick({
+          'en': 'Let’s quickly connect your child, {name}.',
+          'ru': 'Поможем быстро подключить ребёнка, {name}.',
+        }),
+        {'name': name},
+      );
+
+  String get continueLabel => _pick({
+        'en': 'Continue',
+        'ru': 'Продолжить',
+      });
+
+  String get saveNameLabel => _pick({
+        'en': 'Save name',
+        'ru': 'Сохранить имя',
+      });
+
+  String get finishSetupLabel => _pick({
+        'en': 'Finish setup',
+        'ru': 'Завершить настройку',
+      });
+
+  String get nextLabel => _pick({
+        'en': 'Next',
+        'ru': 'Дальше',
+      });
+
+  String get openAppLabel => _pick({
+        'en': 'Open app',
+        'ru': 'Открыть приложение',
+      });
+
+  String get boyOrGirlQuestion => _pick({
+        'en': 'Do you have a son or a daughter?',
+        'ru': 'У вас сын или дочка?',
+      });
+
+  String get familySetupStartSubtitle => _pick({
+        'en': 'We’ll start by creating the child profile.',
+        'ru': 'С этого начнем создание профиля ребёнка.',
+      });
+
+  String get sonLabel => _pick({
+        'en': 'Son',
+        'ru': 'Сын',
+      });
+
+  String get createBoyProfile => _pick({
+        'en': 'Create a boy profile',
+        'ru': 'Создать профиль мальчика',
+      });
+
+  String get daughterLabel => _pick({
+        'en': 'Daughter',
+        'ru': 'Дочка',
+      });
+
+  String get createGirlProfile => _pick({
+        'en': 'Create a girl profile',
+        'ru': 'Создать профиль девочки',
+      });
+
+  String get exampleGirlName => _pick({
+        'en': 'Kate',
+        'ru': 'Катя',
+      });
+
+  String get exampleBoyName => _pick({
+        'en': 'Ivan',
+        'ru': 'Иван',
+      });
+
+  String get nameYourDaughter => _pick({
+        'en': 'What is your daughter’s name?',
+        'ru': 'Как зовут вашу дочку?',
+      });
+
+  String get nameYourSon => _pick({
+        'en': 'What is your son’s name?',
+        'ru': 'Как зовут вашего сына?',
+      });
+
+  String get childSeesNameAfterCode => _pick({
+        'en':
+            'The child will see this name right after signing in with the code.',
+        'ru': 'Это имя сразу увидит ребёнок после входа по коду.',
+      });
+
+  String get addPhotoTitle => _pick({
+        'en': 'Let’s add a photo',
+        'ru': 'Добавим фото',
+      });
+
+  String get addPhotoSubtitle => _pick({
+        'en':
+            'This photo will appear in the child profile. You can skip it and add it later.',
+        'ru':
+            'Это фото появится в профиле ребёнка. Можно пропустить и добавить позже.',
+      });
+
+  String get selectPhotoLabel => _pick({
+        'en': 'Choose photo',
+        'ru': 'Выбрать фото',
+      });
+
+  String get chooseAnotherPhotoLabel => _pick({
+        'en': 'Tap to choose another photo',
+        'ru': 'Нажмите, чтобы выбрать другое фото',
+      });
+
+  String get congratulationsLabel => _pick({
+        'en': 'Congratulations!',
+        'ru': 'Поздравляем!',
+      });
+
+  String get childProfileReady => _pick({
+        'en':
+            'The child profile is ready. Now connect the child phone with the code.',
+        'ru':
+            'Профиль ребёнка уже готов. Осталось подключить телефон ребёнка по коду.',
+      });
+
+  String get installChildAppTitle => _pick({
+        'en': 'Install the app for the child',
+        'ru': 'Установите приложение для ребёнка',
+      });
+
+  String openChildAppAndEnterCode(String childName) => _fill(
+        _pick({
+          'en': 'Open the app on {childName}’s phone and enter this code.',
+          'ru':
+              'Откройте приложение на телефоне {childName} и введите этот код.',
+        }),
+        {'childName': childName},
+      );
+
+  String get numericCodeLabel => _pick({
+        'en': 'Numeric code',
+        'ru': 'Числовой код',
+      });
+
+  String get tapToCopyLabel => _pick({
+        'en': 'Tap to copy',
+        'ru': 'Нажмите, чтобы скопировать',
+      });
+
+  String get inviteChildLabel => _pick({
+        'en': 'Invite child',
+        'ru': 'Пригласить ребёнка',
+      });
+
+  String get childCodeNoLoginPassword => _pick({
+        'en':
+            'The child phone no longer needs a login and password: just open the app and enter the code.',
+        'ru':
+            'На телефоне ребёнка теперь не нужен логин и пароль: достаточно открыть приложение и ввести код.',
+      });
+
+  String get locationTitle => _pick({
+        'en': 'Location',
+        'ru': 'Геолокация',
+      });
+
+  String get locationGrantedDescription => _pick({
+        'en': 'Location access has been granted.',
+        'ru': 'Доступ к геолокации выдан.',
+      });
+
+  String get locationNotGrantedDescription => _pick({
+        'en': 'Location permission has not been granted yet.',
+        'ru': 'Разрешение на геолокацию пока не выдано.',
+      });
+
+  String get locationServiceOffDescription => _pick({
+        'en': 'Location services are currently turned off on this device.',
+        'ru': 'Служба геолокации на устройстве сейчас выключена.',
+      });
+
+  String get grantAccessLabel => _pick({
+        'en': 'Grant access',
+        'ru': 'Выдать доступ',
+      });
+
+  String get backgroundLocationGrantedDescription => _pick({
+        'en': 'Always allowed — location is sent even when the screen is off.',
+        'ru':
+            'Разрешено «Всегда» — местоположение отправляется даже при выключенном экране.',
+      });
+
+  String get backgroundLocationNeedAlwaysDescription => _pick({
+        'en':
+            'Without “Allow all the time”, Android stops sending coordinates when the screen turns off or the app is minimized. This is the main reason tracking seems to stop working.',
+        'ru':
+            'Без «Разрешить всегда» Android перестаёт присылать координаты, когда экран гаснет или приложение свёрнуто. Это главная причина, почему отслеживание «перестаёт работать».',
+      });
+
+  String get backgroundLocationNeedLocationFirst => _pick({
+        'en':
+            'First grant normal location permission, then enable “Allow all the time”.',
+        'ru':
+            'Сначала выдайте обычное разрешение на геолокацию, затем включите «Разрешить всегда».',
+      });
+
+  String get allowAllTheTimeLabel => _pick({
+        'en': 'Allow all the time',
+        'ru': 'Разрешить всегда',
+      });
+
+  String get microphoneGrantedDescription => _pick({
+        'en': 'Microphone permission has already been granted.',
+        'ru': 'Разрешение на микрофон уже выдано.',
+      });
+
+  String get microphoneNeededDescription => _pick({
+        'en':
+            'Without this permission, the Around feature will not be able to hear audio near the child.',
+        'ru':
+            'Без этого разрешения функция «Вокруг» не сможет слышать звук рядом с ребёнком.',
+      });
+
+  String get allowMicrophoneLabel => _pick({
+        'en': 'Allow microphone',
+        'ru': 'Разрешить микрофон',
+      });
+
+  String get notificationsGrantedDescription => _pick({
+        'en': 'Notifications are allowed.',
+        'ru': 'Уведомления разрешены.',
+      });
+
+  String get notificationsNeededDescription => _pick({
+        'en':
+            'Allow notifications so you do not miss commands and important events.',
+        'ru':
+            'Разрешите уведомления, чтобы не пропускать команды и важные события.',
+      });
+
+  String get allowNotificationsLabel => _pick({
+        'en': 'Allow notifications',
+        'ru': 'Разрешить уведомления',
+      });
+
+  String get usageAccessAlreadyGranted => _pick({
+        'en': 'Access to app usage stats has already been granted.',
+        'ru': 'Доступ к статистике приложений уже выдан.',
+      });
+
+  String get openSettingsLabel => _pick({
+        'en': 'Open settings',
+        'ru': 'Открыть настройки',
+      });
+
+  String get permissionStatusTitle => _pick({
+        'en': 'Permission status',
+        'ru': 'Статус разрешений',
+      });
+
+  String get checkingPermissionsStatus => _pick({
+        'en': 'Checking which permissions are already enabled...',
+        'ru': 'Проверяем, какие доступы уже включены...',
+      });
+
+  String grantedPermissionsCount(int granted, int total) => _fill(
+        _pick({
+          'en': 'Granted permissions: {granted} of {total}',
+          'ru': 'Выдано разрешений: {granted} из {total}',
+        }),
+        {'granted': granted, 'total': total},
+      );
+
+  String get grantedLabel => _pick({
+        'en': 'Granted',
+        'ru': 'Выдано',
+      });
+
+  String get notGrantedLabel => _pick({
+        'en': 'Not granted',
+        'ru': 'Не выдано',
+      });
+
+  String get menuAppearsAfterAddingChild => _pick({
+        'en': 'The menu will appear after you add a child',
+        'ru': 'Меню появится после добавления ребёнка',
+      });
+
+  String get quickAccessLabel => _pick({
+        'en': 'Quick access',
+        'ru': 'Быстрый доступ',
+      });
+
+  String parentPanelLabel(String name) => _fill(
+        _pick({
+          'en': '{name} panel',
+          'ru': 'Панель {name}',
+        }),
+        {'name': name},
+      );
+
+  String get selectedLabel => _pick({
+        'en': 'Selected',
+        'ru': 'Выбран',
+      });
+
+  String get onlineAroundSoundMenuTitle => _pick({
+        'en': 'Live audio\naround child',
+        'ru': 'Онлайн звук\nвокруг ребенка',
+      });
+
+  String get gameLimitsMenuTitle => _pick({
+        'en': 'Game limits',
+        'ru': 'Лимиты на игры',
+      });
+
+  String get incomingChatsMenuTitle => _pick({
+        'en': 'Incoming chats',
+        'ru': 'Входящие чаты',
+      });
+
+  String get mapPlacesMenuTitle => _pick({
+        'en': 'Places on map',
+        'ru': 'Места на карте',
+      });
+
+  String get movementHistoryMenuTitle => _pick({
+        'en': 'Movement\nhistory',
+        'ru': 'История\nпередвижения',
+      });
+
+  String get appStatsMenuTitle => _pick({
+        'en': 'App\nstatistics',
+        'ru': 'Статистика\nприложений',
+      });
+
+  String get childAchievementsMenuTitle => _pick({
+        'en': 'Child\nachievements',
+        'ru': 'Достижения\nребенка',
+      });
+
+  String get loudSignalMenuTitle => _pick({
+        'en': 'Loud\nsignal',
+        'ru': 'Громкий\nсигнал',
+      });
+
+  String get addChildFirstWarning => _pick({
+        'en': 'Add a child first.',
+        'ru': 'Сначала добавьте ребёнка.',
       });
 }

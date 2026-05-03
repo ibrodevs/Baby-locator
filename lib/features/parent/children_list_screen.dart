@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
@@ -37,9 +38,10 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
     try {
       final list = await ApiClient.instance.listChildren();
       ref.read(parentChildrenProvider.notifier).setFromList(list);
+      final normalized = ref.read(parentChildrenProvider);
       final selectedChildId = ref.read(selectedChildIdProvider);
       setState(() {
-        _children = list;
+        _children = normalized;
         _loading = false;
       });
       if (selectedChildId != null &&
@@ -191,9 +193,7 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
                                           : '?',
                                       size: 40,
                                       color: AppColors.primary,
-                                      image: avatarUrl != null
-                                          ? NetworkImage(avatarUrl)
-                                          : null,
+                                      image: avatarImageProvider(avatarUrl),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -290,10 +290,10 @@ class _EditChildSheetState extends State<_EditChildSheet> {
     setState(() => _busy = true);
     try {
       final childId = widget.child['id'] as int;
-      final data = await ApiClient.instance
-          .uploadChildAvatar(childId, File(picked.path));
+      final path = await LocalAvatarStore.instance
+          .saveChildAvatar(childId, File(picked.path));
       setState(() {
-        _avatarUrl = data['avatar_url'] as String?;
+        _avatarUrl = path;
         _busy = false;
       });
     } catch (e) {
@@ -390,8 +390,7 @@ class _EditChildSheetState extends State<_EditChildSheet> {
                         : '?',
                     size: 80,
                     color: AppColors.primary,
-                    image:
-                        _avatarUrl != null ? NetworkImage(_avatarUrl!) : null,
+                    image: avatarImageProvider(_avatarUrl),
                   ),
                   Positioned(
                     right: 0,

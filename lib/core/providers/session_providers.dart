@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/api_client.dart';
+import '../services/local_avatar_store.dart';
 
 enum UserRole { none, parent, child }
 
@@ -25,15 +26,19 @@ class SessionUser {
   final int? parentId;
   final String? avatarUrl;
 
-  factory SessionUser.fromJson(Map<String, dynamic> j) => SessionUser(
-        id: j['id'] as int,
-        username: j['username'] as String,
-        role: _roleFrom(j['role'] as String?),
-        displayName: (j['display_name'] as String?) ?? '',
-        gender: j['gender'] as String?,
-        parentId: j['parent'] as int?,
-        avatarUrl: j['avatar_url'] as String?,
-      );
+  factory SessionUser.fromJson(Map<String, dynamic> j) {
+    final id = j['id'] as int;
+    return SessionUser(
+      id: id,
+      username: j['username'] as String,
+      role: _roleFrom(j['role'] as String?),
+      displayName: (j['display_name'] as String?) ?? '',
+      gender: j['gender'] as String?,
+      parentId: j['parent'] as int?,
+      avatarUrl: LocalAvatarStore.instance.userAvatar(id) ??
+          j['avatar_url'] as String?,
+    );
+  }
 
   SessionUser copyWith({
     String? username,
@@ -426,9 +431,13 @@ class ParentChildrenNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   }
 
   List<Map<String, dynamic>> _normalize(List<dynamic> data) {
-    return data
-        .map((child) => Map<String, dynamic>.from(child as Map))
-        .toList(growable: false);
+    return data.map((child) {
+      final m = Map<String, dynamic>.from(child as Map);
+      final id = m['id'] as int?;
+      final local = LocalAvatarStore.instance.childAvatar(id);
+      if (local != null) m['avatar_url'] = local;
+      return m;
+    }).toList(growable: false);
   }
 
   bool _sameChildren(
@@ -443,7 +452,10 @@ class ParentChildrenNotifier extends StateNotifier<List<Map<String, dynamic>>> {
       if (a['id'] != b['id'] ||
           a['username'] != b['username'] ||
           a['display_name'] != b['display_name'] ||
-          a['avatar_url'] != b['avatar_url']) {
+          a['avatar_url'] != b['avatar_url'] ||
+          a['has_joined'] != b['has_joined'] ||
+          a['active_invite_code'] != b['active_invite_code'] ||
+          a['invite_expires_at'] != b['invite_expires_at']) {
         return false;
       }
     }
@@ -484,7 +496,9 @@ class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
             DateTime.now(),
         active: (locData['active'] as bool?) ?? true,
         childId: childData['id'] as int,
-        avatarUrl: childData['avatar_url'] as String?,
+        avatarUrl: LocalAvatarStore.instance
+                .childAvatar(childData['id'] as int?) ??
+            childData['avatar_url'] as String?,
       ));
     }
     state = list;

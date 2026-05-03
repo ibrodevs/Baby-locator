@@ -1,31 +1,23 @@
 import 'dart:async';
-import 'dart:collection';
-import 'dart:io';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 
 import 'api_client.dart';
 
-/// Reliable parent-side "Around" audio via short uploaded clips.
+/// Parent-side live audio built on a single continuous PCM stream.
 class ParentAroundAudioService {
-  final AudioPlayer _player = AudioPlayer();
-  final Queue<File> _pendingFiles = Queue<File>();
+  final KidSecurityLiveAudioBridge _playerBridge =
+      const KidSecurityLiveAudioBridge();
 
-  StreamSubscription<void>? _playerCompleteSub;
-  Timer? _pollTimer;
+  ApiStreamResponse? _streamResponse;
+  Future<void>? _streamTask;
   Timer? _connectWatchdog;
-
   bool _isListening = false;
   bool _stopping = false;
-  bool _fetchingClip = false;
-  bool _playing = false;
   bool _audioStartedNotified = false;
-
   int? _childId;
   String? _sessionToken;
-  int _lastClipId = 0;
 
   VoidCallback? onAudioStarted;
   VoidCallback? onAudioStopped;
@@ -40,49 +32,69 @@ class ParentAroundAudioService {
 
     _isListening = true;
     _stopping = false;
-    _fetchingClip = false;
-    _playing = false;
     _audioStartedNotified = false;
     _childId = childId;
-    _lastClipId = 0;
 
     try {
-      await _player.setReleaseMode(ReleaseMode.stop);
-      _playerCompleteSub ??= _player.onPlayerComplete.listen((_) {
-        unawaited(_handlePlaybackComplete());
-      });
-
       onStatus?.call('Подключаемся к телефону ребёнка...');
       final response = await ApiClient.instance.startAround(childId);
       final sessionToken = _extractSessionToken(response);
       if (sessionToken == null || sessionToken.isEmpty) {
-        onError?.call('Не удалось запустить прослушивание вокруг ребёнка.');
-        await stopListening();
-        return;
+        throw StateError('Missing around session token.');
       }
 
       _sessionToken = sessionToken;
-      onStatus?.call('Ждём первый аудиофрагмент...');
+      onStatus?.call('Открываем непрерывный аудиоканал...');
 
-      _pollTimer = Timer.periodic(
-        const Duration(milliseconds: 350),
-        (_) => _pollLatestClip(),
+      final liveResponse = await ApiClient.instance.openLiveAroundAudioStream(
+        childId,
+        sessionToken: sessionToken,
       );
-      unawaited(_pollLatestClip());
+      if (liveResponse.response.statusCode != 200) {
+        final body = await liveResponse.response.stream.bytesToString();
+        liveResponse.close();
+        throw ApiException(
+          liveResponse.response.statusCode,
+          body.isEmpty ? 'Failed to open live audio stream' : body,
+        );
+      }
 
-      _connectWatchdog = Timer(const Duration(seconds: 6), () {
+      _streamResponse = liveResponse;
+      final sampleRate = int.tryParse(
+            liveResponse.response.headers['x-audio-sample-rate'] ?? '',
+          ) ??
+          16000;
+      final channels = int.tryParse(
+            liveResponse.response.headers['x-audio-channels'] ?? '',
+          ) ??
+          1;
+
+      await _playerBridge.initialize(
+        sampleRate: sampleRate,
+        channels: channels,
+      );
+      await _playerBridge.start();
+      onStatus?.call('Ждём первый звук...');
+
+      _streamTask = _consumeLiveStream(liveResponse);
+      // No auto-stop watchdog. FCM delivery, Android Doze release, and a
+      // foreground-service spinning up on a deeply asleep device can
+      // legitimately take more than a minute on some phones, and we
+      // don't want to falsely fail the session in those cases. We just
+      // surface progressive status to the parent UI; the user can stop
+      // listening manually if they decide it's taking too long.
+      _connectWatchdog = Timer(const Duration(seconds: 15), () {
         if (!_isListening || _audioStartedNotified) return;
         onStatus?.call(
-          'Телефон ребёнка просыпается и готовит микрофон. '
-          'Это может занять до 20 секунд.',
+          'Будим телефон ребёнка и открываем микрофон. '
+          'На заблокированном экране это может занять до минуты.',
         );
-        _connectWatchdog = Timer(const Duration(seconds: 18), () {
+        _connectWatchdog = Timer(const Duration(seconds: 45), () {
           if (!_isListening || _audioStartedNotified) return;
-          onError?.call(
-            'От телефона ребёнка пока не пришёл звук. Проверьте интернет, '
-            'разрешение на микрофон и фоновую работу приложения на его устройстве.',
+          onStatus?.call(
+            'Всё ещё ждём первый звук — телефон ребёнка пока не отвечает. '
+            'Можете нажать «Стоп», если не хотите больше ждать.',
           );
-          unawaited(stopListening());
         });
       });
     } catch (e) {
@@ -90,6 +102,55 @@ class ParentAroundAudioService {
       onError?.call('Сбой запуска прослушивания: $e');
       await stopListening();
     }
+  }
+
+  Future<void> _consumeLiveStream(ApiStreamResponse liveResponse) async {
+    try {
+      await for (final chunk in liveResponse.response.stream) {
+        if (!_isListening) break;
+        if (chunk.isEmpty) continue;
+
+        final isSilence = _isAllZero(chunk);
+
+        // Backend sends silence keep-alive frames while waiting for the
+        // child to wake up. They keep nginx/proxies from idling out the
+        // connection but must NOT count as "real audio arrived" — otherwise
+        // the watchdog never fires and the user listens to silence forever.
+        if (!isSilence && !_audioStartedNotified) {
+          _audioStartedNotified = true;
+          _connectWatchdog?.cancel();
+          _connectWatchdog = null;
+          onAudioStarted?.call();
+          onStatus?.call('Слушаем окружение рядом с ребёнком...');
+        }
+
+        await _playerBridge.appendPcm(Uint8List.fromList(chunk));
+      }
+
+      if (_isListening && !_stopping) {
+        onAudioStopped?.call();
+        onStatus?.call('Аудиоканал завершён.');
+        await stopListening();
+      }
+    } catch (e) {
+      debugPrint('[ParentAroundAudio] live stream error: $e');
+      if (_isListening && !_stopping) {
+        onError?.call('Поток аудио оборвался: $e');
+        await stopListening();
+      }
+    } finally {
+      liveResponse.close();
+      if (identical(_streamResponse, liveResponse)) {
+        _streamResponse = null;
+      }
+    }
+  }
+
+  bool _isAllZero(List<int> chunk) {
+    for (final byte in chunk) {
+      if (byte != 0) return false;
+    }
+    return true;
   }
 
   String? _extractSessionToken(Map<String, dynamic> response) {
@@ -103,84 +164,6 @@ class ParentAroundAudioService {
     return null;
   }
 
-  Future<void> _pollLatestClip() async {
-    if (!_isListening || _fetchingClip) return;
-    final childId = _childId;
-    final sessionToken = _sessionToken;
-    if (childId == null || sessionToken == null || sessionToken.isEmpty) return;
-
-    _fetchingClip = true;
-    try {
-      final clip = await ApiClient.instance.latestAroundAudio(
-        childId,
-        sessionToken: sessionToken,
-        afterId: _lastClipId > 0 ? _lastClipId : null,
-      );
-      if (!_isListening || clip == null) return;
-
-      final clipId = clip['id'] as int?;
-      if (clipId == null || clipId <= _lastClipId) return;
-
-      final bytes = await ApiClient.instance.downloadAroundAudio(clipId);
-      if (!_isListening) return;
-
-      final file = await _writeClipToTempFile(clipId, bytes);
-      _lastClipId = clipId;
-      _pendingFiles.add(file);
-
-      if (!_audioStartedNotified) {
-        _audioStartedNotified = true;
-        _connectWatchdog?.cancel();
-        _connectWatchdog = null;
-        onAudioStarted?.call();
-        onStatus?.call('Слушаем окружение рядом с ребёнком...');
-      }
-
-      unawaited(_playNextIfIdle());
-    } catch (e) {
-      debugPrint('[ParentAroundAudio] poll error: $e');
-    } finally {
-      _fetchingClip = false;
-    }
-  }
-
-  Future<File> _writeClipToTempFile(int clipId, List<int> bytes) async {
-    final dir = await getTemporaryDirectory();
-    final file = File(
-      '${dir.path}/around_parent_${_sessionToken ?? 'session'}_$clipId.m4a',
-    );
-    await file.writeAsBytes(bytes, flush: true);
-    return file;
-  }
-
-  Future<void> _playNextIfIdle() async {
-    if (_playing || !_isListening || _pendingFiles.isEmpty) return;
-    final file = _pendingFiles.first;
-    _playing = true;
-    try {
-      await _player.play(DeviceFileSource(file.path));
-    } catch (e) {
-      debugPrint('[ParentAroundAudio] play error: $e');
-      _playing = false;
-      _pendingFiles.removeFirst();
-      await _deleteFileQuietly(file);
-      if (_isListening) {
-        unawaited(_playNextIfIdle());
-      }
-    }
-  }
-
-  Future<void> _handlePlaybackComplete() async {
-    if (_pendingFiles.isNotEmpty) {
-      final finished = _pendingFiles.removeFirst();
-      await _deleteFileQuietly(finished);
-    }
-    _playing = false;
-    if (_isListening) {
-      unawaited(_playNextIfIdle());
-    }
-  }
-
   Future<void> stopListening() async {
     if (_stopping) return;
     _stopping = true;
@@ -189,26 +172,21 @@ class ParentAroundAudioService {
     final sessionToken = _sessionToken;
 
     _isListening = false;
-    _fetchingClip = false;
     _audioStartedNotified = false;
-    _pollTimer?.cancel();
-    _pollTimer = null;
+    _childId = null;
+    _sessionToken = null;
+
     _connectWatchdog?.cancel();
     _connectWatchdog = null;
 
     try {
-      await _player.stop();
+      _streamResponse?.close();
     } catch (_) {}
-    _playing = false;
+    _streamResponse = null;
 
-    while (_pendingFiles.isNotEmpty) {
-      final file = _pendingFiles.removeFirst();
-      await _deleteFileQuietly(file);
-    }
-
-    _lastClipId = 0;
-    _childId = null;
-    _sessionToken = null;
+    try {
+      await _playerBridge.stop();
+    } catch (_) {}
 
     if (childId != null && sessionToken != null && sessionToken.isNotEmpty) {
       try {
@@ -224,16 +202,10 @@ class ParentAroundAudioService {
 
   Future<void> dispose() async {
     await stopListening();
-    await _playerCompleteSub?.cancel();
-    _playerCompleteSub = null;
-    await _player.dispose();
-  }
-
-  Future<void> _deleteFileQuietly(File file) async {
+    final task = _streamTask;
+    _streamTask = null;
     try {
-      if (await file.exists()) {
-        await file.delete();
-      }
+      await task;
     } catch (_) {}
   }
 }

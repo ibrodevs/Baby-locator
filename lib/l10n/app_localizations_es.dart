@@ -767,7 +767,7 @@ class SEs extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttps://backend21.pythonanywhere.com/invite/$code';
+    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/providers/zone_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
@@ -338,9 +339,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                     : 'P',
                 color: AppColors.primary,
                 size: 36,
-                image: session.user?.avatarUrl != null
-                    ? NetworkImage(session.user!.avatarUrl!)
-                    : null,
+                image: avatarImageProvider(session.user?.avatarUrl),
               ),
             ),
             ChildSelectorChips(

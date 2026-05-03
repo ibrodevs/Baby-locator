@@ -4,109 +4,113 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 
-/// Kid-friendly auth screen with two modes: Sign In and Register (with invite code).
 class ChildAuthScreen extends StatelessWidget {
   const ChildAuthScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 8),
-              // Back button
-              Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(14),
+    const palette = ChildPalette.girl;
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(primary: palette.primary),
+        extensions: <ThemeExtension<dynamic>>[palette],
+      ),
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 8),
+                // Back button
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: palette.primarySoft,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(Icons.arrow_back_ios_new_rounded,
+                          size: 18, color: palette.primary),
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new_rounded,
-                        size: 18, color: AppColors.primary),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Fun stacked circles
-              Center(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primarySoft,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            blurRadius: 24,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: 88,
-                      height: 88,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [AppColors.primary, AppColors.navy],
+                // Fun stacked circles
+                Center(
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 110,
+                        height: 110,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: palette.primarySoft,
+                          boxShadow: [
+                            BoxShadow(
+                              color: palette.primary.withValues(alpha: 0.15),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Icon(Icons.child_care_rounded,
-                          size: 44, color: Colors.white),
-                    ),
-                  ],
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: palette.heroGradient,
+                        ),
+                        child: const Icon(Icons.child_care_rounded,
+                            size: 44, color: Colors.white),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 28),
+                const SizedBox(height: 28),
 
-              Text(
-                t.childAuthTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.navy,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.3,
+                Text(
+                  t.childAuthTitle,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: palette.titleColor,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-              Text(
-                t.childAuthSubtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textSecondaryLight,
-                  fontSize: 14,
+                Text(
+                  t.childAuthSubtitle,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: AppColors.textSecondaryLight,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 36),
+                const SizedBox(height: 36),
 
-              // Auth form (login / register toggle)
-              const Expanded(child: _ChildAuthBody()),
-            ],
+                // Auth form (login / register toggle)
+                const Expanded(child: _ChildAuthBody()),
+              ],
+            ),
           ),
         ),
       ),
@@ -168,6 +172,7 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final palette = ChildPalette.of(context);
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -177,10 +182,10 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
             Text(
               t.childRegisterTitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: AppColors.navy,
+                color: palette.titleColor,
               ),
             ),
             const SizedBox(height: 6),
@@ -212,10 +217,10 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
             Text(
               t.setupYourProfile,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: AppColors.navy,
+                color: palette.titleColor,
               ),
             ),
             const SizedBox(height: 6),
@@ -234,20 +239,20 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primarySoft,
+                  color: palette.primarySoft,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.vpn_key_rounded,
-                        size: 16, color: AppColors.primary),
+                    Icon(Icons.vpn_key_rounded,
+                        size: 16, color: palette.primary),
                     const SizedBox(width: 6),
                     Text(
                       _inviteCode.text.trim().toUpperCase(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
+                        color: palette.primary,
                         fontSize: 14,
                       ),
                     ),
@@ -257,8 +262,8 @@ class _ChildAuthBodyState extends ConsumerState<_ChildAuthBody> {
                         _codeVerified = false;
                         _err = null;
                       }),
-                      child: const Icon(Icons.edit_rounded,
-                          size: 16, color: AppColors.primary),
+                      child: Icon(Icons.edit_rounded,
+                          size: 16, color: palette.primary),
                     ),
                   ],
                 ),
@@ -320,8 +325,9 @@ class _BigButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = ChildPalette.of(context);
     return Material(
-      color: AppColors.primary,
+      color: palette.primary,
       borderRadius: BorderRadius.circular(18),
       elevation: 0,
       child: InkWell(
@@ -372,6 +378,7 @@ class _KidField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = ChildPalette.of(context);
     return TextField(
       controller: controller,
       autocorrect: false,
@@ -385,7 +392,7 @@ class _KidField extends StatelessWidget {
         ),
         prefixIcon: Container(
           margin: const EdgeInsets.only(left: 12, right: 8),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+          child: Icon(icon, color: palette.primary, size: 22),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 0),
         filled: true,
@@ -408,7 +415,7 @@ class _KidField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: palette.primary, width: 2),
         ),
       ),
     );

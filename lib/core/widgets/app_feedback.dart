@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../theme/app_colors.dart';
 
@@ -9,11 +11,12 @@ Future<bool?> showAppConfirmDialog({
   required String title,
   required String message,
   required String confirmLabel,
-  String cancelLabel = 'Cancel',
+  String? cancelLabel,
   AppFeedbackType type = AppFeedbackType.info,
 }) {
   final accent = _feedbackColor(type);
   final icon = _feedbackIcon(type);
+  final resolvedCancelLabel = cancelLabel ?? S.of(context).cancel;
 
   return showDialog<bool>(
     context: context,
@@ -78,7 +81,7 @@ Future<bool?> showAppConfirmDialog({
                       ),
                     ),
                     child: Text(
-                      cancelLabel,
+                      resolvedCancelLabel,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -115,11 +118,12 @@ Future<void> showAppNoticeDialog({
   required BuildContext context,
   required String title,
   required String message,
-  String actionLabel = 'OK',
+  String? actionLabel,
   AppFeedbackType type = AppFeedbackType.info,
 }) async {
   final accent = _feedbackColor(type);
   final icon = _feedbackIcon(type);
+  final resolvedActionLabel = actionLabel ?? _okActionLabel(context);
 
   await showDialog<void>(
     context: context,
@@ -185,7 +189,7 @@ Future<void> showAppNoticeDialog({
                   ),
                 ),
                 child: Text(
-                  actionLabel,
+                  resolvedActionLabel,
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
@@ -195,6 +199,10 @@ Future<void> showAppNoticeDialog({
       ),
     ),
   );
+}
+
+String _okActionLabel(BuildContext context) {
+  return ExtraL10n.of(context).okAction;
 }
 
 void showAppSnackBar(

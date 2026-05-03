@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../activity/activity_screen.dart';
@@ -49,7 +50,7 @@ class AppBottomNav extends StatelessWidget {
       (Icons.location_on_outlined, t.navMap),
       (Icons.notifications_none_rounded, t.navActivity),
       (Icons.chat_bubble_outline_rounded, t.navChat),
-      (Icons.grid_view_rounded, 'Меню'),
+      (Icons.grid_view_rounded, ExtraL10n.of(context).menuLabel),
     ];
     return Container(
       decoration: const BoxDecoration(

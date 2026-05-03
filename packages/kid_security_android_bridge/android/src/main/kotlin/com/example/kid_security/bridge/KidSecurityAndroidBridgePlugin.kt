@@ -6,14 +6,20 @@ import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.media.AudioManager
 import android.os.Build
 import android.os.PowerManager
 import android.os.Process
 import android.provider.Settings
+import android.util.Base64
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -26,6 +32,8 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
         private const val DEVICE_STATS_CHANNEL = "kid_security/device_stats"
         private const val APP_BLOCKING_CHANNEL = "kid_security/app_blocking"
         private const val VOLUME_CHANNEL = "kid_security/volume"
+        private const val LIVE_AUDIO_PLAYER_CHANNEL = "kid_security/live_audio_player"
+        private const val AROUND_RECORDER_CHANNEL = "kid_security/around_recorder"
         private var savedVolume: Int = -1
     }
 
@@ -33,7 +41,12 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
     private lateinit var deviceStatsChannel: MethodChannel
     private lateinit var appBlockingChannel: MethodChannel
     private lateinit var volumeChannel: MethodChannel
+    private lateinit var liveAudioPlayerChannel: MethodChannel
+    private lateinit var aroundRecorderChannel: MethodChannel
+    private val liveAudioPlayer = LiveAudioPlayer()
+    private var aroundRecorder: AroundAudioRecorder? = null
     private val homePackages by lazy { resolveHomePackages() }
+    private val sentIconPackages = mutableSetOf<String>()
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         applicationContext = binding.applicationContext
@@ -49,16 +62,33 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             binding.binaryMessenger,
             VOLUME_CHANNEL,
         )
+        liveAudioPlayerChannel = MethodChannel(
+            binding.binaryMessenger,
+            LIVE_AUDIO_PLAYER_CHANNEL,
+        )
+        aroundRecorderChannel = MethodChannel(
+            binding.binaryMessenger,
+            AROUND_RECORDER_CHANNEL,
+        )
 
         deviceStatsChannel.setMethodCallHandler(::handleDeviceStatsMethod)
         appBlockingChannel.setMethodCallHandler(::handleAppBlockingMethod)
         volumeChannel.setMethodCallHandler(::handleVolumeMethod)
+        liveAudioPlayerChannel.setMethodCallHandler(::handleLiveAudioPlayerMethod)
+        aroundRecorderChannel.setMethodCallHandler(::handleAroundRecorderMethod)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         deviceStatsChannel.setMethodCallHandler(null)
         appBlockingChannel.setMethodCallHandler(null)
         volumeChannel.setMethodCallHandler(null)
+        liveAudioPlayerChannel.setMethodCallHandler(null)
+        aroundRecorderChannel.setMethodCallHandler(null)
+        try {
+            aroundRecorder?.stop()
+        } catch (_: Exception) {
+        }
+        liveAudioPlayer.release()
     }
 
     private fun handleDeviceStatsMethod(call: MethodCall, result: MethodChannel.Result) {
@@ -141,6 +171,70 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             }
         } catch (error: Exception) {
             result.error("bridge_error", error.message, null)
+        }
+    }
+
+    private fun handleLiveAudioPlayerMethod(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            when (call.method) {
+                "initialize" -> {
+                    val sampleRate = call.argument<Int>("sampleRate") ?: 16000
+                    val channels = call.argument<Int>("channels") ?: 1
+                    liveAudioPlayer.initialize(sampleRate, channels)
+                    result.success(true)
+                }
+
+                "start" -> {
+                    liveAudioPlayer.start()
+                    result.success(true)
+                }
+
+                "appendPcm" -> {
+                    val bytes = call.argument<ByteArray>("bytes") ?: byteArrayOf()
+                    liveAudioPlayer.appendPcm(bytes)
+                    result.success(true)
+                }
+
+                "stop" -> {
+                    liveAudioPlayer.stop()
+                    result.success(true)
+                }
+
+                else -> result.notImplemented()
+            }
+        } catch (error: Exception) {
+            result.error("bridge_error", error.message, null)
+        }
+    }
+
+    private fun handleAroundRecorderMethod(call: MethodCall, result: MethodChannel.Result) {
+        try {
+            when (call.method) {
+                "start" -> {
+                    val sessionToken = call.argument<String>("sessionToken").orEmpty()
+                    val baseUrl = call.argument<String>("baseUrl").orEmpty()
+                    val authHeaderValue = call.argument<String>("authHeaderValue")
+                    val recorder = aroundRecorder ?: AroundAudioRecorder(applicationContext).also {
+                        aroundRecorder = it
+                    }
+                    recorder.start(sessionToken, baseUrl, authHeaderValue)
+                    result.success(true)
+                }
+
+                "stop" -> {
+                    val sessionToken = call.argument<String>("sessionToken")
+                    aroundRecorder?.stop(sessionToken)
+                    result.success(true)
+                }
+
+                "isRunning" -> {
+                    result.success(aroundRecorder?.isRunning() == true)
+                }
+
+                else -> result.notImplemented()
+            }
+        } catch (error: Exception) {
+            result.error("around_recorder_error", error.message, null)
         }
     }
 
@@ -389,12 +483,16 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
                                 return@mapNotNull null
                             }
 
-                            mapOf(
+                            val entry = mutableMapOf<String, Any?>(
                                 "packageName" to stat.packageName,
                                 "appName" to stat.appName,
                                 "usageMinutes" to usageMinutes,
                                 "lastUsedAt" to stat.lastUsedAt?.let(::formatDateTime),
                             )
+                            if (sentIconPackages.add(stat.packageName)) {
+                                loadAppIconBase64(stat.packageName)?.let { entry["iconB64"] = it }
+                            }
+                            entry
                         }
                         .sortedByDescending { (it["usageMinutes"] as? Int) ?: 0 },
                 )
@@ -565,6 +663,28 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             }
             .maxByOrNull { it.lastTimeUsed }
             ?.packageName
+    }
+
+    private fun loadAppIconBase64(packageName: String): String? {
+        return try {
+            val pm = applicationContext.packageManager
+            val drawable: Drawable = pm.getApplicationIcon(packageName)
+            val size = 96
+            val bitmap = if (drawable is BitmapDrawable && drawable.bitmap != null) {
+                Bitmap.createScaledBitmap(drawable.bitmap, size, size, true)
+            } else {
+                val bm = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bm)
+                drawable.setBounds(0, 0, size, size)
+                drawable.draw(canvas)
+                bm
+            }
+            val out = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+            Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun appLabelFor(packageName: String): String {

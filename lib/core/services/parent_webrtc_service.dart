@@ -9,15 +9,18 @@ import 'api_client.dart';
 // Audio configuration for the PARENT side (receive-only).
 // We want loud playback through the loud speaker, NOT phone-call routing,
 // so the parent hears every ambient sound around the child clearly.
+// MODE_NORMAL + STREAM_MUSIC is what plays through the speaker at media
+// volume; MODE_IN_COMMUNICATION routes to the earpiece at voice-call volume,
+// which on most Android phones makes the audio inaudible until the user
+// physically holds the phone to their ear.
 final AndroidAudioConfiguration _parentAndroidAudio = AndroidAudioConfiguration(
   manageAudioFocus: true,
-  androidAudioMode: AndroidAudioMode.inCommunication,
+  androidAudioMode: AndroidAudioMode.normal,
   androidAudioFocusMode: AndroidAudioFocusMode.gain,
-  androidAudioStreamType: AndroidAudioStreamType.voiceCall,
-  androidAudioAttributesUsageType:
-      AndroidAudioAttributesUsageType.voiceCommunication,
-  androidAudioAttributesContentType: AndroidAudioAttributesContentType.speech,
-  forceHandleAudioRouting: true,
+  androidAudioStreamType: AndroidAudioStreamType.music,
+  androidAudioAttributesUsageType: AndroidAudioAttributesUsageType.media,
+  androidAudioAttributesContentType: AndroidAudioAttributesContentType.music,
+  forceHandleAudioRouting: false,
 );
 
 /// Runs on the parent device.
@@ -138,21 +141,6 @@ class ParentWebRTCService {
     );
   }
 
-  void _scheduleDisconnectTeardown({
-    required Duration delay,
-    required String status,
-    required String error,
-  }) {
-    _disconnectWatchdog?.cancel();
-    onStatus?.call(status);
-    _disconnectWatchdog = Timer(delay, () {
-      if (!_isListening || _audioStartedNotified == false) return;
-      onAudioStopped?.call();
-      onError?.call(error);
-      Future.microtask(stopListening);
-    });
-  }
-
   /// Activate monitoring for [childId].
   Future<void> startListening({required int childId}) async {
     if (_isListening) return;
@@ -229,36 +217,39 @@ class ParentWebRTCService {
             onStatus?.call('Соединение установлено');
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+            // Transient — every cell handoff or short congestion spike
+            // triggers this. Show status, keep the session running.
+            // libwebrtc's ICE will reconnect on its own if it can; if
+            // it can't, the child issues an iceRestart offer and we
+            // pick it up via the signaling poll. We DO NOT tear down.
             if (!_audioStartedNotified) {
               onStatus?.call(
                 _receivedOffer
                     ? 'Сигнал от телефона ребёнка получен, продолжаем подключение...'
                     : 'Ждём ответ от телефона ребёнка...',
               );
-              break;
+            } else {
+              onStatus?.call('Связь нестабильна, восстанавливаем звук...');
             }
-            _scheduleDisconnectTeardown(
-              delay: const Duration(seconds: 8),
-              status: 'Связь нестабильна, пробуем восстановить звук...',
-              error: 'Аудиосвязь прервалась и не восстановилась.',
-            );
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+            // Same logic — never auto-tear-down. The child detects the
+            // same Failed state on its side and fires off an iceRestart
+            // offer; once it lands here via the signaling poll we'll
+            // transition back through Connecting → Connected.
             if (!_audioStartedNotified) {
               onStatus?.call(
                 _receivedOffer
-                    ? 'Пробуем переподключить аудиоканал...'
+                    ? 'Переподключаем аудиоканал...'
                     : 'Подключение заняло больше времени, продолжаем ждать...',
               );
-              break;
+            } else {
+              onStatus?.call('Аудиоканал потерян, переподключаемся...');
             }
-            _scheduleDisconnectTeardown(
-              delay: const Duration(seconds: 4),
-              status: 'Аудиоканал потерян, пробуем переподключиться...',
-              error: 'Не удалось восстановить аудиосвязь.',
-            );
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
+            // Closed = the peer connection has actually been torn down
+            // (peer or local close()). Nothing left to recover.
             onAudioStopped?.call();
             Future.microtask(stopListening);
             break;

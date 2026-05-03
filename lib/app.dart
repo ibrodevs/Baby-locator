@@ -11,11 +11,15 @@ import 'core/services/child_live_audio_service.dart';
 import 'core/services/child_notification_service.dart';
 import 'core/services/device_notification_service.dart';
 import 'core/services/fcm_service.dart';
+import 'core/services/local_avatar_store.dart';
 import 'core/services/remote_device_service.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/child_theme.dart';
+import 'features/auth/intro_onboarding_screen.dart';
 import 'features/auth/onboarding_screen.dart';
 import 'features/auth/parent_setup_gate.dart';
 import 'features/auth/splash_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'features/child/child_root_screen.dart';
 import 'features/sos/sos_alert_screen.dart';
 
@@ -30,6 +34,8 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     with WidgetsBindingObserver {
   ProviderSubscription<SessionState>? _sessionSubscription;
   bool _splashDone = false;
+  bool _introChecked = false;
+  bool _introSeen = true;
 
   @override
   void initState() {
@@ -37,6 +43,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     WidgetsBinding.instance.addObserver(this);
     unawaited(DeviceNotificationService.instance.initialize());
     unawaited(ChildNotificationService.instance.initialize());
+    unawaited(LocalAvatarStore.instance.init());
 
     // Wire SOS callback so FCM foreground handler can show the red screen.
     FcmService.instance.onSosReceived = _showSosScreen;
@@ -47,6 +54,22 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     );
 
     unawaited(_syncNotificationSession(ref.read(sessionProvider).user));
+    unawaited(_loadIntroSeen());
+  }
+
+  Future<void> _loadIntroSeen() async {
+    bool seen = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      seen = prefs.getBool(introSeenKey) ?? false;
+    } catch (_) {
+      seen = false;
+    }
+    if (!mounted) return;
+    setState(() {
+      _introSeen = seen;
+      _introChecked = true;
+    });
   }
 
   void _showSosScreen(String childName, String? message) {
@@ -96,6 +119,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      unawaited(FcmService.instance.restorePendingSosFromDisk());
       final role = ref.read(sessionProvider).user?.role;
       if (role == UserRole.parent) {
         unawaited(DeviceNotificationService.instance.refreshNow());
@@ -140,10 +164,18 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
   }
 
   Widget _buildHome(SessionState session) {
-    final destination = switch (session.user?.role) {
+    final loggedOut = session.user == null;
+    final showIntro = loggedOut && _introChecked && !_introSeen;
+    final Widget destination = switch (session.user?.role) {
       UserRole.parent => const ParentSetupGate(),
       UserRole.child => const ChildRootScreen(),
-      _ => const OnboardingScreen(),
+      _ => showIntro
+          ? IntroOnboardingScreen(
+              onFinished: () {
+                if (mounted) setState(() => _introSeen = true);
+              },
+            )
+          : const OnboardingScreen(),
     };
 
     return AnimatedSwitcher(
@@ -157,10 +189,13 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
           child: child,
         ),
       ),
-      child: _splashDone && session.initialized
+      child: _splashDone && session.initialized && _introChecked
           ? KeyedSubtree(key: const ValueKey('app'), child: destination)
           : SplashScreen(
               key: const ValueKey('splash'),
+              palette: session.user?.role == UserRole.child
+                  ? ChildPalette.girl
+                  : ChildPalette.boy,
               onFinished: () {
                 if (mounted) setState(() => _splashDone = true);
               },

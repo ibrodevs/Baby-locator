@@ -768,7 +768,7 @@ class SRu extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code\n\nhttps://backend21.pythonanywhere.com/invite/$code';
+    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

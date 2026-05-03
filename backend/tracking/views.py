@@ -7,7 +7,7 @@ from datetime import date as dt_date
 from datetime import timedelta
 
 from django.db import transaction
-from django.http import FileResponse
+from django.http import FileResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -20,8 +20,10 @@ from rest_framework.views import APIView
 from accounts.models import User
 from accounts.serializers import UserSerializer
 
+from .live_audio import live_audio_broker
 from .models import (
     Alert,
+    AppIcon,
     AppLimit,
     AppUsageSnapshot,
     AroundAudioClip,
@@ -52,6 +54,10 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+LIVE_AUDIO_DEFAULT_SAMPLE_RATE = 16000
+LIVE_AUDIO_DEFAULT_CHANNELS = 1
+LIVE_AUDIO_FORMAT = "pcm_s16le"
 
 
 def _haversine_m(lat1, lng1, lat2, lng2):
@@ -96,6 +102,14 @@ def _sanitize_address(value):
     if re.fullmatch(coordinate_pattern, address):
         return ""
     return address
+
+
+def _coerce_positive_int(value, default):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
 
 
 def _parse_selected_month(raw_value, fallback):
@@ -484,6 +498,13 @@ class ChildDeviceStatsSyncView(APIView):
             "battery",
             "charging",
             "usage_access_granted",
+            "location_service_enabled",
+            "location_permission_granted",
+            "background_location_granted",
+            "microphone_granted",
+            "notifications_granted",
+            "accessibility_enabled",
+            "battery_optimization_disabled",
         ]:
             if field in data:
                 setattr(device_status, field, data[field])
@@ -501,10 +522,14 @@ class ChildDeviceStatsSyncView(APIView):
 
         summaries = []
         snapshots = []
+        icon_updates = {}
         for day in days:
             raw_apps = day.get("apps", [])
             apps = []
             for app in raw_apps:
+                icon_b64 = app.get("icon_b64")
+                if icon_b64:
+                    icon_updates[app["package_name"]] = icon_b64
                 apps.append({
                     **app,
                     "usage_minutes": min(
@@ -556,6 +581,12 @@ class ChildDeviceStatsSyncView(APIView):
             DeviceDailySummary.objects.bulk_create(summaries)
             if snapshots:
                 AppUsageSnapshot.objects.bulk_create(snapshots)
+            for package_name, icon_b64 in icon_updates.items():
+                AppIcon.objects.update_or_create(
+                    child=request.user,
+                    package_name=package_name,
+                    defaults={"icon_b64": icon_b64},
+                )
 
         # Auto-block apps that exceed their enabled daily limits
         today_str = timezone.localdate()
@@ -630,6 +661,10 @@ class ChildStatsSummaryView(APIView):
         device_status = getattr(child, "device_status", None)
         limits = list(child.app_limits.all())
         limits_by_package = {limit.package_name: limit for limit in limits}
+        icons_by_package = {
+            icon.package_name: icon.icon_b64
+            for icon in child.app_icons.all()
+        }
 
         month_summaries = {
             summary.usage_date: summary
@@ -738,6 +773,11 @@ class ChildStatsSummaryView(APIView):
             )
             day_cursor += timedelta(days=1)
 
+        for item in selected_apps.values():
+            icon = icons_by_package.get(item["package_name"])
+            if icon:
+                item["icon_b64"] = icon
+
         apps = sorted(
             selected_apps.values(),
             key=lambda item: (-item["usage_minutes"], item["app_name"].lower()),
@@ -755,6 +795,7 @@ class ChildStatsSummaryView(APIView):
                 {
                     "package_name": s["package_name"],
                     "app_name": s["app_name"],
+                    "icon_b64": icons_by_package.get(s["package_name"]),
                 }
                 for s in all_snapshots
                 if s["package_name"] not in known_packages_in_apps
@@ -775,6 +816,13 @@ class ChildStatsSummaryView(APIView):
                     "os_version": device_status.os_version if device_status else "",
                     "timezone": device_status.timezone if device_status else "",
                     "usage_access_granted": device_status.usage_access_granted if device_status else False,
+                    "location_service_enabled": device_status.location_service_enabled if device_status else False,
+                    "location_permission_granted": device_status.location_permission_granted if device_status else False,
+                    "background_location_granted": device_status.background_location_granted if device_status else False,
+                    "microphone_granted": device_status.microphone_granted if device_status else False,
+                    "notifications_granted": device_status.notifications_granted if device_status else False,
+                    "accessibility_enabled": device_status.accessibility_enabled if device_status else False,
+                    "battery_optimization_disabled": device_status.battery_optimization_disabled if device_status else False,
                     "charging": device_status.charging if device_status else False,
                     "battery": (
                         latest_location.battery
@@ -1030,6 +1078,123 @@ class AroundAudioStreamView(APIView):
             clip.audio.open("rb"),
             content_type=content_type or "audio/mp4",
         )
+
+
+class AroundAudioLiveUploadView(APIView):
+    """Child -> backend: one long-lived HTTP upload with raw PCM chunks."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role != User.ROLE_CHILD:
+            return Response({"detail": "children only"}, status=403)
+
+        session_token = (request.query_params.get("session_token") or "").strip()
+        if not session_token:
+            return Response({"detail": "session_token is required"}, status=400)
+
+        sample_rate = _coerce_positive_int(
+            request.headers.get("X-Audio-Sample-Rate"),
+            LIVE_AUDIO_DEFAULT_SAMPLE_RATE,
+        )
+        channels = _coerce_positive_int(
+            request.headers.get("X-Audio-Channels"),
+            LIVE_AUDIO_DEFAULT_CHANNELS,
+        )
+
+        session = live_audio_broker.get_or_create(
+            session_token,
+            child_id=request.user.id,
+            sample_rate=sample_rate,
+            channels=channels,
+            audio_format=LIVE_AUDIO_FORMAT,
+        )
+        # Read the request body incrementally and forward each piece to
+        # the broker as it arrives. The deployment's nginx is configured
+        # with `proxy_request_buffering off` (see DEPLOY_NGINX.md), so
+        # `wsgi.input.read(...)` returns data the moment the child
+        # flushes a chunk over its long-lived POST.
+        chunk_count = 0
+        byte_count = 0
+        try:
+            stream = request.META["wsgi.input"]
+            while True:
+                chunk = stream.read(4096)
+                if not chunk:
+                    break
+                chunk_count += 1
+                byte_count += len(chunk)
+                live_audio_broker.publish(
+                    session_token,
+                    child_id=request.user.id,
+                    data=bytes(chunk),
+                )
+        except Exception:  # noqa: BLE001 — never let a broken upload kill the broker
+            logger.exception(
+                "Around live audio upload errored: child_id=%s session=%s",
+                request.user.id,
+                session_token,
+            )
+        # Do NOT call broker.finish() — the session stays open across
+        # client reconnects. It is implicitly closed only when nothing
+        # touches it and it gets evicted.
+
+        logger.info(
+            "Around live audio upload finished: child_id=%s session=%s chunks=%s bytes=%s",
+            request.user.id,
+            session_token,
+            chunk_count,
+            byte_count,
+        )
+        return Response(
+            {
+                "status": "ok",
+                "session_token": session_token,
+                "sample_rate": session.sample_rate,
+                "channels": session.channels,
+                "format": session.format,
+                "bytes_received": byte_count,
+                "chunks_received": chunk_count,
+            }
+        )
+
+
+class AroundAudioLiveStreamView(APIView):
+    """Parent <- backend: one long-lived HTTP download of raw PCM chunks."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, child_id):
+        child = get_object_or_404(User, id=child_id, role=User.ROLE_CHILD)
+        if not _ensure_parent_child_relationship(request.user, child):
+            return Response({"detail": "forbidden"}, status=403)
+
+        session_token = (request.query_params.get("session_token") or "").strip()
+        if not session_token:
+            return Response({"detail": "session_token is required"}, status=400)
+
+        session = live_audio_broker.get_or_create(
+            session_token,
+            child_id=child.id,
+            sample_rate=LIVE_AUDIO_DEFAULT_SAMPLE_RATE,
+            channels=LIVE_AUDIO_DEFAULT_CHANNELS,
+            audio_format=LIVE_AUDIO_FORMAT,
+        )
+
+        response = StreamingHttpResponse(
+            streaming_content=live_audio_broker.iter_chunks(
+                session_token,
+                child_id=child.id,
+            ),
+            content_type="application/octet-stream",
+        )
+        response["Cache-Control"] = "no-store"
+        response["X-Accel-Buffering"] = "no"
+        response["Content-Encoding"] = "identity"
+        response["X-Audio-Sample-Rate"] = str(session.sample_rate)
+        response["X-Audio-Channels"] = str(session.channels)
+        response["X-Audio-Format"] = session.format
+        return response
 
 
 class ActivateMonitoringView(APIView):

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../theme/app_colors.dart';
 
@@ -8,17 +9,18 @@ class BrandHeader extends StatelessWidget {
     super.key,
     this.leading,
     this.trailing,
-    this.title = 'Kid Security',
+    this.title,
     this.titlePrefix,
   });
 
   final Widget? leading;
   final Widget? trailing;
-  final String title;
+  final String? title;
   final String? titlePrefix;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedTitle = title ?? S.of(context).appName;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
@@ -46,7 +48,7 @@ class BrandHeader extends StatelessWidget {
                       ),
                     ),
                   ],
-                  TextSpan(text: title),
+                  TextSpan(text: resolvedTitle),
                 ],
               ),
             ),

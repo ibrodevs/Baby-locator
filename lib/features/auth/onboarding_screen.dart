@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -51,9 +52,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   }
 
   Future<void> _submitCode() async {
+    final t = S.of(context);
     final code = _codeController.text.replaceAll(RegExp(r'\D'), '');
     if (code.isEmpty) {
-      setState(() => _error = 'Введите код.');
+      setState(() => _error = _enterInviteCodeError(context));
       return;
     }
 
@@ -71,7 +73,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = 'Неверный код');
+      setState(() => _error = t.invalidInviteCode);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -85,8 +87,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Positioned(
@@ -102,7 +105,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             bottom: 140,
             child: _BlurOrb(
               size: 220,
-              color: AppColors.accent.withValues(alpha: 0.12),
+              color: AppColors.primary.withValues(alpha: 0.1),
             ),
           ),
           SafeArea(
@@ -154,20 +157,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               ),
                             ),
                             const SizedBox(height: 32),
-                            const Text(
-                              'Введите код',
+                            Text(
+                              t.childRegisterTitle,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w900,
                                 color: AppColors.navy,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Код от родителя',
+                            Text(
+                              t.childRegisterSubtitle,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 15,
                                 color: AppColors.textSecondaryLight,
                               ),
@@ -246,8 +249,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                           strokeWidth: 2.5,
                                         ),
                                       )
-                                    : const Text(
-                                        'Войти',
+                                    : Text(
+                                        t.signIn,
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w800,
@@ -256,14 +259,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               ),
                             ),
                             const SizedBox(height: 14),
-                            TextButton(
-                              onPressed: _busy ? null : _openParentLogin,
-                              child: const Text(
-                                'Войти как родитель',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primary,
+                            SizedBox(
+                              height: 58,
+                              child: ElevatedButton(
+                                onPressed: _busy ? null : _openParentLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                child: Text(
+                                  _signInAsParent(context),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
                             ),
@@ -281,6 +293,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       ),
     );
   }
+}
+
+String _enterInviteCodeError(BuildContext context) {
+  final code = Localizations.localeOf(context).languageCode;
+  return switch (code) {
+    'ar' => 'أدخل رمز الدعوة',
+    'az' => 'Dəvət kodunu daxil edin',
+    'de' => 'Gib den Einladungscode ein',
+    'es' => 'Introduce el código de invitación',
+    'fr' => "Saisissez le code d'invitation",
+    'hy' => 'Մուտքագրեք հրավերի կոդը',
+    'it' => 'Inserisci il codice di invito',
+    'ka' => 'შეიყვანეთ მოსაწვევის კოდი',
+    'kk' => 'Шақыру кодын енгізіңіз',
+    'ky' => 'Чакыруу кодун киргизиңиз',
+    'pl' => 'Wpisz kod zaproszenia',
+    'pt' => 'Digite o código de convite',
+    'ru' => 'Введите код приглашения',
+    'tg' => 'Рамзи даъватро ворид кунед',
+    'tk' => 'Çakylyk koduny giriziň',
+    'uz' => 'Taklif kodini kiriting',
+    _ => 'Enter the invite code',
+  };
+}
+
+String _signInAsParent(BuildContext context) {
+  final code = Localizations.localeOf(context).languageCode;
+  return switch (code) {
+    'ar' => 'تسجيل الدخول كوالد',
+    'az' => 'Valideyn kimi daxil ol',
+    'de' => 'Als Elternteil anmelden',
+    'es' => 'Iniciar sesión como padre',
+    'fr' => 'Se connecter en tant que parent',
+    'hy' => 'Մուտք գործել որպես ծնող',
+    'it' => 'Accedi come genitore',
+    'ka' => 'შესვლა როგორც მშობელი',
+    'kk' => 'Ата-ана ретінде кіру',
+    'ky' => 'Ата-эне катары кирүү',
+    'pl' => 'Zaloguj się jako rodzic',
+    'pt' => 'Entrar como responsável',
+    'ru' => 'Войти как родитель',
+    'tg' => 'Ҳамчун волид ворид шавед',
+    'tk' => 'Ene-ata hökmünde gir',
+    'uz' => 'Ota-ona sifatida kirish',
+    _ => 'Sign in as parent',
+  };
 }
 
 class _BlurOrb extends StatelessWidget {

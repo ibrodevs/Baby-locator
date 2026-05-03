@@ -65,6 +65,17 @@
 	<string>Kid Security needs camera access to take a profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Kid Security uses the microphone so a parent can hear what is happening around the child's phone.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>89.108.81.151</key>
+			<dict>
+				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>UIBackgroundModes</key>

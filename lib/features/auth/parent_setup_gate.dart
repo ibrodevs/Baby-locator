@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/widgets/app_feedback.dart';
 import '../root/root_screen.dart';
-import 'parent_setup_flow_screen.dart';
 
 class ParentSetupGate extends ConsumerStatefulWidget {
   const ParentSetupGate({super.key});
@@ -17,7 +15,6 @@ class ParentSetupGate extends ConsumerStatefulWidget {
 class _ParentSetupGateState extends ConsumerState<ParentSetupGate> {
   bool _loading = true;
   String? _error;
-  bool _needsSetup = false;
 
   @override
   void initState() {
@@ -31,12 +28,9 @@ class _ParentSetupGateState extends ConsumerState<ParentSetupGate> {
       _error = null;
     });
     try {
-      final children = await ref.read(parentChildrenProvider.notifier).refresh();
+      await ref.read(parentChildrenProvider.notifier).refresh();
       if (!mounted) return;
-      setState(() {
-        _needsSetup = children.isEmpty;
-        _loading = false;
-      });
+      setState(() => _loading = false);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -44,16 +38,6 @@ class _ParentSetupGateState extends ConsumerState<ParentSetupGate> {
         _loading = false;
       });
     }
-  }
-
-  void _finishSetup() {
-    if (!mounted) return;
-    setState(() => _needsSetup = false);
-    showAppSnackBar(
-      context,
-      'Профиль ребёнка создан. Можно пользоваться приложением.',
-      type: AppFeedbackType.success,
-    );
   }
 
   @override
@@ -113,10 +97,6 @@ class _ParentSetupGateState extends ConsumerState<ParentSetupGate> {
           ),
         ),
       );
-    }
-
-    if (_needsSetup) {
-      return ParentSetupFlowScreen(onFinished: _finishSetup);
     }
 
     return const RootScreen();

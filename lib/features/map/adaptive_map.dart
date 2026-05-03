@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as am;
@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:http/http.dart' as http;
 
 import '../../core/providers/session_providers.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import 'apple_map_web_stub.dart'
@@ -49,6 +50,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
   final Map<int, am.BitmapDescriptor> _appleMarkers = {};
   final Map<String, ui.Image> _avatarCache = {};
   bool _isProgrammaticCameraMove = false;
+  String _markerSignature = '';
   static final Set<Factory<OneSequenceGestureRecognizer>>
       _mapGestureRecognizers = {
     Factory<OneSequenceGestureRecognizer>(() => EagerGestureRecognizer()),
@@ -61,29 +63,87 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
   }
 
   Future<void> _loadCustomMarkers() async {
-    if (widget.children.isEmpty) return;
+    final signature = _buildMarkerSignature(widget.children);
+    if (widget.children.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _markerSignature = signature;
+        _googleMarkers.clear();
+        _appleMarkers.clear();
+      });
+      return;
+    }
 
+    final nextGoogleMarkers = <int, gm.BitmapDescriptor>{};
+    final nextAppleMarkers = <int, am.BitmapDescriptor>{};
     for (int i = 0; i < widget.children.length; i++) {
       final child = widget.children[i];
       final key = child.childId ?? i;
       final bytes = await _generateMarkerBytes(child);
-      if (!mounted) return;
+      nextGoogleMarkers[key] = gm.BitmapDescriptor.fromBytes(bytes);
+      nextAppleMarkers[key] = am.BitmapDescriptor.fromBytes(bytes);
+    }
 
-      setState(() {
-        _googleMarkers[key] = gm.BitmapDescriptor.fromBytes(bytes);
-        _appleMarkers[key] = am.BitmapDescriptor.fromBytes(bytes);
-      });
+    if (!mounted) return;
+    setState(() {
+      _markerSignature = signature;
+      _googleMarkers
+        ..clear()
+        ..addAll(nextGoogleMarkers);
+      _appleMarkers
+        ..clear()
+        ..addAll(nextAppleMarkers);
+    });
+  }
+
+  String _buildMarkerSignature(List<ChildLocation> children) {
+    return children.asMap().entries.map((entry) {
+      final index = entry.key;
+      final child = entry.value;
+      return [
+        child.childId ?? index,
+        child.name,
+        child.avatarUrl ?? '',
+        child.lat.toStringAsFixed(5),
+        child.lng.toStringAsFixed(5),
+      ].join('|');
+    }).join('||');
+  }
+
+  bool _markersNeedReload(covariant AdaptiveMap old) {
+    return _buildMarkerSignature(old.children) !=
+        _buildMarkerSignature(widget.children);
+  }
+
+  @override
+  void didUpdateWidget(covariant AdaptiveMap old) {
+    super.didUpdateWidget(old);
+    if (_markersNeedReload(old) || _markerSignature.isEmpty) {
+      _loadCustomMarkers();
+    }
+    final targetChanged =
+        old.latitude != widget.latitude || old.longitude != widget.longitude;
+    if (widget.followTarget && (targetChanged || !old.followTarget)) {
+      _animateToTarget();
     }
   }
 
-  Future<ui.Image?> _loadNetworkImage(String url) async {
-    if (_avatarCache.containsKey(url)) return _avatarCache[url];
+  Future<ui.Image?> _loadAvatarImage(String source) async {
+    if (_avatarCache.containsKey(source)) return _avatarCache[source];
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) return null;
-      final codec = await ui.instantiateImageCodec(response.bodyBytes);
+      Uint8List bytes;
+      if (source.startsWith('http://') || source.startsWith('https://')) {
+        final response = await http.get(Uri.parse(source));
+        if (response.statusCode != 200) return null;
+        bytes = response.bodyBytes;
+      } else {
+        final file = File(source);
+        if (!file.existsSync()) return null;
+        bytes = await file.readAsBytes();
+      }
+      final codec = await ui.instantiateImageCodec(bytes);
       final frame = await codec.getNextFrame();
-      _avatarCache[url] = frame.image;
+      _avatarCache[source] = frame.image;
       return frame.image;
     } catch (_) {
       return null;
@@ -102,7 +162,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     // Try to load avatar image
     ui.Image? avatarImage;
     if (child.avatarUrl != null && child.avatarUrl!.isNotEmpty) {
-      avatarImage = await _loadNetworkImage(child.avatarUrl!);
+      avatarImage = await _loadAvatarImage(child.avatarUrl!);
     }
 
     // White border circle
@@ -178,7 +238,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     namePainter.layout();
 
     // Label background
-    final labelY = size + 4;
+    const labelY = size + 4;
     final labelRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
         center: Offset(radius, labelY + labelHeight / 2),
@@ -188,7 +248,9 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       const Radius.circular(12),
     );
     canvas.drawRRect(
-        labelRect, Paint()..color = AppColors.primary.withOpacity(0.85));
+      labelRect,
+      Paint()..color = AppColors.primary.withValues(alpha: 0.85),
+    );
     namePainter.paint(
       canvas,
       Offset(radius - namePainter.width / 2, labelY + 4),
@@ -198,19 +260,6 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     final img = await picture.toImage(size.toInt(), totalHeight.toInt());
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     return data!.buffer.asUint8List();
-  }
-
-  @override
-  void didUpdateWidget(covariant AdaptiveMap old) {
-    super.didUpdateWidget(old);
-    if (old.children.length != widget.children.length) {
-      _loadCustomMarkers();
-    }
-    final targetChanged =
-        old.latitude != widget.latitude || old.longitude != widget.longitude;
-    if (widget.followTarget && (targetChanged || !old.followTarget)) {
-      _animateToTarget();
-    }
   }
 
   void _animateToTarget() {
@@ -454,7 +503,7 @@ class _ChildMarker extends StatelessWidget {
               initials: label,
               size: size,
               color: AppColors.primary,
-              image: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+              image: avatarImageProvider(avatarUrl),
             ),
           ),
           if (name.isNotEmpty) ...[

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,9 +8,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
-import 'package:record/record.dart';
 
 import '../../core/services/app_blocking_service.dart';
+import '../../core/services/api_client.dart';
+import '../../core/services/child_permission_status_service.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -25,6 +27,8 @@ class ChildPermissionsScreen extends StatefulWidget {
 class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
     with WidgetsBindingObserver {
   final DeviceStatsService _deviceStats = const DeviceStatsService();
+  final ChildPermissionStatusService _permissionStatus =
+      const ChildPermissionStatusService();
   final AppBlockingService _appBlocking = AppBlockingService.instance;
   final LocationService _locationService = LocationService();
 
@@ -69,67 +73,19 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
     }
 
     try {
-      final locationServiceEnabled =
-          await Geolocator.isLocationServiceEnabled();
-      final locationPermission = await Geolocator.checkPermission();
-
-      final recorder = AudioRecorder();
-      bool microphoneGranted = false;
-      try {
-        microphoneGranted = await recorder.hasPermission();
-      } finally {
-        await recorder.dispose();
-      }
-
-      final notificationSettings =
-          await FirebaseMessaging.instance.getNotificationSettings();
-
-      bool usageAccessGranted = false;
-      bool accessibilityEnabled = false;
-      bool batteryOptimizationDisabled = true;
-      bool backgroundLocationGranted = false;
-
-      if (!kIsWeb && Platform.isAndroid) {
-        try {
-          final payload = await _deviceStats.readPayload(
-            battery: 0,
-            charging: false,
-            days: 1,
-          );
-          usageAccessGranted = payload.usageAccessGranted;
-        } catch (_) {}
-
-        try {
-          accessibilityEnabled =
-              await _appBlocking.isAccessibilityServiceEnabled();
-        } catch (_) {}
-
-        try {
-          batteryOptimizationDisabled =
-              await _deviceStats.isIgnoringBatteryOptimizations();
-        } catch (_) {}
-
-        try {
-          backgroundLocationGranted =
-              (await ph.Permission.locationAlways.status).isGranted;
-        } catch (_) {}
-      } else if (!kIsWeb && Platform.isIOS) {
-        backgroundLocationGranted =
-            locationPermission == LocationPermission.always;
-      } else {
-        backgroundLocationGranted = true;
-      }
+      final snapshot = await _permissionStatus.read();
+      unawaited(ApiClient.instance.syncDeviceStats(snapshot.toSyncJson()));
 
       if (!mounted) return;
       setState(() {
-        _locationServiceEnabled = locationServiceEnabled;
-        _locationPermission = locationPermission;
-        _backgroundLocationGranted = backgroundLocationGranted;
-        _microphoneGranted = microphoneGranted;
-        _notificationStatus = notificationSettings.authorizationStatus;
-        _usageAccessGranted = usageAccessGranted;
-        _accessibilityEnabled = accessibilityEnabled;
-        _batteryOptimizationDisabled = batteryOptimizationDisabled;
+        _locationServiceEnabled = snapshot.locationServiceEnabled;
+        _locationPermission = snapshot.locationPermission;
+        _backgroundLocationGranted = snapshot.backgroundLocationGranted;
+        _microphoneGranted = snapshot.microphoneGranted;
+        _notificationStatus = snapshot.notificationStatus;
+        _usageAccessGranted = snapshot.usageAccessGranted;
+        _accessibilityEnabled = snapshot.accessibilityEnabled;
+        _batteryOptimizationDisabled = snapshot.batteryOptimizationDisabled;
         _loading = false;
         _error = null;
       });
@@ -232,148 +188,167 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final tx = ExtraL10n.of(context);
     final palette = ChildPalette.of(context);
+    final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: AppColors.textPrimaryLight,
-        title: const Text(
-          'Разрешения',
-          style: TextStyle(fontWeight: FontWeight.w800),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _loadStatuses(showLoader: false),
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
+    return Theme(
+      data: theme.copyWith(
+        colorScheme: theme.colorScheme.copyWith(primary: palette.primary),
+        progressIndicatorTheme:
+            theme.progressIndicatorTheme.copyWith(color: palette.primary),
+        extensions: <ThemeExtension<dynamic>>[palette],
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => _loadStatuses(showLoader: false),
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-            children: [
-              _IntroCard(
-                palette: palette,
-                loading: _loading,
-                grantedCount: [
-                  _locationGranted,
-                  _backgroundLocationGranted,
-                  _microphoneGranted,
-                  _notificationGranted,
-                  _usageAccessGranted,
-                  _accessibilityEnabled,
-                  _batteryOptimizationDisabled,
-                ].where((it) => it).length,
-                totalCount: 7,
-              ),
-              if (_error != null) ...[
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          foregroundColor: palette.primary,
+          title: Text(
+            tx.permissionsTitle,
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: palette.titleColor,
+            ),
+          ),
+          actions: [
+            IconButton(
+              onPressed: () => _loadStatuses(showLoader: false),
+              icon: Icon(Icons.refresh_rounded, color: palette.primary),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: RefreshIndicator(
+            color: palette.primary,
+            onRefresh: () => _loadStatuses(showLoader: false),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                _IntroCard(
+                  palette: palette,
+                  loading: _loading,
+                  grantedCount: [
+                    _locationGranted,
+                    _backgroundLocationGranted,
+                    _microphoneGranted,
+                    _notificationGranted,
+                    _usageAccessGranted,
+                    _accessibilityEnabled,
+                    _batteryOptimizationDisabled,
+                  ].where((it) => it).length,
+                  totalCount: 7,
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  _StatusMessage(message: _error!),
+                ],
+                const SizedBox(height: 16),
+                _PermissionTile(
+                  palette: palette,
+                  icon: Icons.location_on_outlined,
+                  title: tx.locationTitle,
+                  description: _locationServiceEnabled
+                      ? (_locationGranted
+                          ? tx.locationGrantedDescription
+                          : tx.locationNotGrantedDescription)
+                      : tx.locationServiceOffDescription,
+                  granted: _locationGranted && _locationServiceEnabled,
+                  actionLabel: _locationGranted
+                      ? t.openAppSettings
+                      : tx.grantAccessLabel,
+                  onPressed: _locationGranted
+                      ? _openLocationSettings
+                      : _requestLocationPermission,
+                ),
                 const SizedBox(height: 12),
-                _StatusMessage(message: _error!),
+                _PermissionTile(
+                  palette: palette,
+                  icon: Icons.my_location_rounded,
+                  title: tx.backgroundLocationTitle,
+                  description: _backgroundLocationGranted
+                      ? tx.backgroundLocationGrantedDescription
+                      : _locationGranted
+                          ? tx.backgroundLocationNeedAlwaysDescription
+                          : tx.backgroundLocationNeedLocationFirst,
+                  granted: _backgroundLocationGranted,
+                  actionLabel: _backgroundLocationGranted
+                      ? t.openAppSettings
+                      : tx.allowAllTheTimeLabel,
+                  onPressed: _backgroundLocationGranted
+                      ? _openLocationSettings
+                      : _requestBackgroundLocation,
+                ),
+                const SizedBox(height: 12),
+                _PermissionTile(
+                  palette: palette,
+                  icon: Icons.mic_none_rounded,
+                  title: tx.microphoneTitle,
+                  description: _microphoneGranted
+                      ? tx.microphoneGrantedDescription
+                      : tx.microphoneNeededDescription,
+                  granted: _microphoneGranted,
+                  actionLabel: _microphoneGranted
+                      ? t.openAppSettings
+                      : tx.allowMicrophoneLabel,
+                  onPressed: _microphoneGranted
+                      ? _openLocationSettings
+                      : _requestMicrophonePermission,
+                ),
+                const SizedBox(height: 12),
+                _PermissionTile(
+                  palette: palette,
+                  icon: Icons.notifications_none_rounded,
+                  title: t.notifications,
+                  description: _notificationGranted
+                      ? tx.notificationsGrantedDescription
+                      : tx.notificationsNeededDescription,
+                  granted: _notificationGranted,
+                  actionLabel: _notificationGranted
+                      ? t.openAppSettings
+                      : tx.allowNotificationsLabel,
+                  onPressed: _notificationGranted
+                      ? _openLocationSettings
+                      : _requestNotificationPermission,
+                ),
+                if (!kIsWeb && Platform.isAndroid) ...[
+                  const SizedBox(height: 12),
+                  _PermissionTile(
+                    palette: palette,
+                    icon: Icons.hourglass_top_rounded,
+                    title: t.allowUsageAccess,
+                    description: _usageAccessGranted
+                        ? tx.usageAccessAlreadyGranted
+                        : t.grantUsageAccessHint,
+                    granted: _usageAccessGranted,
+                    actionLabel: t.openUsageAccess,
+                    onPressed: _openUsageAccessSettings,
+                  ),
+                  const SizedBox(height: 12),
+                  _PermissionTile(
+                    palette: palette,
+                    icon: Icons.accessibility_new_rounded,
+                    title: t.enableAccessibilityService,
+                    description: t.accessibilityServiceDescription,
+                    granted: _accessibilityEnabled,
+                    actionLabel: t.openAccessibilitySettingsLabel,
+                    onPressed: _openAccessibilitySettings,
+                  ),
+                  const SizedBox(height: 12),
+                  _PermissionTile(
+                    palette: palette,
+                    icon: Icons.battery_charging_full_rounded,
+                    title: t.disableBatteryOptimization,
+                    description: t.batteryOptimizationDescription,
+                    granted: _batteryOptimizationDisabled,
+                    actionLabel: tx.openSettingsLabel,
+                    onPressed: _openBatteryOptimizationSettings,
+                  ),
+                ],
               ],
-              const SizedBox(height: 16),
-              _PermissionTile(
-                palette: palette,
-                icon: Icons.location_on_outlined,
-                title: 'Геолокация',
-                description: _locationServiceEnabled
-                    ? (_locationGranted
-                        ? 'Доступ к геолокации выдан.'
-                        : 'Разрешение на геолокацию пока не выдано.')
-                    : 'Служба геолокации на устройстве сейчас выключена.',
-                granted: _locationGranted && _locationServiceEnabled,
-                actionLabel: _locationGranted ? t.openAppSettings : 'Выдать доступ',
-                onPressed: _locationGranted
-                    ? _openLocationSettings
-                    : _requestLocationPermission,
-              ),
-              const SizedBox(height: 12),
-              _PermissionTile(
-                palette: palette,
-                icon: Icons.my_location_rounded,
-                title: 'Геолокация в фоне',
-                description: _backgroundLocationGranted
-                    ? 'Разрешено «Всегда» — местоположение отправляется даже при выключенном экране.'
-                    : _locationGranted
-                        ? 'Без «Разрешить всегда» Android перестаёт присылать координаты, когда экран гаснет или приложение свёрнуто. Это главная причина, почему отслеживание «перестаёт работать».'
-                        : 'Сначала выдайте обычное разрешение на геолокацию, затем включите «Разрешить всегда».',
-                granted: _backgroundLocationGranted,
-                actionLabel: _backgroundLocationGranted
-                    ? t.openAppSettings
-                    : 'Разрешить всегда',
-                onPressed: _backgroundLocationGranted
-                    ? _openLocationSettings
-                    : _requestBackgroundLocation,
-              ),
-              const SizedBox(height: 12),
-              _PermissionTile(
-                palette: palette,
-                icon: Icons.mic_none_rounded,
-                title: 'Микрофон',
-                description: _microphoneGranted
-                    ? 'Разрешение на микрофон уже выдано.'
-                    : 'Без этого разрешения функция «Вокруг» не сможет слышать звук рядом с ребёнком.',
-                granted: _microphoneGranted,
-                actionLabel: _microphoneGranted ? t.openAppSettings : 'Разрешить микрофон',
-                onPressed: _microphoneGranted
-                    ? _openLocationSettings
-                    : _requestMicrophonePermission,
-              ),
-              const SizedBox(height: 12),
-              _PermissionTile(
-                palette: palette,
-                icon: Icons.notifications_none_rounded,
-                title: t.notifications,
-                description: _notificationGranted
-                    ? 'Уведомления разрешены.'
-                    : 'Разрешите уведомления, чтобы не пропускать команды и важные события.',
-                granted: _notificationGranted,
-                actionLabel:
-                    _notificationGranted ? t.openAppSettings : 'Разрешить уведомления',
-                onPressed: _notificationGranted
-                    ? _openLocationSettings
-                    : _requestNotificationPermission,
-              ),
-              if (!kIsWeb && Platform.isAndroid) ...[
-                const SizedBox(height: 12),
-                _PermissionTile(
-                  palette: palette,
-                  icon: Icons.hourglass_top_rounded,
-                  title: t.allowUsageAccess,
-                  description: _usageAccessGranted
-                      ? 'Доступ к статистике приложений уже выдан.'
-                      : t.grantUsageAccessHint,
-                  granted: _usageAccessGranted,
-                  actionLabel: t.openUsageAccess,
-                  onPressed: _openUsageAccessSettings,
-                ),
-                const SizedBox(height: 12),
-                _PermissionTile(
-                  palette: palette,
-                  icon: Icons.accessibility_new_rounded,
-                  title: t.enableAccessibilityService,
-                  description: t.accessibilityServiceDescription,
-                  granted: _accessibilityEnabled,
-                  actionLabel: t.openAccessibilitySettingsLabel,
-                  onPressed: _openAccessibilitySettings,
-                ),
-                const SizedBox(height: 12),
-                _PermissionTile(
-                  palette: palette,
-                  icon: Icons.battery_charging_full_rounded,
-                  title: t.disableBatteryOptimization,
-                  description: t.batteryOptimizationDescription,
-                  granted: _batteryOptimizationDisabled,
-                  actionLabel: 'Открыть настройки',
-                  onPressed: _openBatteryOptimizationSettings,
-                ),
-              ],
-            ],
+            ),
           ),
         ),
       ),
@@ -412,13 +387,13 @@ class _IntroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.verified_user_outlined, color: Colors.white),
-              SizedBox(width: 8),
+              const Icon(Icons.verified_user_outlined, color: Colors.white),
+              const SizedBox(width: 8),
               Text(
-                'Статус разрешений',
-                style: TextStyle(
+                ExtraL10n.of(context).permissionStatusTitle,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -429,8 +404,11 @@ class _IntroCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             loading
-                ? 'Проверяем, какие доступы уже включены...'
-                : 'Выдано разрешений: $grantedCount из $totalCount',
+                ? ExtraL10n.of(context).checkingPermissionsStatus
+                : ExtraL10n.of(context).grantedPermissionsCount(
+                    grantedCount,
+                    totalCount,
+                  ),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -551,9 +529,8 @@ class _PermissionTile extends StatelessWidget {
               onPressed: onPressed,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
-                backgroundColor: granted
-                    ? palette.primarySoft
-                    : palette.primary,
+                backgroundColor:
+                    granted ? palette.primarySoft : palette.primary,
                 foregroundColor: granted ? palette.primary : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(
@@ -588,7 +565,9 @@ class _Badge extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        granted ? 'Выдано' : 'Не выдано',
+        granted
+            ? ExtraL10n.of(context).grantedLabel
+            : ExtraL10n.of(context).notGrantedLabel,
         style: TextStyle(
           color: granted ? AppColors.success : AppColors.warning,
           fontSize: 12,

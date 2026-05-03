@@ -116,6 +116,13 @@ class DeviceStatus(models.Model):
     battery = models.IntegerField(null=True, blank=True)
     charging = models.BooleanField(default=False)
     usage_access_granted = models.BooleanField(default=False)
+    location_service_enabled = models.BooleanField(default=False)
+    location_permission_granted = models.BooleanField(default=False)
+    background_location_granted = models.BooleanField(default=False)
+    microphone_granted = models.BooleanField(default=False)
+    notifications_granted = models.BooleanField(default=False)
+    accessibility_enabled = models.BooleanField(default=False)
+    battery_optimization_disabled = models.BooleanField(default=False)
     synced_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -178,6 +185,26 @@ class BlockedApp(models.Model):
 
     def __str__(self):
         return f"{self.child.username}: blocked {self.app_name}"
+
+
+class AppIcon(models.Model):
+    """Cached PNG icon (base64) for an app installed on the child's device."""
+
+    child = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="app_icons",
+    )
+    package_name = models.CharField(max_length=255)
+    icon_b64 = models.TextField()
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = [("child", "package_name")]
+        ordering = ["package_name"]
+
+    def __str__(self):
+        return f"{self.child.username}: icon {self.package_name}"
 
 
 class AppUsageSnapshot(models.Model):

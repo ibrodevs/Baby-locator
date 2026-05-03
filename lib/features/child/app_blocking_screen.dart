@@ -9,6 +9,7 @@ import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 import '../../core/services/app_blocking_service.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 import '../../core/widgets/brand_header.dart';
 
 class AppBlockingScreen extends StatefulWidget {
@@ -198,6 +199,7 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final palette = ChildPalette.of(context);
 
     if (!_blockingService.isSupported || !Platform.isAndroid) {
       return Scaffold(
@@ -246,7 +248,7 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               AppCard(
-                color: AppColors.primary,
+                color: palette.primary,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -329,11 +331,11 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
               const SizedBox(height: 12),
               _PermissionCard(
                 icon: Icons.hourglass_top_rounded,
-                iconColor: AppColors.primary,
+                iconColor: palette.primary,
                 title: t.allowUsageAccess,
                 description: t.usageAccessDescription,
                 badge: t.optionalLabel,
-                badgeColor: AppColors.primary,
+                badgeColor: palette.primary,
                 buttonLabel: t.openUsageAccess,
                 onPressed: _openUsageAccessSettings,
               ),
@@ -512,7 +514,8 @@ class _InstalledAppTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = blocked ? AppColors.danger : AppColors.primary;
+    final accent =
+        blocked ? AppColors.danger : ChildPalette.of(context).primary;
 
     return AppCard(
       child: Row(

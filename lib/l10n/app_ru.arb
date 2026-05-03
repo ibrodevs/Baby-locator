@@ -232,7 +232,7 @@
   "getHelp": "Получить помощь",
   "generateCode": "Сгенерировать код",
   "codeCopied": "Код скопирован в буфер обмена",
-  "inviteShareText": "Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: {code}\n\nhttps://backend21.pythonanywhere.com/invite/{code}",
+  "inviteShareText": "Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: {code}\n\nhttp://89.108.81.151/invite/{code}",
   "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
   "failedToGenerateCode": "Не удалось сгенерировать код: {error}",
   "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },

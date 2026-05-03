@@ -268,7 +268,7 @@
   "getHelp": "Get help",
   "generateCode": "Generate Code",
   "codeCopied": "Code copied to clipboard",
-  "inviteShareText": "Join my family circle in Kid Security! Use invite code: {code}\n\nhttps://backend21.pythonanywhere.com/invite/{code}",
+  "inviteShareText": "Join my family circle in Kid Security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}",
   "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
   "failedToGenerateCode": "Failed to generate code: {error}",
   "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },

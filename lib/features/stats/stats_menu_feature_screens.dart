@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +8,7 @@ import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../../core/services/api_client.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/services/parent_webrtc_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
@@ -30,6 +33,11 @@ class MenuAroundSoundScreen extends StatefulWidget {
 }
 
 class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
+  // "Звук вокруг" runs over WebRTC (Opus + jitter buffer + congestion
+  // control) — the same peer-to-peer audio pipeline as the monitoring
+  // feature. It is the only protocol on this stack that delivers smooth
+  // continuous voice on cellular networks; the previous HTTP-streaming
+  // implementation glitched whenever the network paused for >1-2s.
   final ParentWebRTCService _liveAudio = ParentWebRTCService();
 
   Map<String, dynamic>? _stats;
@@ -359,11 +367,22 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
   }
 
   List<Map<String, dynamic>> get _apps {
-    final value = _stats?['apps'];
-    if (value is! List) return const [];
-    return value
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
+    return _asList(_stats?['apps'])
+        .where((item) {
+          final pkg = (item['package_name'] as String? ?? '').trim();
+          return pkg.isNotEmpty;
+        })
+        .fold<Map<String, Map<String, dynamic>>>({}, (acc, item) {
+          final pkg = (item['package_name'] as String? ?? '').trim();
+          final existing = acc[pkg];
+          final nextUsage = (item['usage_minutes'] as int?) ?? 0;
+          final existingUsage = (existing?['usage_minutes'] as int?) ?? 0;
+          if (existing == null || nextUsage >= existingUsage) {
+            acc[pkg] = Map<String, dynamic>.from(item);
+          }
+          return acc;
+        })
+        .values
         .toList()
       ..sort(
         (a, b) => ((b['usage_minutes'] as int?) ?? 0)
@@ -549,7 +568,17 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     required bool enabled,
     required int minutes,
   }) async {
-    setState(() => _saving = true);
+    final previousStats = _cloneStats();
+    setState(() {
+      _saving = true;
+      _applyLimitLocally(
+        packageName: app['package_name'] as String? ?? '',
+        appName: app['app_name'] as String? ?? 'Приложение',
+        iconB64: app['icon_b64'] as String?,
+        enabled: enabled,
+        minutes: minutes,
+      );
+    });
     try {
       await ApiClient.instance.setChildAppLimit(
         childId: widget.childId,
@@ -559,15 +588,17 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
         enabled: enabled,
       );
       if (!mounted) return;
-      await _load();
-      if (!mounted) return;
       showAppSnackBar(
         context,
         enabled ? 'Лимит сохранён.' : 'Лимит отключён.',
         type: AppFeedbackType.success,
       );
+      unawaited(_refreshSilently());
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+      });
       showAppSnackBar(
         context,
         e.toString(),
@@ -583,10 +614,19 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     final pkg = app['package_name'] as String? ?? '';
     final name = app['app_name'] as String? ?? 'Приложение';
     if (pkg.isEmpty) return;
-    setState(() => _saving = true);
+    final previousStats = _cloneStats();
+    final previousBlockedPackages = Set<String>.from(_blockedPackages);
+    final previousBlockedIdByPackage = Map<String, int>.from(_blockedIdByPackage);
+    setState(() {
+      _saving = true;
+      _applyBlockedLocally(
+        packageName: pkg,
+        blocked: !_blockedPackages.contains(pkg),
+      );
+    });
     try {
-      if (_blockedPackages.contains(pkg)) {
-        final blockedId = _blockedIdByPackage[pkg];
+      if (previousBlockedPackages.contains(pkg)) {
+        final blockedId = previousBlockedIdByPackage[pkg];
         if (blockedId != null) {
           await ApiClient.instance.unblockApp(widget.childId, blockedId);
         }
@@ -598,8 +638,6 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
         );
       }
       if (!mounted) return;
-      await _load();
-      if (!mounted) return;
       showAppSnackBar(
         context,
         _blockedPackages.contains(pkg)
@@ -607,8 +645,14 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
             : '$name разблокировано.',
         type: AppFeedbackType.success,
       );
+      unawaited(_refreshSilently());
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+        _blockedPackages = previousBlockedPackages;
+        _blockedIdByPackage = previousBlockedIdByPackage;
+      });
       showAppSnackBar(
         context,
         e.toString(),
@@ -709,6 +753,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     final enabled = (app['limit_enabled'] as bool?) ?? false;
     final exceeded = (app['exceeded'] as bool?) ?? false;
     final dailyLimitMinutes = app['daily_limit_minutes'] as int?;
+    final iconB64 = app['icon_b64'] as String?;
     final blocked = _blockedPackages.contains(packageName);
     final accent = blocked
         ? AppColors.danger
@@ -723,22 +768,12 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
           children: [
             Row(
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    appName.isNotEmpty ? appName[0].toUpperCase() : 'A',
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                AppIconAvatar(
+                  iconB64: iconB64,
+                  appName: appName,
+                  accent: accent,
+                  size: 42,
+                  borderRadius: 14,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -751,16 +786,6 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        packageName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textMuted,
                         ),
                       ),
                     ],
@@ -856,6 +881,101 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     if (hours == 0) return '$remainingMinutesм';
     if (remainingMinutes == 0) return '$hoursч';
     return '$hoursч $remainingMinutesм';
+  }
+
+  List<Map<String, dynamic>> _asList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
+  }
+
+  Map<String, dynamic>? _cloneStats() {
+    final stats = _stats;
+    if (stats == null) return null;
+    return Map<String, dynamic>.from(
+      jsonDecode(jsonEncode(stats)) as Map<String, dynamic>,
+    );
+  }
+
+  Future<void> _refreshSilently() async {
+    try {
+      final now = DateTime.now();
+      final results = await Future.wait([
+        ApiClient.instance.childStatsSummary(
+          widget.childId,
+          date: now,
+          month: DateTime(now.year, now.month),
+        ),
+        ApiClient.instance.getBlockedApps(widget.childId),
+      ]);
+      if (!mounted) return;
+      final blocked =
+          (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
+      setState(() {
+        _stats = results[0] as Map<String, dynamic>;
+        _blockedPackages =
+            blocked.map((b) => b['package_name'] as String).toSet();
+        _blockedIdByPackage = {
+          for (final b in blocked) b['package_name'] as String: b['id'] as int,
+        };
+      });
+    } catch (_) {
+      // Best effort only. The UI is already updated optimistically.
+    }
+  }
+
+  void _applyLimitLocally({
+    required String packageName,
+    required String appName,
+    required String? iconB64,
+    required bool enabled,
+    required int minutes,
+  }) {
+    if (packageName.trim().isEmpty) return;
+    final stats = _cloneStats() ?? <String, dynamic>{};
+    final apps = _apps.toList(growable: true);
+    final index = apps.indexWhere((app) => app['package_name'] == packageName);
+    final nextApp = index >= 0
+        ? Map<String, dynamic>.from(apps[index])
+        : <String, dynamic>{
+            'package_name': packageName,
+            'app_name': appName,
+            'usage_minutes': 0,
+            if (iconB64 != null && iconB64.isNotEmpty) 'icon_b64': iconB64,
+          };
+    nextApp['app_name'] = appName;
+    nextApp['daily_limit_minutes'] = minutes;
+    nextApp['limit_enabled'] = enabled;
+    nextApp['exceeded'] =
+        enabled && ((nextApp['usage_minutes'] as int?) ?? 0) > minutes;
+    if (iconB64 != null && iconB64.isNotEmpty) {
+      nextApp['icon_b64'] = iconB64;
+    }
+    if (index >= 0) {
+      apps[index] = nextApp;
+    } else {
+      apps.add(nextApp);
+    }
+    stats['apps'] = apps;
+    _stats = stats;
+  }
+
+  void _applyBlockedLocally({
+    required String packageName,
+    required bool blocked,
+  }) {
+    final nextBlocked = Set<String>.from(_blockedPackages);
+    final nextBlockedIds = Map<String, int>.from(_blockedIdByPackage);
+    if (blocked) {
+      nextBlocked.add(packageName);
+    } else {
+      nextBlocked.remove(packageName);
+      nextBlockedIds.remove(packageName);
+    }
+    _blockedPackages = nextBlocked;
+    _blockedIdByPackage = nextBlockedIds;
   }
 }
 
@@ -957,9 +1077,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                             ? widget.childName[0].toUpperCase()
                             : '?',
                         color: Colors.white,
-                        image: widget.avatarUrl != null
-                            ? NetworkImage(widget.avatarUrl!)
-                            : null,
+                        image: avatarImageProvider(widget.avatarUrl),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -1152,6 +1270,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
     final claimed = (reward['claimed'] as bool?) ?? false;
     final title = reward['title'] as String? ?? 'Награда';
     final requiredStars = (reward['required_stars'] as int?) ?? 0;
+    final claimedAt = DateTime.tryParse(reward['claimed_at'] as String? ?? '');
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: AppCard(
@@ -1185,7 +1304,9 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Нужно $requiredStars звёзд',
+                    claimed && claimedAt != null
+                        ? 'Достигнуто ${claimedAt.day.toString().padLeft(2, '0')}.${claimedAt.month.toString().padLeft(2, '0')}.${claimedAt.year}'
+                        : 'Нужно $requiredStars звёзд',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondaryLight,
@@ -1195,7 +1316,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
               ),
             ),
             StatusBadge(
-              text: claimed ? 'Получена' : 'Доступна',
+              text: claimed ? 'Достигнуто' : 'Доступна',
               color: claimed ? AppColors.success : AppColors.warning,
             ),
           ],
@@ -1509,7 +1630,7 @@ class _FeatureHeroCard extends StatelessWidget {
             size: 56,
             initials: childName.isNotEmpty ? childName[0].toUpperCase() : '?',
             color: accent,
-            image: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+            image: avatarImageProvider(avatarUrl),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1645,4 +1766,70 @@ class _LimitEditResult {
 
 String formatMenuDate(DateTime date) {
   return DateFormat('d MMM, HH:mm').format(date);
+}
+
+class AppIconAvatar extends StatelessWidget {
+  const AppIconAvatar({
+    super.key,
+    required this.iconB64,
+    required this.appName,
+    required this.accent,
+    this.size = 42,
+    this.borderRadius = 14,
+  });
+
+  final String? iconB64;
+  final String appName;
+  final Color accent;
+  final double size;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final bytes = _decode(iconB64);
+    if (bytes != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child: Image.memory(
+          bytes,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          filterQuality: FilterQuality.medium,
+          errorBuilder: (_, __, ___) => _fallback(),
+        ),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        appName.isNotEmpty ? appName[0].toUpperCase() : 'A',
+        style: TextStyle(
+          color: accent,
+          fontSize: size * 0.42,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+
+  static Uint8List? _decode(String? b64) {
+    if (b64 == null || b64.isEmpty) return null;
+    try {
+      return base64Decode(b64);
+    } catch (_) {
+      return null;
+    }
+  }
 }

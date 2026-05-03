@@ -13,6 +13,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 import 'package:record/record.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
@@ -138,6 +139,7 @@ class _BackgroundCommandHandler {
 
   static const _locationHeartbeat = Duration(minutes: 1);
   static const _deviceStatsInterval = Duration(minutes: 2);
+  static const _commandPollInterval = Duration(seconds: 5);
   static const _minimumMovementMeters = 15.0;
   static const _maximumQuietPeriod = Duration(minutes: 10);
 
@@ -146,6 +148,8 @@ class _BackgroundCommandHandler {
 
   final AudioPlayer _alarmPlayer = AudioPlayer();
   final AudioRecorder _recorder = AudioRecorder();
+  final KidSecurityAroundRecorderBridge _nativeAroundRecorder =
+      const KidSecurityAroundRecorderBridge();
   final Battery _battery = Battery();
 
   Timer? _pollTimer;
@@ -155,11 +159,11 @@ class _BackgroundCommandHandler {
   StreamSubscription<Position>? _positionSub;
   StreamSubscription<BatteryState>? _batterySub;
   bool _polling = false;
-  bool _capturingAround = false;
   bool _locationPushInFlight = false;
   bool _deviceStatsSyncInFlight = false;
   String? _alarmFilePath;
   String? _activeAroundSession;
+  Future<void>? _activeAroundTask;
   bool _alarmPlaying = false;
   Position? _lastPosition;
   int? _batteryLevel;
@@ -224,14 +228,12 @@ class _BackgroundCommandHandler {
       await _stopAlarm();
     });
 
-    // Start polling immediately, then frequently enough that a wake-up miss
-    // still keeps remote commands responsive. 1s is the sweet spot — fast
-    // enough to keep "around" startup under 3 seconds even when FCM is
-    // delayed by Doze, slow enough that battery impact stays minimal because
-    // the request is a tiny GET that returns 204 most of the time.
+    // Start polling immediately, then keep a lightweight fallback cadence.
+    // FCM wake-ups should deliver commands quickly; this timer is the safety
+    // net when Android defers or drops those wake-ups.
     await _pollCommands();
     _pollTimer = Timer.periodic(
-      const Duration(seconds: 1),
+      _commandPollInterval,
       (_) => _pollCommands(),
     );
   }
@@ -538,6 +540,9 @@ class _BackgroundCommandHandler {
         await _startWebrtcSession(sessionToken);
         return;
       case 'webrtc_monitor_stop':
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('pending_webrtc_session_token');
+        await prefs.remove('pending_webrtc_session_at_ms');
         _service.invoke('webrtc_monitor_stop_ui');
         _resetNotification();
         return;
@@ -704,6 +709,13 @@ class _BackgroundCommandHandler {
   }
 
   // ---- WebRTC live audio ----
+  //
+  // Note: `flutter_webrtc` cannot run from this background isolate — its
+  // native side calls `Context.registerReceiver(...)` on a null Context and
+  // crashes inside `getUserMedia`. The start command is therefore relayed
+  // to the UI isolate, which only works while the child's app is in the
+  // foreground. Real-time audio when the screen is locked is handled by the
+  // `_startAroundSession` clip pipeline below instead.
 
   Future<void> _startWebrtcSession(String sessionToken) async {
     if (_service case final AndroidServiceInstance androidService) {
@@ -712,6 +724,15 @@ class _BackgroundCommandHandler {
         content: _t.liveAudioStreamingToParent,
       );
     }
+    // Persist for the main isolate. If the UI is still cold-booting (FCM
+    // arrived while screen was locked), the main isolate will read this on
+    // start and pick up the session without losing the event.
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pending_webrtc_session_token', sessionToken);
+    await prefs.setInt(
+      'pending_webrtc_session_at_ms',
+      DateTime.now().millisecondsSinceEpoch,
+    );
     _service.invoke('webrtc_monitor_start_ui', {
       'session_token': sessionToken,
     });
@@ -732,18 +753,47 @@ class _BackgroundCommandHandler {
       );
     }
 
-    try {
-      // Validate the microphone pipeline immediately. The old implementation
-      // returned success before the first real capture/upload attempt, so the
-      // parent could wait forever on 204 responses while the child silently
-      // retried in the background.
-      await _captureAroundClip();
-    } catch (e) {
-      await _stopAroundSession(expectedSession: sessionToken);
-      rethrow;
+    if (Platform.isAndroid) {
+      // Native AudioRecord + chunked HTTP upload running on a background
+      // thread inside the foreground service process. This is the only
+      // path that survives screen-lock / app-killed states reliably,
+      // because (a) it doesn't require an Activity binding (the Flutter
+      // `record` plugin does, and silently fails without one), and
+      // (b) it streams PCM with chunked transfer encoding directly,
+      // bypassing the Flutter HTTP client which is slow to flush.
+      try {
+        await _nativeAroundRecorder.start(
+          sessionToken: sessionToken,
+          baseUrl: ApiClient.instance.baseUrl,
+          authHeaderValue: ApiClient.instance.authorizationHeaderValue,
+        );
+      } catch (e) {
+        debugPrint('[BackgroundCommand] native around start failed: $e');
+        _activeAroundSession = null;
+        _resetNotification();
+        rethrow;
+      }
+      return;
     }
 
-    unawaited(_runAroundLoop(sessionToken));
+    // iOS / other: fall back to the Flutter `record` plugin. The around
+    // pipeline only runs on Android in production, but we keep this branch
+    // so debug builds on iOS keep working.
+    if (!await _recorder.hasPermission()) {
+      _activeAroundSession = null;
+      throw Exception('Microphone permission is not granted.');
+    }
+
+    final pcmStream = await _recorder.startStream(_aroundStreamConfig);
+    _activeAroundTask = _runAroundLiveUpload(
+      sessionToken,
+      pcmStream,
+    ).catchError((Object error, StackTrace stackTrace) async {
+      debugPrint('[BackgroundCommand] around live upload failed: $error');
+      if (_activeAroundSession == sessionToken) {
+        await _stopAroundSession(expectedSession: sessionToken);
+      }
+    });
   }
 
   Future<void> _stopAroundSession({String? expectedSession}) async {
@@ -752,82 +802,79 @@ class _BackgroundCommandHandler {
         _activeAroundSession != expectedSession) {
       return;
     }
-    if (await _recorder.isRecording()) {
-      final path = await _recorder.stop();
-      if (path != null) {
-        final file = File(path);
-        if (await file.exists()) await file.delete();
+    final stoppedSession = _activeAroundSession;
+    _activeAroundSession = null;
+
+    if (Platform.isAndroid) {
+      try {
+        await _nativeAroundRecorder.stop(sessionToken: stoppedSession);
+      } catch (_) {}
+    } else {
+      try {
+        await _recorder.stop();
+      } catch (_) {}
+      final task = _activeAroundTask;
+      _activeAroundTask = null;
+      if (task != null) {
+        try {
+          await task.timeout(const Duration(seconds: 2));
+        } catch (_) {}
       }
     }
-    _activeAroundSession = null;
-    _capturingAround = false;
     _resetNotification();
   }
 
-  Future<void> _runAroundLoop(String sessionToken) async {
-    while (_activeAroundSession == sessionToken) {
-      try {
-        await _captureAroundClip();
-      } catch (e) {
-        debugPrint('[BackgroundCommand] around capture failed: $e');
-        // Recording or upload failed — wait a bit and retry so the session
-        // stays alive instead of dying on a single error.
-        await Future<void>.delayed(const Duration(seconds: 1));
+  Future<void> _runAroundLiveUpload(
+    String sessionToken,
+    Stream<Uint8List> pcmStream,
+  ) async {
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 15);
+    try {
+      final uri = Uri.parse(
+        '${ApiClient.instance.baseUrl}/api/around-audio/live/upload/',
+      ).replace(
+        queryParameters: <String, String>{'session_token': sessionToken},
+      );
+      final request = await client.postUrl(uri);
+      request.headers
+          .set(HttpHeaders.contentTypeHeader, 'application/octet-stream');
+      final authHeader = ApiClient.instance.authorizationHeaderValue;
+      if (authHeader != null && authHeader.isNotEmpty) {
+        request.headers.set(HttpHeaders.authorizationHeader, authHeader);
       }
-      if (_activeAroundSession != sessionToken) break;
-      // Minimal gap between chunks for near-real-time streaming.
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      request.headers.set('X-Audio-Sample-Rate', '16000');
+      request.headers.set('X-Audio-Channels', '1');
+      request.headers.set('X-Audio-Format', 'pcm_s16le');
+
+      await for (final chunk in pcmStream) {
+        if (_activeAroundSession != sessionToken) break;
+        if (chunk.isEmpty) continue;
+        request.add(chunk);
+      }
+
+      final response = await request.close();
+      final responseBody = await utf8.decoder.bind(response).join();
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          response.statusCode,
+          responseBody.isEmpty ? 'Live audio upload failed' : responseBody,
+        );
+      }
+    } finally {
+      client.close(force: true);
     }
   }
 
-  Future<void> _captureAroundClip() async {
-    final sessionToken = _activeAroundSession;
-    if (sessionToken == null || _capturingAround) return;
-    _capturingAround = true;
-    try {
-      final dir = await getTemporaryDirectory();
-      final path =
-          '${dir.path}/around_${sessionToken}_${DateTime.now().millisecondsSinceEpoch}.m4a';
-      await _recorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 64000,
-          sampleRate: 22050,
-        ),
-        path: path,
-      );
-      // 1-second chunks for near-real-time latency.
-      await Future<void>.delayed(const Duration(seconds: 1));
-      if (_activeAroundSession != sessionToken) {
-        // Session was stopped while recording — clean up the recorder.
-        try {
-          await _recorder.stop();
-        } catch (_) {}
-        final tempFile = File(path);
-        if (await tempFile.exists()) await tempFile.delete();
-        return;
-      }
-      final recordedPath = await _recorder.stop();
-      if (recordedPath == null) return;
-      final file = File(recordedPath);
-      if (await file.exists()) {
-        try {
-          await ApiClient.instance.uploadAroundAudio(
-            audioFile: file,
-            sessionToken: sessionToken,
-            durationSeconds: 1,
-          );
-        } finally {
-          // Always delete the temp file, even if upload failed.
-          if (await file.exists()) await file.delete();
-        }
-      }
-    } catch (e) {
-      throw Exception('Around capture/upload failed: $e');
-    } finally {
-      _capturingAround = false;
-    }
-  }
+  static const RecordConfig _aroundStreamConfig = RecordConfig(
+    encoder: AudioEncoder.pcm16bits,
+    sampleRate: 16000,
+    numChannels: 1,
+    autoGain: true,
+    echoCancel: false,
+    noiseSuppress: false,
+    streamBufferSize: 4096,
+  );
 
   // ---- Alarm WAV generation ----
 

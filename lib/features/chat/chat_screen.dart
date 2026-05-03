@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
@@ -12,7 +11,9 @@ import 'package:video_player/video_player.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/chat_visibility_service.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
@@ -364,79 +365,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     await _submitOutgoingMessage(text: text);
   }
 
-  Future<void> _pickAndSendFile() async {
-    if (_selectedChildId == null) return;
-    final picker = ImagePicker();
-    final t = S.of(context);
-    final source = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_rounded,
-                  color: AppColors.primary),
-              title: Text(t.photoFromGallery),
-              onTap: () => Navigator.pop(ctx, 'gallery_photo'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_rounded,
-                  color: AppColors.primary),
-              title: Text(t.photoFromCamera),
-              onTap: () => Navigator.pop(ctx, 'camera_photo'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.video_library_rounded,
-                  color: AppColors.primary),
-              title: Text(t.videoFromGallery),
-              onTap: () => Navigator.pop(ctx, 'gallery_video'),
-            ),
-            ListTile(
-              leading:
-                  const Icon(Icons.videocam_rounded, color: AppColors.primary),
-              title: Text(t.videoFromCamera),
-              onTap: () => Navigator.pop(ctx, 'camera_video'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (source == null || !mounted) return;
-
-    XFile? picked;
-    if (source == 'camera_photo') {
-      picked = await picker.pickImage(
-        source: ImageSource.camera,
-        imageQuality: 70,
-      );
-    } else if (source == 'gallery_photo') {
-      picked = await picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 70,
-      );
-    } else if (source == 'camera_video') {
-      picked = await picker.pickVideo(
-        source: ImageSource.camera,
-        maxDuration: const Duration(minutes: 5),
-      );
-    } else {
-      picked = await picker.pickVideo(
-        source: ImageSource.gallery,
-        maxDuration: const Duration(minutes: 5),
-      );
-    }
-    if (picked == null || !mounted) return;
-
-    final text = _controller.text.trim();
-    _controller.clear();
-    await _submitOutgoingMessage(
-      text: text,
-      file: File(picked.path),
-      fileName: picked.name,
-    );
-  }
-
   Future<void> _submitOutgoingMessage({
     required String text,
     File? file,
@@ -515,8 +443,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       'sender': user.id,
       'text': text,
       'created_at': DateTime.now().toUtc().toIso8601String(),
-      'sender_name':
-          user.role == UserRole.parent ? 'Родитель' : 'Ребёнок',
+      'sender_name': user.role == UserRole.parent ? 'Родитель' : 'Ребёнок',
       'sender_avatar_url': user.avatarUrl,
       'is_read': false,
       'file_url': null,
@@ -900,6 +827,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     final user = ref.watch(sessionProvider).user;
     final isParent = user?.role == UserRole.parent;
     final t = S.of(context);
+    Map<String, dynamic>? selectedChild;
+    if (_selectedChildId != null) {
+      for (final child in _children) {
+        if (child['id'] == _selectedChildId) {
+          selectedChild = child;
+          break;
+        }
+      }
+    }
+    final activeGender =
+        isParent ? (selectedChild?['gender'] as String?) : user?.gender;
+    final childPalette = ChildPalette.fromGender(activeGender);
 
     // Find the next unclaimed reward for the progress banner
     final unclaimedRewards = _rewards
@@ -923,9 +862,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                     : 'U',
                 color: AppColors.primary,
                 size: 36,
-                image: user?.avatarUrl != null
-                    ? NetworkImage(user!.avatarUrl!)
-                    : null,
+                image: avatarImageProvider(user?.avatarUrl),
               ),
               titlePrefix: null,
               title: t.appName,
@@ -980,6 +917,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               _WeeklyRewardsBanner(
                 totalStars: _totalStars,
                 nextReward: nextReward,
+                palette: childPalette,
               ),
 
             // Main content
@@ -1003,7 +941,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             _ChatComposer(
               controller: _controller,
               onSend: _send,
-              onAttach: _pickAndSendFile,
               isParent: isParent,
               onAddTask: _handleAddTask,
               onAddReward: _showAddRewardDialog,
@@ -1146,9 +1083,11 @@ class _WeeklyRewardsBanner extends StatelessWidget {
   const _WeeklyRewardsBanner({
     required this.totalStars,
     required this.nextReward,
+    required this.palette,
   });
   final int totalStars;
   final Map<String, dynamic>? nextReward;
+  final ChildPalette palette;
 
   @override
   Widget build(BuildContext context) {
@@ -1165,7 +1104,7 @@ class _WeeklyRewardsBanner extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: AppColors.rewardsGradient,
+        gradient: palette.heroGradient,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -1406,8 +1345,9 @@ class _Bubble extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: GestureDetector(
-                            onTap:
-                                hasVideo ? () => _openMediaViewer(context, true) : null,
+                            onTap: hasVideo
+                                ? () => _openMediaViewer(context, true)
+                                : null,
                             child: _fileAttachment(
                               context,
                               fileName ?? 'file',
@@ -1636,12 +1576,13 @@ class _RoleAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (senderAvatarUrl != null && senderAvatarUrl!.isNotEmpty) {
+    final provider = avatarImageProvider(senderAvatarUrl);
+    if (provider != null) {
       return AvatarCircle(
         initials: '',
         color: color,
         size: 28,
-        image: NetworkImage(senderAvatarUrl!),
+        image: provider,
       );
     }
 
@@ -2075,7 +2016,6 @@ class _ChatComposer extends StatelessWidget {
   const _ChatComposer({
     required this.controller,
     required this.onSend,
-    required this.onAttach,
     required this.isParent,
     required this.onAddTask,
     required this.onAddReward,
@@ -2083,7 +2023,6 @@ class _ChatComposer extends StatelessWidget {
   });
   final TextEditingController controller;
   final VoidCallback onSend;
-  final VoidCallback onAttach;
   final bool isParent;
   final VoidCallback onAddTask;
   final VoidCallback onAddReward;
@@ -2170,16 +2109,11 @@ class _ChatComposer extends StatelessWidget {
                     ),
                   ],
                 ),
-              IconButton(
-                icon: const Icon(Icons.attach_file_rounded,
-                    color: AppColors.textSecondaryLight, size: 24),
-                onPressed: onAttach,
-              ),
               Expanded(
                 child: TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    hintText: t.sendMessagePhotoVideo,
+                    hintText: t.sendMessage,
                     border: InputBorder.none,
                     hintStyle: const TextStyle(color: AppColors.textMuted),
                   ),

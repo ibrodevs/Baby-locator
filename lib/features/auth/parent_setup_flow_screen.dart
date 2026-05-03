@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 
@@ -52,11 +55,12 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Future<void> _continue() async {
+    final tx = ExtraL10n.of(context);
     if (_stepIndex == 0) {
       if (_childGender == null) {
         showAppSnackBar(
           context,
-          'Выберите вариант: сын или дочка.',
+          tx.chooseBoyOrGirl,
           type: AppFeedbackType.warning,
         );
         return;
@@ -69,7 +73,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
       if (_childNameController.text.trim().isEmpty) {
         showAppSnackBar(
           context,
-          'Введите имя ребёнка.',
+          tx.enterChildNamePrompt,
           type: AppFeedbackType.warning,
         );
         return;
@@ -106,10 +110,8 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
       final childId = child['id'] as int;
 
       if (_avatarFile != null) {
-        await ApiClient.instance.uploadChildAvatar(
-          childId,
-          File(_avatarFile!.path),
-        );
+        await LocalAvatarStore.instance
+            .saveChildAvatar(childId, File(_avatarFile!.path));
       }
 
       final invite =
@@ -127,7 +129,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        'Не удалось завершить настройку: $e',
+        ExtraL10n.of(context).setupFailed(e.toString()),
         type: AppFeedbackType.error,
       );
     } finally {
@@ -141,7 +143,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
     Clipboard.setData(ClipboardData(text: code));
     showAppSnackBar(
       context,
-      'Код скопирован.',
+      ExtraL10n.of(context).codeCopied,
       type: AppFeedbackType.success,
     );
   }
@@ -151,17 +153,18 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
     if (code == null) return;
     SharePlus.instance.share(
       ShareParams(
-        text:
-            'Установите Kid Security на телефон ребёнка и введите код: $code\n\nhttps://backend21.pythonanywhere.com/invite/$code',
+        text: ExtraL10n.of(context).inviteShareTextShort(code),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
+    final tx = ExtraL10n.of(context);
     final parentName = ref.watch(sessionProvider).user?.displayName ?? '';
     final titleName =
-        parentName.trim().isNotEmpty ? parentName.trim() : 'родитель';
+        parentName.trim().isNotEmpty ? parentName.trim() : t.parent;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -179,13 +182,18 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                           onPressed: _busy ? null : _goBack,
                           icon: const Icon(Icons.arrow_back_ios_new_rounded),
                         )
+                      else if (_stepIndex == 0)
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                        )
                       else
                         const SizedBox(width: 48),
                       Expanded(
                         child: Column(
                           children: [
-                            const Text(
-                              'Настройка семьи',
+                            Text(
+                              tx.familySetupTitle,
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w900,
@@ -194,7 +202,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Поможем быстро подключить ребёнка, $titleName.',
+                              tx.familySetupSubtitle(titleName),
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 color: AppColors.textSecondaryLight,
@@ -269,12 +277,13 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   String get _buttonLabel {
+    final tx = ExtraL10n.of(context);
     return switch (_stepIndex) {
-      0 => 'Продолжить',
-      1 => 'Сохранить имя',
-      2 => 'Завершить настройку',
-      3 => 'Дальше',
-      _ => 'Открыть приложение',
+      0 => tx.continueLabel,
+      1 => tx.saveNameLabel,
+      2 => tx.finishSetupLabel,
+      3 => tx.nextLabel,
+      _ => tx.openAppLabel,
     };
   }
 
@@ -289,27 +298,28 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Widget _buildGenderStep() {
+    final tx = ExtraL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StepHeading(
-          title: 'У вас сын или дочка?',
-          subtitle: 'С этого начнем создание профиля ребёнка.',
+        _StepHeading(
+          title: tx.boyOrGirlQuestion,
+          subtitle: tx.familySetupStartSubtitle,
         ),
         const SizedBox(height: 24),
         _ChoiceCard(
           selected: _childGender == 'boy',
           icon: Icons.male_rounded,
-          title: 'Сын',
-          subtitle: 'Создать профиль мальчика',
+          title: tx.sonLabel,
+          subtitle: tx.createBoyProfile,
           onTap: () => setState(() => _childGender = 'boy'),
         ),
         const SizedBox(height: 14),
         _ChoiceCard(
           selected: _childGender == 'girl',
           icon: Icons.female_rounded,
-          title: 'Дочка',
-          subtitle: 'Создать профиль девочки',
+          title: tx.daughterLabel,
+          subtitle: tx.createGirlProfile,
           onTap: () => setState(() => _childGender = 'girl'),
         ),
       ],
@@ -317,14 +327,15 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Widget _buildNameStep() {
-    final exampleName = _childGender == 'girl' ? 'Катя' : 'Иван';
-    final label = _childGender == 'girl' ? 'дочку' : 'сына';
+    final tx = ExtraL10n.of(context);
+    final exampleName =
+        _childGender == 'girl' ? tx.exampleGirlName : tx.exampleBoyName;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _StepHeading(
-          title: 'Как зовут вашего $label?',
-          subtitle: 'Это имя сразу увидит ребёнок после входа по коду.',
+          title: _childGender == 'girl' ? tx.nameYourDaughter : tx.nameYourSon,
+          subtitle: tx.childSeesNameAfterCode,
         ),
         const SizedBox(height: 24),
         Container(
@@ -353,13 +364,13 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Widget _buildPhotoStep() {
+    final tx = ExtraL10n.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StepHeading(
-          title: 'Добавим фото',
-          subtitle:
-              'Это фото появится в профиле ребёнка. Можно пропустить и добавить позже.',
+        _StepHeading(
+          title: tx.addPhotoTitle,
+          subtitle: tx.addPhotoSubtitle,
         ),
         const SizedBox(height: 24),
         Expanded(
@@ -374,7 +385,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
               ),
               child: Center(
                 child: _avatarFile == null
-                    ? const Column(
+                    ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
@@ -384,7 +395,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                           ),
                           SizedBox(height: 14),
                           Text(
-                            'Выбрать фото',
+                            tx.selectPhotoLabel,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -406,8 +417,8 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                             ),
                           ),
                           const SizedBox(height: 18),
-                          const Text(
-                            'Нажмите, чтобы выбрать другое фото',
+                          Text(
+                            tx.chooseAnotherPhotoLabel,
                             style: TextStyle(
                               color: AppColors.textSecondaryLight,
                               fontWeight: FontWeight.w600,
@@ -424,6 +435,7 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Widget _buildCongratsStep() {
+    final tx = ExtraL10n.of(context);
     return Center(
       child: Container(
         padding: const EdgeInsets.all(28),
@@ -431,10 +443,10 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(32),
         ),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 38,
               backgroundColor: AppColors.successSoft,
               child: Icon(
@@ -443,20 +455,20 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                 size: 42,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
-              'Поздравляем!',
-              style: TextStyle(
+              tx.congratulationsLabel,
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
                 color: AppColors.navy,
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
-              'Профиль ребёнка уже готов. Осталось подключить телефон ребёнка по коду.',
+              tx.childProfileReady,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 height: 1.5,
                 color: AppColors.textSecondaryLight,
@@ -469,15 +481,17 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
   }
 
   Widget _buildInviteStep() {
+    final tx = ExtraL10n.of(context);
     final childName = _childNameController.text.trim();
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _StepHeading(
-            title: 'Установите приложение для ребёнка',
-            subtitle:
-                'Откройте приложение на телефоне ${childName.isEmpty ? 'ребёнка' : childName} и введите этот код.',
+            title: tx.installChildAppTitle,
+            subtitle: tx.openChildAppAndEnterCode(
+              childName.isEmpty ? tx.childLabel.toLowerCase() : childName,
+            ),
           ),
           const SizedBox(height: 24),
           GestureDetector(
@@ -490,8 +504,8 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    'Числовой код',
+                  Text(
+                    tx.numericCodeLabel,
                     style: TextStyle(
                       color: AppColors.textMuted,
                       fontWeight: FontWeight.w700,
@@ -508,14 +522,14 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.copy_rounded,
+                      const Icon(Icons.copy_rounded,
                           size: 18, color: AppColors.primary),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        'Нажмите, чтобы скопировать',
+                        tx.tapToCopyLabel,
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.w700,
@@ -540,8 +554,8 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
                 ),
               ),
               icon: const Icon(Icons.share_rounded),
-              label: const Text(
-                'Пригласить ребёнка',
+              label: Text(
+                tx.inviteChildLabel,
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -553,8 +567,8 @@ class _ParentSetupFlowScreenState extends ConsumerState<ParentSetupFlowScreen> {
               color: AppColors.primarySoft,
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Text(
-              'На телефоне ребёнка теперь не нужен логин и пароль: достаточно открыть приложение и ввести код.',
+            child: Text(
+              tx.childCodeNoLoginPassword,
               style: TextStyle(
                 color: AppColors.navy,
                 fontWeight: FontWeight.w700,

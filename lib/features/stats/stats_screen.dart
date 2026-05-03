@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
@@ -389,7 +391,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }) async {
     final t = S.of(context);
     if (_selectedChildId == null) return;
-    setState(() => _savingLimit = true);
+    final previousStats = _cloneStats();
+    setState(() {
+      _savingLimit = true;
+      _applyLimitLocally(
+        packageName: app['package_name'] as String? ?? '',
+        appName: app['app_name'] as String? ?? t.appLabel,
+        iconB64: app['icon_b64'] as String?,
+        enabled: enabled,
+        minutes: minutes,
+      );
+    });
     try {
       await ApiClient.instance.setChildAppLimit(
         childId: _selectedChildId!,
@@ -399,8 +411,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         enabled: enabled,
       );
       if (!mounted) return;
-      await _fetchChildData();
-      if (!mounted) return;
       showAppSnackBar(
         context,
         enabled
@@ -408,8 +418,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             : t.limitDisabledFor(app['app_name'] as String? ?? t.appLabel),
         type: AppFeedbackType.success,
       );
+      unawaited(_fetchChildData(showLoader: false));
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+      });
       showAppSnackBar(
         context,
         t.couldNotSaveLimit(e.toString()),
@@ -504,22 +518,12 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                         final name = app['app_name'] as String? ?? '';
                         final pkg = app['package_name'] as String? ?? '';
                         return ListTile(
-                          leading: Container(
-                            width: 38,
-                            height: 38,
-                            decoration: BoxDecoration(
-                              color: _AppLimitRow._colorForApp(pkg),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              name.isNotEmpty ? name[0].toUpperCase() : 'A',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
+                          leading: AppIconAvatar(
+                            iconB64: app['icon_b64'] as String?,
+                            appName: name,
+                            accent: _AppLimitRow._colorForApp(pkg),
+                            size: 38,
+                            borderRadius: 10,
                           ),
                           title: Text(
                             name,
@@ -527,15 +531,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
-                          ),
-                          subtitle: Text(
-                            pkg,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textMuted,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                           onTap: () => Navigator.of(context).pop(app),
                         );
@@ -551,8 +546,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
 
     if (selected == null || _selectedChildId == null) return;
-    // Set a default limit of 60 minutes for the newly added app
-    setState(() => _savingLimit = true);
+    final previousStats = _cloneStats();
+    setState(() {
+      _savingLimit = true;
+      _applyLimitLocally(
+        packageName: selected['package_name'] as String? ?? '',
+        appName: selected['app_name'] as String? ?? t.appLabel,
+        iconB64: selected['icon_b64'] as String?,
+        enabled: true,
+        minutes: 60,
+      );
+    });
     try {
       await ApiClient.instance.setChildAppLimit(
         childId: _selectedChildId!,
@@ -562,15 +566,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         enabled: true,
       );
       if (!mounted) return;
-      await _fetchChildData();
-      if (!mounted) return;
       showAppSnackBar(
         context,
         t.limitAddedForApp(selected['app_name'] as String? ?? t.appLabel),
         type: AppFeedbackType.success,
       );
+      unawaited(_fetchChildData(showLoader: false));
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+      });
       showAppSnackBar(
         context,
         e.toString(),
@@ -586,10 +592,21 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final pkg = app['package_name'] as String? ?? '';
     final name = app['app_name'] as String? ?? S.of(context).appLabel;
     if (pkg.isEmpty) return;
+    final previousStats = _cloneStats();
+    final previousBlockedPackages = Set<String>.from(_blockedPackages);
+    final previousBlockedIdByPackage =
+        Map<String, int>.from(_blockedIdByPackage);
+
+    setState(() {
+      _applyBlockedLocally(
+        packageName: pkg,
+        blocked: !_blockedPackages.contains(pkg),
+      );
+    });
 
     try {
-      if (_blockedPackages.contains(pkg)) {
-        final blockedId = _blockedIdByPackage[pkg];
+      if (previousBlockedPackages.contains(pkg)) {
+        final blockedId = previousBlockedIdByPackage[pkg];
         if (blockedId != null) {
           await ApiClient.instance.unblockApp(_selectedChildId!, blockedId);
         }
@@ -601,8 +618,6 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         );
       }
       if (!mounted) return;
-      await _fetchChildData();
-      if (!mounted) return;
       final isBlocked = _blockedPackages.contains(pkg);
       showAppSnackBar(
         context,
@@ -611,8 +626,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             : S.of(context).appUnblocked(name),
         type: AppFeedbackType.success,
       );
+      unawaited(_fetchChildData(showLoader: false));
     } catch (e) {
       if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+        _blockedPackages = previousBlockedPackages;
+        _blockedIdByPackage = previousBlockedIdByPackage;
+      });
       showAppSnackBar(
         context,
         e.toString(),
@@ -651,9 +672,17 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Map<String, dynamic> get _usage => _asMap(_stats?['usage']);
   List<Map<String, dynamic>> get _weekly => _asList(_stats?['weekly']);
   List<Map<String, dynamic>> get _calendar => _asList(_stats?['calendar']);
-  List<Map<String, dynamic>> get _apps => _asList(_stats?['apps']);
-  List<Map<String, dynamic>> get _allKnownApps =>
-      _asList(_stats?['all_known_apps']);
+  List<Map<String, dynamic>> get _apps => _dedupeApps(_asList(_stats?['apps']));
+  List<Map<String, dynamic>> get _allKnownApps {
+    final existingPackages = _apps
+        .map((app) => (app['package_name'] as String? ?? '').trim())
+        .where((pkg) => pkg.isNotEmpty)
+        .toSet();
+    return _dedupeApps(_asList(_stats?['all_known_apps']))
+        .where((app) => !existingPackages
+            .contains((app['package_name'] as String? ?? '').trim()))
+        .toList(growable: false);
+  }
 
   int get _battery => (_device['battery'] as int?) ?? 0;
   bool get _charging => (_device['charging'] as bool?) ?? false;
@@ -714,9 +743,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   : 'P',
               color: AppColors.primary,
               size: 36,
-              image: session.user?.avatarUrl != null
-                  ? NetworkImage(session.user!.avatarUrl!)
-                  : null,
+              image: avatarImageProvider(session.user?.avatarUrl),
             ),
             titlePrefix: t.parentProfile,
             title: t.appName,
@@ -752,6 +779,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Widget _buildMenuScreen(dynamic session) {
+    final tx = ExtraL10n.of(context);
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -773,10 +801,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             children: [
               Row(
                 children: [
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      'Меню',
-                      style: TextStyle(
+                      tx.menuLabel,
+                      style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
                         color: AppColors.navy,
@@ -838,6 +866,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
   Widget _buildMenuEmptyState() {
     final t = S.of(context);
+    final tx = ExtraL10n.of(context);
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -867,10 +896,10 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const Text(
-            'Меню появится после добавления ребёнка',
+          Text(
+            tx.menuAppearsAfterAddingChild,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimaryLight,
@@ -899,8 +928,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text(
-                'Добавить ребёнка',
+              child: Text(
+                t.addChild,
                 style: TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -915,8 +944,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     final childName = child != null ? _displayNameForChild(child) : _childName;
     final avatarUrl = child?['avatar_url'] as String?;
     final parentName = (session.user?.displayName as String?)?.trim() ?? '';
-    final parentLabel =
-        parentName.isEmpty ? 'Быстрый доступ' : 'Панель $parentName';
+    final parentLabel = parentName.isEmpty
+        ? ExtraL10n.of(context).quickAccessLabel
+        : ExtraL10n.of(context).parentPanelLabel(parentName);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -945,7 +975,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             size: 54,
             initials: childName.isNotEmpty ? childName[0].toUpperCase() : '?',
             color: AppColors.primary,
-            image: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+            image: avatarImageProvider(avatarUrl),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -977,18 +1007,18 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(999),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle_rounded,
                   size: 14,
                   color: AppColors.primary,
                 ),
-                SizedBox(width: 6),
+                const SizedBox(width: 6),
                 Text(
-                  'Выбран',
-                  style: TextStyle(
+                  ExtraL10n.of(context).selectedLabel,
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -1025,49 +1055,49 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Widget _buildMenuGrid() {
     final tiles = <_MenuTileData>[
       _MenuTileData(
-        title: 'Онлайн звук\nвокруг ребенка',
+        title: ExtraL10n.of(context).onlineAroundSoundMenuTitle,
         icon: Icons.hearing_rounded,
         accent: AppColors.success,
         onTap: _openAroundForSelectedChild,
       ),
       _MenuTileData(
-        title: 'Лимиты на игры',
+        title: ExtraL10n.of(context).gameLimitsMenuTitle,
         icon: Icons.sports_esports_rounded,
         accent: AppColors.primary,
         onTap: _openGameLimits,
       ),
       _MenuTileData(
-        title: 'Входящие чаты',
+        title: ExtraL10n.of(context).incomingChatsMenuTitle,
         icon: Icons.forum_outlined,
         accent: AppColors.accent,
         onTap: _openChats,
       ),
       _MenuTileData(
-        title: 'Места на карте',
+        title: ExtraL10n.of(context).mapPlacesMenuTitle,
         icon: Icons.map_outlined,
         accent: AppColors.warning,
         onTap: _openMapScreen,
       ),
       _MenuTileData(
-        title: 'История\nпередвижения',
+        title: ExtraL10n.of(context).movementHistoryMenuTitle,
         icon: Icons.route_rounded,
         accent: AppColors.navy,
         onTap: _openHistory,
       ),
       _MenuTileData(
-        title: 'Статистика\nприложений',
+        title: ExtraL10n.of(context).appStatsMenuTitle,
         icon: Icons.bar_chart_rounded,
         accent: AppColors.primary,
         onTap: _openStatsDetails,
       ),
       _MenuTileData(
-        title: 'Достижения\nребенка',
+        title: ExtraL10n.of(context).childAchievementsMenuTitle,
         icon: Icons.emoji_events_outlined,
         accent: AppColors.warning,
         onTap: _openAchievements,
       ),
       _MenuTileData(
-        title: 'Громкий\nсигнал',
+        title: ExtraL10n.of(context).loudSignalMenuTitle,
         icon: Icons.notifications_active_outlined,
         accent: AppColors.danger,
         onTap: _openLoudSignal,
@@ -1162,7 +1192,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     if (child != null) return child;
     showAppSnackBar(
       context,
-      'Сначала добавьте ребёнка.',
+      ExtraL10n.of(context).addChildFirstWarning,
       type: AppFeedbackType.warning,
     );
     return null;
@@ -1173,7 +1203,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     if (childId != null) return childId;
     showAppSnackBar(
       context,
-      'Сначала добавьте ребёнка.',
+      ExtraL10n.of(context).addChildFirstWarning,
       type: AppFeedbackType.warning,
     );
     return null;
@@ -1816,6 +1846,8 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             child: _WeeklyBars(
               days: _weekly,
               maxMinutes: maxMinutes == 0 ? 1 : maxMinutes,
+              onDayTap: (day) => _selectDate(
+                  _parseDate(day['date'] as String?) ?? _selectedDate),
             ),
           ),
         ],
@@ -1830,6 +1862,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
       child: _AppLimitRow(
         name: app['app_name'] as String? ?? S.of(context).appLabel,
         packageName: pkg,
+        iconB64: app['icon_b64'] as String?,
         usageMinutes: (app['usage_minutes'] as int?) ?? 0,
         dailyLimitMinutes: app['daily_limit_minutes'] as int?,
         enabled: (app['limit_enabled'] as bool?) ?? false,
@@ -1869,6 +1902,116 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList();
+  }
+
+  List<Map<String, dynamic>> _dedupeApps(List<Map<String, dynamic>> apps) {
+    final byPackage = <String, Map<String, dynamic>>{};
+    for (final app in apps) {
+      final pkg = (app['package_name'] as String? ?? '').trim();
+      if (pkg.isEmpty) continue;
+      final existing = byPackage[pkg];
+      if (existing == null) {
+        byPackage[pkg] = Map<String, dynamic>.from(app);
+        continue;
+      }
+      final existingUsage = (existing['usage_minutes'] as int?) ?? 0;
+      final nextUsage = (app['usage_minutes'] as int?) ?? 0;
+      if (nextUsage >= existingUsage) {
+        byPackage[pkg] = Map<String, dynamic>.from(app);
+      }
+    }
+    return byPackage.values.toList(growable: false);
+  }
+
+  Map<String, dynamic>? _cloneStats() {
+    final stats = _stats;
+    if (stats == null) return null;
+    return Map<String, dynamic>.from(
+      jsonDecode(jsonEncode(stats)) as Map<String, dynamic>,
+    );
+  }
+
+  void _applyLimitLocally({
+    required String packageName,
+    required String appName,
+    required String? iconB64,
+    required bool enabled,
+    required int minutes,
+  }) {
+    if (packageName.trim().isEmpty) return;
+    final stats = _cloneStats() ?? <String, dynamic>{};
+    final apps = _dedupeApps(_asList(stats['apps'])).toList(growable: true);
+    final index = apps.indexWhere((app) => app['package_name'] == packageName);
+    final nextApp = index >= 0
+        ? Map<String, dynamic>.from(apps[index])
+        : <String, dynamic>{
+            'package_name': packageName,
+            'app_name': appName,
+            'usage_minutes': 0,
+            if (iconB64 != null && iconB64.isNotEmpty) 'icon_b64': iconB64,
+          };
+    nextApp['app_name'] = appName;
+    nextApp['daily_limit_minutes'] = minutes;
+    nextApp['limit_enabled'] = enabled;
+    nextApp['exceeded'] =
+        enabled && ((nextApp['usage_minutes'] as int?) ?? 0) > minutes;
+    if (iconB64 != null && iconB64.isNotEmpty) {
+      nextApp['icon_b64'] = iconB64;
+    }
+
+    if (index >= 0) {
+      apps[index] = nextApp;
+    } else {
+      apps.add(nextApp);
+    }
+
+    stats['apps'] = apps;
+    _recomputeUsageStats(stats);
+    _stats = stats;
+  }
+
+  void _applyBlockedLocally({
+    required String packageName,
+    required bool blocked,
+  }) {
+    final nextBlocked = Set<String>.from(_blockedPackages);
+    final nextBlockedIds = Map<String, int>.from(_blockedIdByPackage);
+    if (blocked) {
+      nextBlocked.add(packageName);
+    } else {
+      nextBlocked.remove(packageName);
+      nextBlockedIds.remove(packageName);
+    }
+    _blockedPackages = nextBlocked;
+    _blockedIdByPackage = nextBlockedIds;
+  }
+
+  void _recomputeUsageStats(Map<String, dynamic> stats) {
+    final apps = _dedupeApps(_asList(stats['apps']));
+    final usage = _asMap(stats['usage']);
+    final totalMinutes = apps.fold<int>(
+      0,
+      (sum, app) => sum + ((app['usage_minutes'] as int?) ?? 0),
+    );
+    final totalLimit = apps.fold<int>(0, (sum, app) {
+      final enabled = (app['limit_enabled'] as bool?) ?? false;
+      final limit = (app['daily_limit_minutes'] as int?) ?? 0;
+      return enabled ? sum + limit : sum;
+    });
+    final overLimitApps = apps.where((app) {
+      final enabled = (app['limit_enabled'] as bool?) ?? false;
+      final limit = (app['daily_limit_minutes'] as int?) ?? 0;
+      final usageMinutes = (app['usage_minutes'] as int?) ?? 0;
+      return enabled && limit > 0 && usageMinutes > limit;
+    }).length;
+
+    usage['selected_total_minutes'] = totalMinutes;
+    usage['selected_total_limit_minutes'] = totalLimit;
+    usage['over_limit_apps'] = overLimitApps;
+    usage['goal_progress'] = totalLimit > 0
+        ? (totalMinutes / totalLimit).clamp(0, 1).toDouble()
+        : 0.0;
+    stats['usage'] = usage;
   }
 
   String _formatMinutes(int minutes) {
@@ -2063,7 +2206,7 @@ class _MenuChildChip extends StatelessWidget {
               size: 28,
               initials: label.isNotEmpty ? label[0].toUpperCase() : '?',
               color: AppColors.primary,
-              image: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
+              image: avatarImageProvider(avatarUrl),
             ),
             const SizedBox(width: 8),
             Text(
@@ -2308,10 +2451,12 @@ class _WeeklyBars extends StatelessWidget {
   const _WeeklyBars({
     required this.days,
     required this.maxMinutes,
+    required this.onDayTap,
   });
 
   final List<Map<String, dynamic>> days;
   final int maxMinutes;
+  final ValueChanged<Map<String, dynamic>> onDayTap;
 
   @override
   Widget build(BuildContext context) {
@@ -2324,61 +2469,65 @@ class _WeeklyBars extends StatelessWidget {
         final active = (day['is_selected'] as bool?) ?? false;
         final value = maxMinutes == 0 ? 0.0 : minutes / maxMinutes;
         return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  minutes == 0
-                      ? ''
-                      : minutes ~/ 60 > 0
-                          ? '${minutes ~/ 60}h'
-                          : '${minutes}m',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: active
-                        ? AppColors.primary
-                        : AppColors.textSecondaryLight,
+          child: InkWell(
+            onTap: () => onDayTap(day),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    minutes == 0
+                        ? ''
+                        : minutes ~/ 60 > 0
+                            ? '${minutes ~/ 60}h'
+                            : '${minutes}m',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: active
+                          ? AppColors.primary
+                          : AppColors.textSecondaryLight,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: FractionallySizedBox(
-                      heightFactor: minutes == 0 ? 0 : value.clamp(0.08, 1.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: active
-                              ? AppColors.primary
-                              : AppColors.dividerLight,
-                          borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: FractionallySizedBox(
+                        heightFactor: minutes == 0 ? 0 : value.clamp(0.08, 1.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: active
+                                ? AppColors.primary
+                                : AppColors.dividerLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  switch (((day['label'] as String?) ?? '').toUpperCase()) {
-                    'MON' => t.mon,
-                    'TUE' => t.tue,
-                    'WED' => t.wed,
-                    'THU' => t.thu,
-                    'FRI' => t.fri,
-                    'SAT' => t.sat,
-                    'SUN' => t.sun,
-                    _ => (day['label'] as String?) ?? '',
-                  },
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: active ? AppColors.primary : AppColors.textMuted,
+                  const SizedBox(height: 6),
+                  Text(
+                    switch (((day['label'] as String?) ?? '').toUpperCase()) {
+                      'MON' => t.mon,
+                      'TUE' => t.tue,
+                      'WED' => t.wed,
+                      'THU' => t.thu,
+                      'FRI' => t.fri,
+                      'SAT' => t.sat,
+                      'SUN' => t.sun,
+                      _ => (day['label'] as String?) ?? '',
+                    },
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: active ? AppColors.primary : AppColors.textMuted,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -2391,6 +2540,7 @@ class _AppLimitRow extends StatelessWidget {
   const _AppLimitRow({
     required this.name,
     required this.packageName,
+    required this.iconB64,
     required this.usageMinutes,
     required this.dailyLimitMinutes,
     required this.enabled,
@@ -2403,6 +2553,7 @@ class _AppLimitRow extends StatelessWidget {
 
   final String name;
   final String packageName;
+  final String? iconB64;
   final int usageMinutes;
   final int? dailyLimitMinutes;
   final bool enabled;
@@ -2426,22 +2577,12 @@ class _AppLimitRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: _colorForApp(packageName),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              name.isNotEmpty ? name[0].toUpperCase() : 'A',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+          AppIconAvatar(
+            iconB64: iconB64,
+            appName: name,
+            accent: _colorForApp(packageName),
+            size: 42,
+            borderRadius: 12,
           ),
           const SizedBox(width: 12),
           Expanded(

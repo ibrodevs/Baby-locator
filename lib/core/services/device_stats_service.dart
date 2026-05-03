@@ -66,18 +66,21 @@ class DeviceUsageApp {
     required this.appName,
     required this.usageMinutes,
     this.lastUsedAt,
+    this.iconB64,
   });
 
   final String packageName;
   final String appName;
   final int usageMinutes;
   final String? lastUsedAt;
+  final String? iconB64;
 
   Map<String, dynamic> toJson() => {
         'package_name': packageName,
         'app_name': appName,
         'usage_minutes': usageMinutes,
         if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+        if (iconB64 != null && iconB64!.isNotEmpty) 'icon_b64': iconB64,
       };
 }
 
@@ -146,6 +149,7 @@ class DeviceStatsService {
                       appName: (app['appName'] as String?) ?? '',
                       usageMinutes: (app['usageMinutes'] as int?) ?? 0,
                       lastUsedAt: app['lastUsedAt'] as String?,
+                      iconB64: app['iconB64'] as String?,
                     );
                   })
                   .where((app) =>

@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConfig {
   static const String _defineBase =
       String.fromEnvironment('API_BASE', defaultValue: '');
-  static const String _defaultBase = 'https://backend21.pythonanywhere.com';
+  static const String _defaultBase = 'http://89.108.81.151';
 
   static String get baseUrl {
     if (_defineBase.isNotEmpty) return _defineBase;
@@ -28,6 +28,16 @@ class ApiException implements Exception {
   String toString() => 'ApiException($statusCode): $message';
 }
 
+class ApiStreamResponse {
+  ApiStreamResponse({
+    required this.response,
+    required this.close,
+  });
+
+  final http.StreamedResponse response;
+  final void Function() close;
+}
+
 class ApiClient {
   ApiClient._();
   static final ApiClient instance = ApiClient._();
@@ -36,6 +46,9 @@ class ApiClient {
   String? _sessionRole;
   int? _sessionUserId;
   String? get token => _token;
+  String get baseUrl => ApiConfig.baseUrl;
+  String? get authorizationHeaderValue =>
+      _token == null ? null : 'Token $_token';
   String? get sessionRole => _sessionRole;
   int? get sessionUserId => _sessionUserId;
   bool get hasChildSession => _token != null && _sessionRole == 'child';
@@ -567,6 +580,30 @@ class ApiClient {
     final r = await http.get(uri, headers: _headers(json: false));
     if (r.statusCode == 204 || r.body.isEmpty) return null;
     return _decode(r) as Map<String, dynamic>;
+  }
+
+  Future<ApiStreamResponse> openLiveAroundAudioStream(
+    int childId, {
+    required String sessionToken,
+  }) async {
+    final request = http.Request(
+      'GET',
+      _u('/api/children/$childId/around-audio/live/stream/').replace(
+        queryParameters: <String, String>{'session_token': sessionToken},
+      ),
+    );
+    request.headers.addAll(_headers(json: false));
+    final client = http.Client();
+    try {
+      final response = await client.send(request);
+      return ApiStreamResponse(
+        response: response,
+        close: client.close,
+      );
+    } catch (_) {
+      client.close();
+      rethrow;
+    }
   }
 
   // === WebRTC Monitoring ===

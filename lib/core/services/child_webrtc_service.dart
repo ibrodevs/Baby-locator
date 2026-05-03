@@ -129,11 +129,34 @@ class ChildWebRTCService {
 
       _peerConnection!.onConnectionState = (RTCPeerConnectionState state) {
         debugPrint('[ChildWebRTC] connection state: $state');
-        if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
-            state == RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
-          // Defer teardown — closing from inside the state callback races
-          // with the iOS EventChannel and crashes at postEvent → sink(event).
-          Future.microtask(stopMonitoring);
+        switch (state) {
+          case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
+            // Failed = ICE has given up on the current candidate pair.
+            // The previous behaviour was to tear the whole session down
+            // here, which is exactly why the parent observed "audio
+            // worked then stopped" — every brief cell handoff or NAT
+            // rebind triggered a permanent stop. Instead, try an ICE
+            // restart: keep the peer connection alive, regenerate the
+            // ICE candidates, send a fresh offer with iceRestart=true.
+            // The parent picks it up and we resume audio without the
+            // user noticing.
+            Future.microtask(_attemptIceRestart);
+            break;
+          case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
+            // The peer connection itself has been closed — there's
+            // nothing left to recover. Tear down. Defer so we don't
+            // race with the native EventChannel teardown on iOS.
+            Future.microtask(stopMonitoring);
+            break;
+          case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
+            // Transient — ICE will try to recover on its own. Don't
+            // touch anything; just log.
+            debugPrint(
+              '[ChildWebRTC] disconnected, waiting for ICE to recover',
+            );
+            break;
+          default:
+            break;
         }
       };
 
@@ -162,14 +185,42 @@ class ChildWebRTCService {
     }
   }
 
-  Future<void> _createAndSendOffer() async {
+  Future<void> _createAndSendOffer({bool iceRestart = false}) async {
     if (_peerConnection == null) return;
     final offer = await _peerConnection!.createOffer({
       'offerToReceiveAudio': false,
       'offerToReceiveVideo': false,
+      // Forces WebRTC to regenerate ICE credentials so the new offer
+      // triggers a clean ICE restart on the parent side. Without this
+      // flag the offer is identical to the previous one and ICE just
+      // keeps using the same dead candidate pair.
+      if (iceRestart) 'iceRestart': true,
     });
     await _peerConnection!.setLocalDescription(offer);
     await _sendSignal('offer', {'sdp': offer.sdp});
+  }
+
+  /// Re-handshake ICE while keeping the peer connection alive. Called
+  /// when WebRTC reports `Failed` (e.g. cellular handoff, NAT rebind,
+  /// transient packet loss exceeding ICE consent freshness). Without
+  /// this, the audio stops after the first network blip.
+  bool _iceRestartInFlight = false;
+
+  Future<void> _attemptIceRestart() async {
+    if (!_isActive || _peerConnection == null) return;
+    if (_iceRestartInFlight) return;
+    _iceRestartInFlight = true;
+    try {
+      debugPrint('[ChildWebRTC] attempting ICE restart');
+      await _createAndSendOffer(iceRestart: true);
+    } catch (e) {
+      debugPrint('[ChildWebRTC] ICE restart failed: $e');
+    } finally {
+      // Brief debounce so a flurry of Failed callbacks doesn't issue
+      // dozens of offers back to back.
+      await Future<void>.delayed(const Duration(seconds: 2));
+      _iceRestartInFlight = false;
+    }
   }
 
   Future<void> _pollSignals() async {

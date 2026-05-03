@@ -2,12 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/child_theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, required this.onFinished});
+  const SplashScreen({
+    super.key,
+    required this.onFinished,
+    this.palette = ChildPalette.boy,
+  });
 
   final VoidCallback onFinished;
+  final ChildPalette palette;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -37,18 +42,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final palette = widget.palette;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF2F7BFF),
-              Color(0xFF1C62F0),
-              Color(0xFF0B2A8A),
+              palette.heroGradient.colors.first,
+              palette.primary,
+              palette.primaryDark,
             ],
-            stops: [0.0, 0.55, 1.0],
+            stops: const [0.0, 0.55, 1.0],
           ),
         ),
         child: SafeArea(
@@ -67,7 +73,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 bottom: 100,
                 child: _GlowOrb(
                   size: 260,
-                  color: AppColors.accent.withValues(alpha: 0.18),
+                  color: (palette == ChildPalette.boy
+                          ? const Color(0xFF72B6FF)
+                          : palette.primarySoft)
+                      .withValues(
+                          alpha: palette == ChildPalette.boy ? 0.18 : 0.36),
                 ),
               ),
               Center(
@@ -88,10 +98,10 @@ class _SplashScreenState extends State<SplashScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.shield_rounded,
                         size: 64,
-                        color: AppColors.primary,
+                        color: palette.primary,
                       ),
                     ),
                     const SizedBox(height: 28),

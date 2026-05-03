@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../root/root_screen.dart';
-import 'parent_setup_flow_screen.dart';
 
 class ParentAuthScreen extends ConsumerStatefulWidget {
   const ParentAuthScreen({super.key});
@@ -65,14 +64,6 @@ class _ParentAuthScreenState extends ConsumerState<ParentAuthScreen> {
         if (attempt == 4) rethrow;
       }
     }
-  }
-
-  void _finishFlow() {
-    if (!mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RootScreen()),
-      (_) => false,
-    );
   }
 
   @override
@@ -165,6 +156,6 @@ class _ParentAuthScreenState extends ConsumerState<ParentAuthScreen> {
       );
     }
 
-    return ParentSetupFlowScreen(onFinished: _finishFlow);
+    return const RootScreen();
   }
 }
