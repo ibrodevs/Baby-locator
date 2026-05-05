@@ -17,6 +17,7 @@ import '../../core/theme/child_theme.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
+import '../auth/parent_setup_flow_screen.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({
@@ -73,6 +74,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       } else {
         try {
           await ref.read(parentChildrenProvider.notifier).refresh();
+          if (mounted) {
+            await _syncChildren(ref.read(parentChildrenProvider));
+          }
         } catch (e) {
           if (mounted) setState(() => _loading = false);
         }
@@ -198,6 +202,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       _stopPolling();
     }
     _syncActiveChatVisibility();
+  }
+
+  Future<void> _openAddChildFlow() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ParentSetupFlowScreen(
+          onFinished: () => Navigator.of(context).pop(true),
+        ),
+      ),
+    );
+    if (result == true && mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _loadAll() async {
@@ -925,11 +943,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _selectedChildId == null
-                      ? Center(
-                          child: Text(
-                            t.addChildToChat,
-                            style: const TextStyle(color: AppColors.textMuted),
-                          ),
+                      ? _AddChildEmptyState(
+                          subtitle: t.addChildToChat,
+                          onAddChild: _openAddChildFlow,
+                          addLabel: t.addChild,
                         )
                       : RefreshIndicator(
                           onRefresh: _loadAll,
@@ -2131,6 +2148,58 @@ class _ChatComposer extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddChildEmptyState extends StatelessWidget {
+  const _AddChildEmptyState({
+    required this.subtitle,
+    required this.onAddChild,
+    required this.addLabel,
+  });
+  final String subtitle;
+  final VoidCallback onAddChild;
+  final String addLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: onAddChild,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: Text(
+                addLabel,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

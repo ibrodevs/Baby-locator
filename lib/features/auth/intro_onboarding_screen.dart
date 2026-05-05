@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations_extras.dart';
 
 const String introSeenKey = 'intro_onboarding_seen_v1';
 
@@ -109,7 +110,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
           'ru': 'Защитите ребенка\nи управляйте доступом',
           'en': 'Protect your child\nand manage access',
         }),
-        asset: 'assets/images/onboard_3.png',
+        mockupBuilder: (ctx) => const _MenuMockup(),
       ),
     ];
   }
@@ -200,12 +201,14 @@ class _IntroPageData {
   const _IntroPageData({
     required this.title,
     required this.subtitle,
-    required this.asset,
-  });
+    this.asset,
+    this.mockupBuilder,
+  }) : assert(asset != null || mockupBuilder != null);
 
   final String title;
   final String subtitle;
-  final String asset;
+  final String? asset;
+  final WidgetBuilder? mockupBuilder;
 }
 
 class _IntroPage extends StatelessWidget {
@@ -291,6 +294,7 @@ class _IntroPage extends StatelessWidget {
                 scale: scaleImage,
                 child: _AnimatedPhoneStage(
                   asset: data.asset,
+                  mockupBuilder: data.mockupBuilder,
                   pulse: pulse,
                   float: float,
                 ),
@@ -306,11 +310,13 @@ class _IntroPage extends StatelessWidget {
 class _AnimatedPhoneStage extends StatelessWidget {
   const _AnimatedPhoneStage({
     required this.asset,
+    required this.mockupBuilder,
     required this.pulse,
     required this.float,
   });
 
-  final String asset;
+  final String? asset;
+  final WidgetBuilder? mockupBuilder;
   final AnimationController pulse;
   final AnimationController float;
 
@@ -366,16 +372,379 @@ class _AnimatedPhoneStage extends StatelessWidget {
               },
               child: Padding(
                 padding: const EdgeInsets.all(8),
-                child: Image.asset(
-                  asset,
-                  fit: BoxFit.contain,
-                  filterQuality: FilterQuality.high,
-                ),
+                child: mockupBuilder != null
+                    ? mockupBuilder!(context)
+                    : Image.asset(
+                        asset!,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.high,
+                      ),
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+class _MenuMockup extends StatelessWidget {
+  const _MenuMockup();
+
+  static const String _sampleChildName = 'Anna';
+  static const String _sampleParentName = 'Alex';
+
+  @override
+  Widget build(BuildContext context) {
+    final extras = ExtraL10n.of(context);
+    final tiles = <_MockTile>[
+      _MockTile(extras.onlineAroundSoundMenuTitle, Icons.hearing_rounded,
+          AppColors.success),
+      _MockTile(extras.gameLimitsMenuTitle, Icons.sports_esports_rounded,
+          AppColors.primary),
+      _MockTile(extras.incomingChatsMenuTitle, Icons.forum_outlined,
+          AppColors.accent),
+      _MockTile(
+          extras.mapPlacesMenuTitle, Icons.map_outlined, AppColors.warning),
+      _MockTile(
+          extras.movementHistoryMenuTitle, Icons.route_rounded, AppColors.navy),
+      _MockTile(extras.appStatsMenuTitle, Icons.bar_chart_rounded,
+          AppColors.primary),
+      _MockTile(extras.childAchievementsMenuTitle, Icons.emoji_events_outlined,
+          AppColors.warning),
+      _MockTile(extras.loudSignalMenuTitle,
+          Icons.notifications_active_outlined, AppColors.danger),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shortest = constraints.biggest.shortestSide;
+        final phoneWidth = shortest * 0.82;
+        final phoneHeight = phoneWidth * 2.05;
+        final s = phoneWidth / 360.0; // scale factor relative to ~360pt phone
+
+        return Center(
+          child: Container(
+            width: phoneWidth,
+            height: phoneHeight,
+            padding: EdgeInsets.all(6 * s),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1F2937),
+              borderRadius: BorderRadius.circular(48 * s),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.20),
+                  blurRadius: 28,
+                  offset: const Offset(0, 14),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(42 * s),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.primarySoft.withValues(alpha: 0.85),
+                      AppColors.backgroundLight,
+                      const Color(0xFFF7FAFF),
+                    ],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    _MockStatusBar(s: s),
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20 * s, 8 * s, 20 * s, 0),
+                      child: _MockHeader(
+                        title: extras.menuLabel,
+                        s: s,
+                      ),
+                    ),
+                    SizedBox(height: 14 * s),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20 * s),
+                      child: _MockChildCard(
+                        s: s,
+                        childName: _sampleChildName,
+                        parentLabel:
+                            extras.parentPanelLabel(_sampleParentName),
+                        selectedLabel: extras.selectedLabel,
+                      ),
+                    ),
+                    SizedBox(height: 22 * s),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                            20 * s, 0, 20 * s, 16 * s),
+                        child: GridView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: tiles.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 12 * s,
+                            mainAxisSpacing: 14 * s,
+                            childAspectRatio: 0.76,
+                          ),
+                          itemBuilder: (_, i) =>
+                              _MockMenuTile(data: tiles[i], s: s),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MockTile {
+  const _MockTile(this.title, this.icon, this.accent);
+  final String title;
+  final IconData icon;
+  final Color accent;
+}
+
+class _MockStatusBar extends StatelessWidget {
+  const _MockStatusBar({required this.s});
+  final double s;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(22 * s, 10 * s, 22 * s, 4 * s),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '14:37',
+            style: TextStyle(
+              fontSize: 13 * s,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimaryLight,
+            ),
+          ),
+          Row(
+            children: [
+              Icon(Icons.signal_cellular_alt,
+                  size: 13 * s, color: AppColors.textPrimaryLight),
+              SizedBox(width: 5 * s),
+              Icon(Icons.wifi,
+                  size: 13 * s, color: AppColors.textPrimaryLight),
+              SizedBox(width: 5 * s),
+              Icon(Icons.battery_full,
+                  size: 15 * s, color: AppColors.textPrimaryLight),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MockHeader extends StatelessWidget {
+  const _MockHeader({required this.title, required this.s});
+  final String title;
+  final double s;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 24 * s,
+              fontWeight: FontWeight.w900,
+              color: AppColors.navy,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ),
+        Icon(Icons.people_alt_outlined,
+            size: 22 * s, color: AppColors.textPrimaryLight),
+        SizedBox(width: 14 * s),
+        Icon(Icons.settings_outlined,
+            size: 22 * s, color: AppColors.textPrimaryLight),
+      ],
+    );
+  }
+}
+
+class _MockChildCard extends StatelessWidget {
+  const _MockChildCard({
+    required this.s,
+    required this.childName,
+    required this.parentLabel,
+    required this.selectedLabel,
+  });
+
+  final double s;
+  final String childName;
+  final String parentLabel;
+  final String selectedLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(14 * s),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            AppColors.primarySoft.withValues(alpha: 0.88),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24 * s),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44 * s,
+            height: 44 * s,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              childName.isNotEmpty ? childName[0].toUpperCase() : '?',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 18 * s,
+              ),
+            ),
+          ),
+          SizedBox(width: 12 * s),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  childName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16 * s,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimaryLight,
+                  ),
+                ),
+                SizedBox(height: 2 * s),
+                Text(
+                  parentLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11 * s,
+                    color: AppColors.textSecondaryLight,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding:
+                EdgeInsets.symmetric(horizontal: 9 * s, vertical: 6 * s),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.check_circle_rounded,
+                    size: 12 * s, color: AppColors.primary),
+                SizedBox(width: 4 * s),
+                Text(
+                  selectedLabel,
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 10 * s,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MockMenuTile extends StatelessWidget {
+  const _MockMenuTile({required this.data, required this.s});
+  final _MockTile data;
+  final double s;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: Container(
+            padding: EdgeInsets.all(8 * s),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(22 * s),
+              border:
+                  Border.all(color: Colors.white.withValues(alpha: 0.8)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Container(
+                width: 38 * s,
+                height: 38 * s,
+                decoration: BoxDecoration(
+                  color: data.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14 * s),
+                ),
+                child: Icon(data.icon,
+                    size: 22 * s, color: data.accent),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 6 * s),
+        Text(
+          data.title,
+          maxLines: 3,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 9 * s,
+            height: 1.18,
+            color: AppColors.textPrimaryLight,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     );
   }
 }

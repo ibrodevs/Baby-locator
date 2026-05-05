@@ -82,19 +82,34 @@ class ChildWebRTCService {
         throw StateError('microphone_permission_denied');
       }
 
-      // 1. Capture microphone audio. We deliberately turn echo/noise/gain
-      //    OFF here — the parent wants to hear the *ambient* sounds around
-      //    the child (TV, voices, traffic), not just speech. Aggressive DSP
-      //    silences anything that doesn't look like a person talking right
-      //    next to the phone, which is exactly the opposite of what we want.
+      // 1. Capture microphone audio. We want LOUD ambient sound, so:
+      //    - echoCancellation off: parent isn't talking back, AEC just
+      //      attenuates speech that looks like an echo of nothing.
+      //    - noiseSuppression off: we want TV/voices/traffic, not just
+      //      "someone speaking right next to the phone".
+      //    - autoGainControl on: this is the single biggest contributor to
+      //      perceived loudness on the parent side — quiet rooms get pulled
+      //      up to a usable level by the mic AGC instead of relying on the
+      //      parent to crank their volume.
+      //    - stereo capture (channelCount=2) so distant sounds aren't
+      //      averaged into a thin mono signal.
       try {
         _localStream = await navigator.mediaDevices.getUserMedia({
           'audio': {
             'echoCancellation': false,
             'noiseSuppression': false,
             'autoGainControl': true,
-            'channelCount': 1,
+            'channelCount': 2,
             'sampleRate': 48000,
+            // Hint to the WebRTC audio capture pipeline to keep the input
+            // gain as high as it can without clipping. flutter_webrtc passes
+            // these through to the native MediaConstraints; unsupported keys
+            // are ignored, supported ones (Android `googHighpassFilter`,
+            // iOS `volume`) materially boost the signal.
+            'volume': 1.0,
+            'googHighpassFilter': false,
+            'googTypingNoiseDetection': false,
+            'googAudioMirroring': false,
           },
           'video': false,
         });
@@ -114,6 +129,30 @@ class ChildWebRTCService {
       // 3. Add local audio tracks.
       for (final track in _localStream!.getAudioTracks()) {
         await _peerConnection!.addTrack(track, _localStream!);
+      }
+
+      // Bump the encoder above its default ~32 kbps. Opus tops out around
+      // 510 kbps but anything over 128 kbps is wasted; 128 kbps stereo gives
+      // near-transparent quality and much louder, fuller ambient capture
+      // than the WebRTC voice-call default.
+      try {
+        final senders = await _peerConnection!.getSenders();
+        for (final sender in senders) {
+          if (sender.track?.kind != 'audio') continue;
+          final params = sender.parameters;
+          final encodings = params.encodings ?? <RTCRtpEncoding>[];
+          if (encodings.isEmpty) {
+            encodings.add(RTCRtpEncoding(maxBitrate: 128000));
+          } else {
+            for (final enc in encodings) {
+              enc.maxBitrate = 128000;
+            }
+          }
+          params.encodings = encodings;
+          await sender.setParameters(params);
+        }
+      } catch (e) {
+        debugPrint('[ChildWebRTC] setParameters failed: $e');
       }
 
       // 4. ICE candidate handler — send via REST.
@@ -196,8 +235,82 @@ class ChildWebRTCService {
       // keeps using the same dead candidate pair.
       if (iceRestart) 'iceRestart': true,
     });
-    await _peerConnection!.setLocalDescription(offer);
-    await _sendSignal('offer', {'sdp': offer.sdp});
+    final tunedSdp = _boostOpusSdp(offer.sdp);
+    final tunedOffer = RTCSessionDescription(tunedSdp, offer.type);
+    await _peerConnection!.setLocalDescription(tunedOffer);
+    await _sendSignal('offer', {'sdp': tunedSdp});
+  }
+
+  /// Patch the Opus fmtp line so the codec is configured for high-quality,
+  /// loud ambient audio instead of the default voice-call profile:
+  ///   * `maxaveragebitrate=128000` — full music-grade bitrate.
+  ///   * `stereo=1; sprop-stereo=1` — preserve stereo capture end-to-end.
+  ///   * `usedtx=0` — DTX mutes "silence", which cuts out exactly the
+  ///     ambient room tone the parent is trying to listen for.
+  ///   * `cbr=0` + `useinbandfec=1` — variable bitrate plus FEC keeps
+  ///     quality up over flaky cellular without dropouts.
+  ///   * `maxplaybackrate=48000; sprop-maxcapturerate=48000` — make sure
+  ///     the negotiated sample rate stays at 48 kHz, not the 16 kHz the
+  ///     defaults sometimes settle on.
+  static String? _boostOpusSdp(String? sdp) {
+    if (sdp == null || sdp.isEmpty) return sdp;
+    final lines = sdp.split('\r\n');
+    final opusPayloadIds = <String>[];
+    final opusRegex = RegExp(r'^a=rtpmap:(\d+)\s+opus/', caseSensitive: false);
+    for (final line in lines) {
+      final m = opusRegex.firstMatch(line);
+      if (m != null) opusPayloadIds.add(m.group(1)!);
+    }
+    if (opusPayloadIds.isEmpty) return sdp;
+
+    const desiredParams = <String, String>{
+      'maxaveragebitrate': '128000',
+      'stereo': '1',
+      'sprop-stereo': '1',
+      'usedtx': '0',
+      'cbr': '0',
+      'useinbandfec': '1',
+      'maxplaybackrate': '48000',
+      'sprop-maxcapturerate': '48000',
+    };
+
+    for (final pid in opusPayloadIds) {
+      final fmtpPrefix = 'a=fmtp:$pid';
+      var found = false;
+      for (var i = 0; i < lines.length; i++) {
+        if (!lines[i].startsWith(fmtpPrefix)) continue;
+        found = true;
+        final existing = lines[i].substring(fmtpPrefix.length).trim();
+        final params = <String, String>{};
+        if (existing.isNotEmpty) {
+          for (final pair in existing.split(';')) {
+            final kv = pair.trim();
+            if (kv.isEmpty) continue;
+            final eq = kv.indexOf('=');
+            if (eq <= 0) continue;
+            params[kv.substring(0, eq).trim()] = kv.substring(eq + 1).trim();
+          }
+        }
+        params.addAll(desiredParams);
+        final rebuilt = params.entries.map((e) => '${e.key}=${e.value}').join(';');
+        lines[i] = '$fmtpPrefix $rebuilt';
+        break;
+      }
+      if (!found) {
+        // Insert a fresh fmtp line right after the matching rtpmap line.
+        for (var i = 0; i < lines.length; i++) {
+          final m = opusRegex.firstMatch(lines[i]);
+          if (m != null && m.group(1) == pid) {
+            final rebuilt = desiredParams.entries
+                .map((e) => '${e.key}=${e.value}')
+                .join(';');
+            lines.insert(i + 1, 'a=fmtp:$pid $rebuilt');
+            break;
+          }
+        }
+      }
+    }
+    return lines.join('\r\n');
   }
 
   /// Re-handshake ICE while keeping the peer connection alive. Called

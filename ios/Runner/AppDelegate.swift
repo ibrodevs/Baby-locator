@@ -39,7 +39,7 @@ import AVFoundation
     }
   }
 
-  private func configureLiveAudioChannel(binaryMessenger: FlutterBinaryMessenger) {
+  rivate func configureLiveAudioChannel(binaryMessenger: FlutterBinaryMessenger) {
     let channel = FlutterMethodChannel(name: liveAudioChannelName, binaryMessenger: binaryMessenger)
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self = self else {

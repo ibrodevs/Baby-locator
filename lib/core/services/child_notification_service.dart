@@ -16,7 +16,7 @@ class ChildNotificationService {
   static final ChildNotificationService instance = ChildNotificationService._();
 
   static const _androidChannelId = 'kid_security_child_alerts';
-  static const _androidChannelName = 'Kid Security — Уведомления';
+  static const _androidChannelName = 'Family Security — Уведомления';
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 

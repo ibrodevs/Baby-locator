@@ -80,7 +80,7 @@ class DeviceNotificationService {
       DeviceNotificationService._();
 
   static const _androidChannelId = 'kid_security_activity_alerts';
-  static const _androidChannelName = 'Kid Security Alerts';
+  static const _androidChannelName = 'Family Security Alerts';
   static const _androidChannelDescription =
       'Notifications about children activity, battery, and safe zones.';
   static const _sosChannelId = 'kid_security_sos';

@@ -16,23 +16,67 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   int _index = 0;
+  final _activeIndexNotifier = ValueNotifier<int>(0);
+
+  final List<GlobalKey<NavigatorState>> _navKeys = List.generate(
+    4,
+    (_) => GlobalKey<NavigatorState>(),
+  );
+
+  @override
+  void dispose() {
+    _activeIndexNotifier.dispose();
+    super.dispose();
+  }
+
+  void _onTabTapped(int i) {
+    if (i == _index) {
+      _navKeys[i].currentState?.popUntil((route) => route.isFirst);
+    } else {
+      setState(() => _index = i);
+      _activeIndexNotifier.value = i;
+    }
+  }
+
+  Widget _buildTab(int i) {
+    return Navigator(
+      key: _navKeys[i],
+      onGenerateRoute: (_) => MaterialPageRoute(
+        builder: (_) => switch (i) {
+          0 => const MapScreen(),
+          1 => const ActivityScreen(),
+          2 => ValueListenableBuilder<int>(
+              valueListenable: _activeIndexNotifier,
+              builder: (_, active, __) => ChatScreen(isActive: active == 2),
+            ),
+          3 => const StatsScreen(showMenu: true),
+          _ => const SizedBox.shrink(),
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: IndexedStack(
-        index: _index,
-        children: [
-          const MapScreen(),
-          const ActivityScreen(),
-          ChatScreen(isActive: _index == 2),
-          const StatsScreen(showMenu: true),
-        ],
-      ),
-      bottomNavigationBar: AppBottomNav(
-        index: _index,
-        onChanged: (i) => setState(() => _index = i),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        final nav = _navKeys[_index].currentState;
+        if (nav != null && nav.canPop()) {
+          nav.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        body: IndexedStack(
+          index: _index,
+          children: List.generate(4, _buildTab),
+        ),
+        bottomNavigationBar: AppBottomNav(
+          index: _index,
+          onChanged: _onTabTapped,
+        ),
       ),
     );
   }

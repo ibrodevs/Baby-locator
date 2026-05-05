@@ -63,6 +63,9 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     } else {
       try {
         await ref.read(parentChildrenProvider.notifier).refresh();
+        if (mounted) {
+          await _syncChildren(ref.read(parentChildrenProvider));
+        }
       } catch (e) {
         if (!mounted) return;
         setState(() {
@@ -835,26 +838,29 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
                   padding: EdgeInsets.only(top: 120),
                   child: Center(child: CircularProgressIndicator()),
                 )
-              else if (_children.isEmpty)
-                _buildMenuEmptyState()
               else ...[
-                _buildMenuChildCard(session),
-                if (_children.length > 1) ...[
-                  const SizedBox(height: 16),
-                  _buildMenuChildSelector(),
-                ],
-                if (_error != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _error!,
-                    style: const TextStyle(
-                      color: AppColors.danger,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                if (_children.isEmpty) ...[
+                  _buildMenuAddChildBanner(),
+                  const SizedBox(height: 20),
+                ] else ...[
+                  _buildMenuChildCard(session),
+                  if (_children.length > 1) ...[
+                    const SizedBox(height: 16),
+                    _buildMenuChildSelector(),
+                  ],
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      _error!,
+                      style: const TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
+                  ],
+                  const SizedBox(height: 28),
                 ],
-                const SizedBox(height: 28),
                 _buildMenuGrid(),
               ],
             ],
@@ -864,77 +870,41 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     );
   }
 
-  Widget _buildMenuEmptyState() {
+  Widget _buildMenuAddChildBanner() {
     final t = S.of(context);
-    final tx = ExtraL10n.of(context);
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: 84,
-            height: 84,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: const Icon(
-              Icons.grid_view_rounded,
-              size: 38,
+    return GestureDetector(
+      onTap: _openManageChildren,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.child_care_rounded,
+              size: 20,
               color: AppColors.primary,
             ),
-          ),
-          const SizedBox(height: 18),
-          Text(
-            tx.menuAppearsAfterAddingChild,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimaryLight,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            t.addChildForStats,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              height: 1.45,
-              color: AppColors.textSecondaryLight,
-            ),
-          ),
-          const SizedBox(height: 18),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _openManageChildren,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
+            const SizedBox(width: 10),
+            Expanded(
               child: Text(
-                t.addChild,
-                style: TextStyle(fontWeight: FontWeight.w800),
+                t.addChildToSeeActivity,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
               ),
             ),
-          ),
-        ],
+            const Icon(
+              Icons.add_circle_outline_rounded,
+              size: 20,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
       ),
     );
   }

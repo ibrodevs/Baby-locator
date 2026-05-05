@@ -12,6 +12,7 @@ import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
+import '../auth/parent_setup_flow_screen.dart';
 import '../map/adaptive_map.dart';
 import 'zone_edit_screen.dart';
 
@@ -53,6 +54,9 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
     try {
       await ref.read(parentChildrenProvider.notifier).refresh();
+      if (mounted) {
+        await _syncChildren(ref.read(parentChildrenProvider));
+      }
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -142,6 +146,20 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
     if (selectionChanged) {
       await _loadData();
+    }
+  }
+
+  Future<void> _openAddChildFlow() async {
+    final result = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => ParentSetupFlowScreen(
+          onFinished: () => Navigator.of(context).pop(true),
+        ),
+      ),
+    );
+    if (result == true && mounted) {
+      setState(() {});
     }
   }
 
@@ -351,10 +369,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _children.isEmpty
-                      ? Center(
-                          child: Text(t.addChildToSeeActivity,
-                              style:
-                                  const TextStyle(color: AppColors.textMuted)))
+                      ? _AddChildEmptyState(
+                          subtitle: t.addChildToSeeActivity,
+                          onAddChild: _openAddChildFlow,
+                          addLabel: t.addChild,
+                        )
                       : RefreshIndicator(
                           onRefresh: _loadData,
                           child: ListView(
@@ -920,6 +939,58 @@ class _SafetyScoreCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddChildEmptyState extends StatelessWidget {
+  const _AddChildEmptyState({
+    required this.subtitle,
+    required this.onAddChild,
+    required this.addLabel,
+  });
+  final String subtitle;
+  final VoidCallback onAddChild;
+  final String addLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondaryLight,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: onAddChild,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 20),
+              label: Text(
+                addLabel,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

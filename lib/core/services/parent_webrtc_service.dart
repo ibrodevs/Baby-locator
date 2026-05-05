@@ -76,6 +76,71 @@ class ParentWebRTCService {
     'sdpSemantics': 'unified-plan',
   };
 
+  /// Patch the Opus fmtp parameters so the negotiated session uses a high
+  /// bitrate, stereo, no DTX (DTX mutes ambient silence — the very thing
+  /// the parent is trying to hear), in-band FEC for cellular resilience,
+  /// and 48 kHz playback. See child_webrtc_service for the offer side.
+  static String? _boostOpusSdp(String? sdp) {
+    if (sdp == null || sdp.isEmpty) return sdp;
+    final lines = sdp.split('\r\n');
+    final opusPayloadIds = <String>[];
+    final opusRegex = RegExp(r'^a=rtpmap:(\d+)\s+opus/', caseSensitive: false);
+    for (final line in lines) {
+      final m = opusRegex.firstMatch(line);
+      if (m != null) opusPayloadIds.add(m.group(1)!);
+    }
+    if (opusPayloadIds.isEmpty) return sdp;
+
+    const desiredParams = <String, String>{
+      'maxaveragebitrate': '128000',
+      'stereo': '1',
+      'sprop-stereo': '1',
+      'usedtx': '0',
+      'cbr': '0',
+      'useinbandfec': '1',
+      'maxplaybackrate': '48000',
+      'sprop-maxcapturerate': '48000',
+    };
+
+    for (final pid in opusPayloadIds) {
+      final fmtpPrefix = 'a=fmtp:$pid';
+      var found = false;
+      for (var i = 0; i < lines.length; i++) {
+        if (!lines[i].startsWith(fmtpPrefix)) continue;
+        found = true;
+        final existing = lines[i].substring(fmtpPrefix.length).trim();
+        final params = <String, String>{};
+        if (existing.isNotEmpty) {
+          for (final pair in existing.split(';')) {
+            final kv = pair.trim();
+            if (kv.isEmpty) continue;
+            final eq = kv.indexOf('=');
+            if (eq <= 0) continue;
+            params[kv.substring(0, eq).trim()] = kv.substring(eq + 1).trim();
+          }
+        }
+        params.addAll(desiredParams);
+        final rebuilt =
+            params.entries.map((e) => '${e.key}=${e.value}').join(';');
+        lines[i] = '$fmtpPrefix $rebuilt';
+        break;
+      }
+      if (!found) {
+        for (var i = 0; i < lines.length; i++) {
+          final m = opusRegex.firstMatch(lines[i]);
+          if (m != null && m.group(1) == pid) {
+            final rebuilt = desiredParams.entries
+                .map((e) => '${e.key}=${e.value}')
+                .join(';');
+            lines.insert(i + 1, 'a=fmtp:$pid $rebuilt');
+            break;
+          }
+        }
+      }
+    }
+    return lines.join('\r\n');
+  }
+
   Future<void> _configureParentAudioSession() async {
     try {
       await Helper.ensureAudioSession();
@@ -111,16 +176,24 @@ class ParentWebRTCService {
       // Do NOT call Helper.setVolume on remote tracks: on iOS that bridges to
       // `audioTrack.source.volume = …`, but RTCAudioTrack.source is only
       // populated for *local* tracks. Touching it on a remote track crashes
-      // the app with EXC_BAD_ACCESS at 0x10.
+      // the app with EXC_BAD_ACCESS at 0x10. On Android the same call DOES
+      // work and lets us push playback above the platform default — quiet
+      // ambient capture is the whole point of the feature.
+      if (Platform.isAndroid) {
+        try {
+          await Helper.setVolume(10.0, track);
+        } catch (_) {}
+      }
     }
 
-    // Reapply speaker routing — on Android the audio focus can flip back to
-    // the earpiece the moment the peer connection actually starts playing.
-    try {
-      if (Platform.isAndroid || Platform.isIOS) {
-        await Helper.setSpeakerphoneOn(true);
-      }
-    } catch (_) {}
+    // Re-pin loud-speaker routing — the audio focus flips back to the
+    // earpiece the moment the peer connection actually starts playing on
+    // some Android OEMs (Xiaomi/Huawei in particular). One call at attach
+    // time isn't enough; re-assert it a few times across the first second.
+    await _forceSpeakerphone();
+    Future<void>.delayed(const Duration(milliseconds: 250), _forceSpeakerphone);
+    Future<void>.delayed(const Duration(milliseconds: 750), _forceSpeakerphone);
+    Future<void>.delayed(const Duration(seconds: 2), _forceSpeakerphone);
 
     if (!_audioStartedNotified) {
       _audioStartedNotified = true;
@@ -128,6 +201,15 @@ class ParentWebRTCService {
       _slowDownPolling();
       onAudioStarted?.call();
     }
+  }
+
+  Future<void> _forceSpeakerphone() async {
+    if (!_isListening) return;
+    try {
+      if (Platform.isAndroid || Platform.isIOS) {
+        await Helper.setSpeakerphoneOn(true);
+      }
+    } catch (_) {}
   }
 
   void _slowDownPolling() {
@@ -348,8 +430,15 @@ class ParentWebRTCService {
         );
         final answer = await _peerConnection?.createAnswer();
         if (answer != null) {
-          await _peerConnection?.setLocalDescription(answer);
-          await _sendSignal('answer', {'sdp': answer.sdp});
+          // Mirror the same Opus profile we ask the child to use, so the
+          // negotiated session is high-bitrate stereo with DTX disabled.
+          // If we leave the answer at WebRTC defaults, the child happily
+          // downgrades to 32 kbps mono with DTX on — quiet, dropouty
+          // audio is exactly what the user is complaining about.
+          final tunedSdp = _boostOpusSdp(answer.sdp);
+          final tunedAnswer = RTCSessionDescription(tunedSdp, answer.type);
+          await _peerConnection?.setLocalDescription(tunedAnswer);
+          await _sendSignal('answer', {'sdp': tunedSdp});
         }
         break;
 

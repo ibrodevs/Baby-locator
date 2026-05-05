@@ -334,20 +334,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     },
                                     onUserCameraMoveStarted: _disableFollowMode,
                                   )
-                                : _EmptyMapPlaceholder(
-                                    hasChildren: hasChildren,
-                                    error: _err,
-                                    onManage: () async {
-                                      await Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              const ChildrenListScreen(),
-                                        ),
-                                      );
-                                      _fetchAll();
-                                    },
-                                  ),
+                                : hasChildren
+                                    ? _EmptyMapPlaceholder(
+                                        hasChildren: true,
+                                        error: _err,
+                                        onManage: () async {
+                                          await Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  const ChildrenListScreen(),
+                                            ),
+                                          );
+                                          _fetchAll();
+                                        },
+                                      )
+                                    : const AdaptiveMap(
+                                        latitude: 48.8566,
+                                        longitude: 2.3522,
+                                        children: [],
+                                      ),
                           ),
+                          if (!hasChildren)
+                            Positioned.fill(
+                              child: _NoChildrenMapOverlay(
+                                onAddChild: _openAddChildFlow,
+                              ),
+                            ),
                           if (selectedEntry != null)
                             Positioned(
                               left: 16,
@@ -426,15 +438,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 },
                                 onAddChild: _openAddChildFlow,
                                 childInfo: childInfo,
-                              ),
-                            ),
-                          if (!hasChildren)
-                            Positioned(
-                              right: 16,
-                              bottom: 20,
-                              child: _AddChildButton(
-                                onTap: _openAddChildFlow,
-                                tooltip: t.addChild,
                               ),
                             ),
                         ],
@@ -1401,5 +1404,95 @@ class _ChildInfoCard extends StatelessWidget {
     if (d.inSeconds < 60) return tr.justNow;
     if (d.inMinutes < 60) return tr.minutesAgo(d.inMinutes);
     return tr.hoursAgo(d.inHours);
+  }
+}
+
+class _NoChildrenMapOverlay extends StatelessWidget {
+  const _NoChildrenMapOverlay({required this.onAddChild});
+  final VoidCallback onAddChild;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Container(
+      color: Colors.black.withValues(alpha: 0.35),
+      child: Center(
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 40),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 32,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: const BoxDecoration(
+                  color: AppColors.primarySoft,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.child_care_rounded,
+                  size: 36,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                t.addChild,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                t.addChildToTrack,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  height: 1.45,
+                  color: AppColors.textSecondaryLight,
+                ),
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: onAddChild,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.add_rounded, size: 20),
+                  label: Text(
+                    t.addChild,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

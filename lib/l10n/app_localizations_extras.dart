@@ -176,9 +176,9 @@ class ExtraL10n {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Kid Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Install Family Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
           'ru':
-              'Установите Kid Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
         }),
         {'code': code},
       );
@@ -252,13 +252,43 @@ class ExtraL10n {
       });
 
   String get exampleGirlName => _pick({
-        'en': 'Kate',
-        'ru': 'Катя',
+        'en': 'Olivia',
+        'fr': 'Emma',
+        'de': 'Mia',
+        'pt': 'Maria',
+        'it': 'Sofia',
+        'es': 'Sofía',
+        'ar': 'عائشة',
+        'ru': 'София',
+        'pl': 'Zofia',
+        'kk': 'Айша',
+        'ky': 'Айпери',
+        'uz': 'Dilnoza',
+        'tg': 'Мадина',
+        'tk': 'Gülnara',
+        'az': 'Leyla',
+        'hy': 'Անահիտ',
+        'ka': 'ნინო',
       });
 
   String get exampleBoyName => _pick({
-        'en': 'Ivan',
-        'ru': 'Иван',
+        'en': 'Liam',
+        'fr': 'Gabriel',
+        'de': 'Leon',
+        'pt': 'João',
+        'it': 'Leonardo',
+        'es': 'Mateo',
+        'ar': 'محمد',
+        'ru': 'Александр',
+        'pl': 'Jakub',
+        'kk': 'Алихан',
+        'ky': 'Аман',
+        'uz': 'Aziz',
+        'tg': 'Фирдавс',
+        'tk': 'Merdan',
+        'az': 'Murad',
+        'hy': 'Արման',
+        'ka': 'გიორგი',
       });
 
   String get nameYourDaughter => _pick({
@@ -797,9 +827,9 @@ extension SExtras on S {
 
   String get appBlockingDescription => _pick({
         'en':
-            'When a blocked app opens, Kid Security immediately closes it and shows a blocking screen through Android Accessibility Service.',
+            'When a blocked app opens, Family Security immediately closes it and shows a blocking screen through Android Accessibility Service.',
         'ru':
-            'Когда заблокированное приложение открывается, Kid Security сразу закрывает его и показывает экран блокировки через службу специальных возможностей Android.',
+            'Когда заблокированное приложение открывается, Family Security сразу закрывает его и показывает экран блокировки через службу специальных возможностей Android.',
       });
 
   String get appBlockingUnsupported => _pick({
@@ -1250,39 +1280,39 @@ extension SExtras on S {
 
   String get accessibilityServiceDescription => _pick({
         'ar':
-            'بدون هذا الإذن ستظل التطبيقات التي حظرها الوالد تُفتح. ابحث عن "Kid Security — App Blocking" في القائمة وفعّله.',
+            'بدون هذا الإذن ستظل التطبيقات التي حظرها الوالد تُفتح. ابحث عن "Family Security — App Blocking" في القائمة وفعّله.',
         'az':
-            'Bu icazə olmadan valideynin blokladığı tətbiqlər yenə də açılacaq. Siyahıda "Kid Security — App Blocking" xidmətini tapın və aktiv edin.',
+            'Bu icazə olmadan valideynin blokladığı tətbiqlər yenə də açılacaq. Siyahıda "Family Security — App Blocking" xidmətini tapın və aktiv edin.',
         'de':
-            'Ohne diese Berechtigung lassen sich von den Eltern blockierte Apps weiterhin öffnen. Suche in der Liste nach „Kid Security — App Blocking“ und aktiviere es.',
+            'Ohne diese Berechtigung lassen sich von den Eltern blockierte Apps weiterhin öffnen. Suche in der Liste nach „Family Security — App Blocking“ und aktiviere es.',
         'en':
-            'Without this permission, apps blocked by the parent will still open. Find "Kid Security — App Blocking" in the list and enable it.',
+            'Without this permission, apps blocked by the parent will still open. Find "Family Security — App Blocking" in the list and enable it.',
         'es':
-            'Sin este permiso, las apps bloqueadas por el padre seguirán abriéndose. Busca "Kid Security — App Blocking" en la lista y actívalo.',
+            'Sin este permiso, las apps bloqueadas por el padre seguirán abriéndose. Busca "Family Security — App Blocking" en la lista y actívalo.',
         'fr':
-            'Sans cette autorisation, les applications bloquées par le parent pourront toujours être ouvertes. Trouvez "Kid Security — App Blocking" dans la liste et activez-le.',
+            'Sans cette autorisation, les applications bloquées par le parent pourront toujours être ouvertes. Trouvez "Family Security — App Blocking" dans la liste et activez-le.',
         'hy':
-            'Առանց այս թույլտվության ծնողի կողմից արգելափակված հավելվածները կբացվեն։ Ցանկում գտեք «Kid Security — App Blocking»-ը և միացրեք այն։',
+            'Առանց այս թույլտվության ծնողի կողմից արգելափակված հավելվածները կբացվեն։ Ցանկում գտեք «Family Security — App Blocking»-ը և միացրեք այն։',
         'it':
-            'Senza questa autorizzazione, le app bloccate dal genitore continueranno ad aprirsi. Trova "Kid Security — App Blocking" nell’elenco e abilitalo.',
+            'Senza questa autorizzazione, le app bloccate dal genitore continueranno ad aprirsi. Trova "Family Security — App Blocking" nell’elenco e abilitalo.',
         'ka':
-            'ამ ნებართვის გარეშე მშობლის მიერ დაბლოკილი აპები მაინც გაიხსნება. სიაში იპოვეთ "Kid Security — App Blocking" და ჩართეთ.',
+            'ამ ნებართვის გარეშე მშობლის მიერ დაბლოკილი აპები მაინც გაიხსნება. სიაში იპოვეთ "Family Security — App Blocking" და ჩართეთ.',
         'kk':
-            'Бұл рұқсатсыз ата-ана бұғаттаған қолданбалар бәрібір ашылады. Тізімнен "Kid Security — App Blocking" қызметін тауып, қосыңыз.',
+            'Бұл рұқсатсыз ата-ана бұғаттаған қолданбалар бәрібір ашылады. Тізімнен "Family Security — App Blocking" қызметін тауып, қосыңыз.',
         'ky':
-            'Бул уруксат болбосо, ата-эне бөгөттөгөн колдонмолор баары бир ачылат. Тизмеден "Kid Security — App Blocking" кызматын таап, күйгүзүңүз.',
+            'Бул уруксат болбосо, ата-эне бөгөттөгөн колдонмолор баары бир ачылат. Тизмеден "Family Security — App Blocking" кызматын таап, күйгүзүңүз.',
         'pl':
-            'Bez tego uprawnienia aplikacje zablokowane przez rodzica nadal będą się otwierać. Znajdź na liście „Kid Security — App Blocking” i włącz tę usługę.',
+            'Bez tego uprawnienia aplikacje zablokowane przez rodzica nadal będą się otwierać. Znajdź na liście „Family Security — App Blocking” i włącz tę usługę.',
         'pt':
-            'Sem esta permissão, os apps bloqueados pelo responsável ainda serão abertos. Encontre "Kid Security — App Blocking" na lista e ative-o.',
+            'Sem esta permissão, os apps bloqueados pelo responsável ainda serão abertos. Encontre "Family Security — App Blocking" na lista e ative-o.',
         'ru':
-            'Без этого разрешения заблокированные родителем приложения будут открываться. Найдите «Kid Security — блокировка приложений» в списке и включите её.',
+            'Без этого разрешения заблокированные родителем приложения будут открываться. Найдите «Family Security — блокировка приложений» в списке и включите её.',
         'tg':
-            'Бе ин иҷозат барномаҳое, ки аз ҷониби волид баста шудаанд, ҳамоно кушода мешаванд. Дар рӯйхат "Kid Security — App Blocking"-ро ёфта, фаъол кунед.',
+            'Бе ин иҷозат барномаҳое, ки аз ҷониби волид баста шудаанд, ҳамоно кушода мешаванд. Дар рӯйхат "Family Security — App Blocking"-ро ёфта, фаъол кунед.',
         'tk':
-            'Bu rugsat bolmasa, ene-atanyň bloklan programmalary şonda-da açylar. Sanawdan "Kid Security — App Blocking" hyzmatyny tapyp işlediň.',
+            'Bu rugsat bolmasa, ene-atanyň bloklan programmalary şonda-da açylar. Sanawdan "Family Security — App Blocking" hyzmatyny tapyp işlediň.',
         'uz':
-            'Bu ruxsatsiz ota-ona bloklagan ilovalar baribir ochiladi. Ro‘yxatdan "Kid Security — App Blocking" xizmatini topib yoqing.',
+            'Bu ruxsatsiz ota-ona bloklagan ilovalar baribir ochiladi. Ro‘yxatdan "Family Security — App Blocking" xizmatini topib yoqing.',
       });
 
   String get allowLocationAllTheTime => _pick({
@@ -3311,9 +3341,9 @@ class ExtraTranslations {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Kid Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Install Family Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
           'ru':
-              'Установите Kid Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
         }),
         {'code': code},
       );
@@ -3387,13 +3417,43 @@ class ExtraTranslations {
       });
 
   String get exampleGirlName => _pick({
-        'en': 'Kate',
-        'ru': 'Катя',
+        'en': 'Olivia',
+        'fr': 'Emma',
+        'de': 'Mia',
+        'pt': 'Maria',
+        'it': 'Sofia',
+        'es': 'Sofía',
+        'ar': 'عائشة',
+        'ru': 'София',
+        'pl': 'Zofia',
+        'kk': 'Айша',
+        'ky': 'Айпери',
+        'uz': 'Dilnoza',
+        'tg': 'Мадина',
+        'tk': 'Gülnara',
+        'az': 'Leyla',
+        'hy': 'Անահիտ',
+        'ka': 'ნინო',
       });
 
   String get exampleBoyName => _pick({
-        'en': 'Ivan',
-        'ru': 'Иван',
+        'en': 'Liam',
+        'fr': 'Gabriel',
+        'de': 'Leon',
+        'pt': 'João',
+        'it': 'Leonardo',
+        'es': 'Mateo',
+        'ar': 'محمد',
+        'ru': 'Александр',
+        'pl': 'Jakub',
+        'kk': 'Алихан',
+        'ky': 'Аман',
+        'uz': 'Aziz',
+        'tg': 'Фирдавс',
+        'tk': 'Merdan',
+        'az': 'Murad',
+        'hy': 'Արման',
+        'ka': 'გიორგი',
       });
 
   String get nameYourDaughter => _pick({
