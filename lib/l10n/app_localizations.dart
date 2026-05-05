@@ -130,7 +130,7 @@ abstract class S {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'Kid Security'**
+  /// **'Family security'**
   String get appName;
 
   /// No description provided for @signInOrCreate.
@@ -1024,7 +1024,7 @@ abstract class S {
   /// No description provided for @appVersion.
   ///
   /// In en, this message translates to:
-  /// **'Kid Security v1.0.0'**
+  /// **'Family security v1.0.0'**
   String get appVersion;
 
   /// No description provided for @editProfileTitle.
@@ -1462,7 +1462,7 @@ abstract class S {
   /// No description provided for @inviteShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my family circle in Kid Security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}'**
+  /// **'Join my family circle in Family security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}'**
   String inviteShareText(String code);
 
   /// No description provided for @failedToGenerateCode.

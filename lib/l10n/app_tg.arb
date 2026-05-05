@@ -1,6 +1,6 @@
 {
   "@@locale": "tg",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Ворид шавед ё ҳисоби волидайн созед",
   "signIn": "Ворид шудан",
   "createParentAccount": "Ҳисоби волидайн созед",
@@ -157,7 +157,7 @@
   "about": "Дар бора",
   "privacyPolicy": "Сиёсати махфият",
   "signOut": "Баромадан",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Таҳрири профил",
   "updateProfileHint": "Номи намоишӣ ва номи корбарро навсозӣ кунед.",
   "saveChanges": "Нигоҳ доштани тағйирот",

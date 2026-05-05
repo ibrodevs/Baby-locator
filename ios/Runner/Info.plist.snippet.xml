@@ -4,10 +4,10 @@
 -->
 
 <key>NSLocationWhenInUseUsageDescription</key>
-<string>Kid Security uses your location to show your position on the map and to compare against your child's location.</string>
+<string>Family security uses your location to show your position on the map and to compare against your child's location.</string>
 
 <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-<string>Kid Security uses your location in the background to keep the map up to date while the app is running.</string>
+<string>Family security uses your location in the background to keep the map up to date while the app is running.</string>
 
 <key>io.flutter.embedded_views_preview</key>
 <true/>

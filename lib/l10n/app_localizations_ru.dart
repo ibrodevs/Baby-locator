@@ -9,7 +9,7 @@ class SRu extends S {
   SRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appName => 'Kid Security';
+  String get appName => 'Family security';
 
   @override
   String get signInOrCreate => 'Войдите или создайте родительский аккаунт';
@@ -511,7 +511,7 @@ class SRu extends S {
   String get signOut => 'Выйти';
 
   @override
-  String get appVersion => 'Kid Security v1.0.0';
+  String get appVersion => 'Family security v1.0.0';
 
   @override
   String get editProfileTitle => 'Редактировать профиль';
@@ -768,7 +768,7 @@ class SRu extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Присоединяйся к моему семейному кругу в Kid Security! Используй код приглашения: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

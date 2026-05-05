@@ -11,6 +11,23 @@ import 'chat_visibility_service.dart';
 import 'fcm_service.dart';
 import 'notification_dedupe_store.dart';
 
+InterruptionLevel _deviceIosInterruptionLevelForNotificationType(
+  String notificationType,
+) {
+  switch (notificationType) {
+    case 'sos':
+    case 'battery_low':
+    case 'safe_zone_exit':
+    case 'location_update':
+      return InterruptionLevel.timeSensitive;
+    case 'chat_message':
+    case 'task_assigned':
+      return InterruptionLevel.active;
+    default:
+      return InterruptionLevel.active;
+  }
+}
+
 class NotificationSettingsModel {
   const NotificationSettingsModel({
     required this.pushEnabled,
@@ -134,6 +151,7 @@ class DeviceNotificationService {
           _sosChannelName,
           description: _sosChannelDescription,
           importance: Importance.max,
+          audioAttributesUsage: AudioAttributesUsage.alarm,
         ),
       );
     }
@@ -271,6 +289,7 @@ class DeviceNotificationService {
             id: id,
             title: title,
             body: message.isNotEmpty ? message : childName,
+            alertType: alertType,
           );
         }
       }
@@ -297,6 +316,7 @@ class DeviceNotificationService {
     if (alertType == 'chat_message' || alertType == 'task_assigned') {
       return true;
     }
+    if (alertType == 'location_update') return _settings.locationAlerts;
     if (alertType == 'battery_low') return _settings.batteryAlerts;
     if (alertType == 'safe_zone_exit') return _settings.safeZoneAlerts;
     return _settings.locationAlerts;
@@ -306,12 +326,13 @@ class DeviceNotificationService {
     required int id,
     required String title,
     required String body,
+    String alertType = '',
   }) async {
     await _plugin.show(
       id & 0x7fffffff,
       title,
       body,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _androidChannelId,
           _androidChannelName,
@@ -323,6 +344,8 @@ class DeviceNotificationService {
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          interruptionLevel:
+              _deviceIosInterruptionLevelForNotificationType(alertType),
         ),
       ),
     );
@@ -371,6 +394,7 @@ class DeviceNotificationService {
       ),
       payload: jsonEncode(payload),
     );
+    await FcmService.instance.presentSosAlert(payload);
   }
 
   Future<Set<String>> _loadShownIds() async {

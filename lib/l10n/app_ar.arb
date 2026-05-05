@@ -1,6 +1,6 @@
 {
   "@@locale": "ar",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "سجّل الدخول أو أنشئ حساب والد",
   "signIn": "تسجيل الدخول",
   "createParentAccount": "إنشاء حساب والد",
@@ -157,7 +157,7 @@
   "about": "حول",
   "privacyPolicy": "سياسة الخصوصية",
   "signOut": "تسجيل الخروج",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "تعديل الملف الشخصي",
   "updateProfileHint": "حدّث اسمك المعروض واسم المستخدم.",
   "saveChanges": "حفظ التغييرات",

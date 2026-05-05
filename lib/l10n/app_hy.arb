@@ -1,6 +1,6 @@
 {
   "@@locale": "hy",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Մուտք գործեք կամ ստեղծեք ծնողի հաշիվ",
   "signIn": "Մուտք գործել",
   "createParentAccount": "Ստեղծել ծնողի հաշիվ",
@@ -149,7 +149,7 @@
   "about": "Ծրագրի մասին",
   "privacyPolicy": "Գաղտնիության քաղաքականություն",
   "signOut": "Դուրս գալ",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Խմբագրել պրոֆիլը",
   "updateProfileHint": "Թարմացրեք ձեր ցուցադրվող անունը և օգտանունը։",
   "saveChanges": "Պահպանել փոփոխությունները",

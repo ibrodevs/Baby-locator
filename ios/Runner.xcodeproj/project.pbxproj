@@ -311,9 +311,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -366,9 +370,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -500,6 +508,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 83BQT397HX;
 				ENABLE_BITCODE = NO;
@@ -508,8 +517,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.myself.baby-locator-test";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ibroabdraimov.kidsecurity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -528,8 +538,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.kidSecurity.RunnerTests;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = "com.myself.baby-locator-test";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.myself.baby-locator-test";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -550,8 +560,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.kidSecurity.RunnerTests;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = "com.myself.baby-locator-test";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.myself.baby-locator-test";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -570,8 +580,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.kidSecurity.RunnerTests;
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = "com.myself.baby-locator-test";
-				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = "com.myself.baby-locator-test";
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
+				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.ibroabdraimov.kidsecurity.RunnerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Runner.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Runner";
@@ -696,6 +706,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 83BQT397HX;
 				ENABLE_BITCODE = NO;
@@ -704,8 +715,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.myself.baby-locator-test";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ibroabdraimov.kidsecurity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -720,6 +732,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 83BQT397HX;
 				ENABLE_BITCODE = NO;
@@ -728,8 +741,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.myself.baby-locator-test";
+				PRODUCT_BUNDLE_IDENTIFIER = com.ibroabdraimov.kidsecurity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

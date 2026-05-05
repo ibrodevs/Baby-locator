@@ -1,4 +1,4 @@
-# Kid Security
+# Family security
 
 Parental GPS tracking app built with Flutter. Uses **Apple Maps on iOS** and
 **Google Maps on Android** automatically via a platform-adaptive map layer.
@@ -96,12 +96,12 @@ Android Accessibility Service without root or private APIs.
 
 1. Open the child device app and go to `Settings` -> `App blocking`.
 2. Turn on the accessibility service:
-   `Kid Security — блокировка приложений`.
+   `Family security — блокировка приложений`.
 3. Optionally enable Usage Access if you also want screen-time analytics and
    richer parent-side app insights.
 4. Select the apps you want to block from the installed-apps list.
 5. Test by opening one of those apps:
-   Kid Security will press `BACK`/fallback to `HOME` and show its own blocking screen.
+   Family security will press `BACK`/fallback to `HOME` and show its own blocking screen.
 
 Implementation notes:
 

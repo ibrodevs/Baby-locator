@@ -1,6 +1,6 @@
 {
   "@@locale": "ka",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "შედით ან შექმენით მშობლის ანგარიში",
   "signIn": "შესვლა",
   "createParentAccount": "მშობლის ანგარიშის შექმნა",
@@ -149,7 +149,7 @@
   "about": "აპის შესახებ",
   "privacyPolicy": "კონფიდენციალურობის პოლიტიკა",
   "signOut": "გასვლა",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "პროფილის რედაქტირება",
   "updateProfileHint": "განაახლეთ თქვენი საჩვენებელი სახელი და მომხმარებლის სახელი.",
   "saveChanges": "ცვლილებების შენახვა",

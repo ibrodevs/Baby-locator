@@ -1,6 +1,6 @@
 {
   "@@locale": "pl",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Zaloguj się lub utwórz konto rodzica",
   "signIn": "Zaloguj się",
   "createParentAccount": "Utwórz konto rodzica",
@@ -157,7 +157,7 @@
   "about": "O aplikacji",
   "privacyPolicy": "Polityka prywatności",
   "signOut": "Wyloguj się",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Edytuj profil",
   "updateProfileHint": "Zaktualizuj swoją nazwę wyświetlaną i nazwę użytkownika.",
   "saveChanges": "Zapisz zmiany",

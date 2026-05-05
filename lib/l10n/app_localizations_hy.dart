@@ -9,7 +9,7 @@ class SHy extends S {
   SHy([String locale = 'hy']) : super(locale);
 
   @override
-  String get appName => 'Kid Security';
+  String get appName => 'Family security';
 
   @override
   String get signInOrCreate => 'Մուտք գործեք կամ ստեղծեք ծնողի հաշիվ';
@@ -514,7 +514,7 @@ class SHy extends S {
   String get signOut => 'Դուրս գալ';
 
   @override
-  String get appVersion => 'Kid Security v1.0.0';
+  String get appVersion => 'Family security v1.0.0';
 
   @override
   String get editProfileTitle => 'Խմբագրել պրոֆիլը';
@@ -773,7 +773,7 @@ class SHy extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

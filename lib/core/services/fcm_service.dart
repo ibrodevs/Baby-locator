@@ -18,15 +18,32 @@ import 'notification_dedupe_store.dart';
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 const _activityAlertsChannelId = 'kid_security_activity_alerts';
-const _activityAlertsChannelName = 'Kid Security Alerts';
+const _activityAlertsChannelName = 'Family security Alerts';
 const _childAlertsChannelId = 'kid_security_child_alerts';
-const _childAlertsChannelName = 'Kid Security — Уведомления';
+const _childAlertsChannelName = 'Family security — Уведомления';
 const _sosAlertsChannelId = 'kid_security_sos';
 const _sosAlertsChannelName = 'SOS Alerts';
 const _listenWakeChannelId = 'kid_security_listen_wake';
-const _listenWakeChannelName = 'Kid Security — Listen';
+const _listenWakeChannelName = 'Family security — Listen';
 const _pendingWebrtcSessionKey = 'pending_webrtc_session_token';
 const _pendingWebrtcSessionAtKey = 'pending_webrtc_session_at_ms';
+
+InterruptionLevel _iosInterruptionLevelForNotificationType(
+  String notificationType,
+) {
+  switch (notificationType) {
+    case 'sos':
+    case 'battery_low':
+    case 'safe_zone_exit':
+    case 'location_update':
+      return InterruptionLevel.timeSensitive;
+    case 'chat_message':
+    case 'task_assigned':
+      return InterruptionLevel.active;
+    default:
+      return InterruptionLevel.active;
+  }
+}
 
 const _activityAlertsChannel = AndroidNotificationChannel(
   _activityAlertsChannelId,
@@ -47,6 +64,7 @@ const _sosAlertsChannel = AndroidNotificationChannel(
   _sosAlertsChannelName,
   description: 'Critical SOS alerts that require immediate attention.',
   importance: Importance.max,
+  audioAttributesUsage: AudioAttributesUsage.alarm,
 );
 
 /// Silent, hidden channel used solely to fire a full-screen-intent that wakes
@@ -124,7 +142,8 @@ Future<void> _showBackgroundNotification(RemoteMessage message) async {
   await _ensureAndroidNotificationChannels(plugin);
 
   final notification = message.notification;
-  final title = notification?.title ?? message.data['title'] ?? 'Kid Security';
+  final title =
+      notification?.title ?? message.data['title'] ?? 'Family security';
   final body = notification?.body ?? message.data['body'] ?? '';
   final notificationType = message.data['notification_type'] ?? '';
 
@@ -165,7 +184,7 @@ Future<void> _showBackgroundNotification(RemoteMessage message) async {
         presentBadge: true,
         presentSound: true,
         interruptionLevel:
-            notificationType == 'sos' ? InterruptionLevel.timeSensitive : null,
+            _iosInterruptionLevelForNotificationType(notificationType),
       ),
     ),
     payload: jsonEncode(message.data),
@@ -305,15 +324,10 @@ class FcmService {
     final notification = message.notification;
     final title = notification?.title ?? data['title'] ?? '';
     final body = notification?.body ?? data['body'] ?? '';
-    final childName = data['child_name'] ?? '';
     final childId = int.tryParse('${data['child_id'] ?? ''}');
 
     if (notificationType == 'sos') {
-      _showSosOverlay(
-        childName: childName.isNotEmpty ? childName : 'Child',
-        message: body.isNotEmpty ? body : null,
-        rawData: data,
-      );
+      unawaited(presentSosAlert(data));
     } else {
       if ((notificationType == 'chat_message' ||
               notificationType == 'task_assigned') &&
@@ -322,8 +336,33 @@ class FcmService {
         return;
       }
       // Show local notification for chat_message, task_assigned, etc.
-      _showLocalNotification(title: title, body: body);
+      _showLocalNotification(
+        title: title,
+        body: body,
+        notificationType: notificationType,
+      );
     }
+  }
+
+  Future<void> presentSosAlert(Map<String, dynamic> rawData) async {
+    final data = Map<String, dynamic>.from(rawData);
+    final body = '${data['body'] ?? ''}'.trim();
+    final lifecycleState = WidgetsBinding.instance.lifecycleState;
+    final canShowNow = _onSosReceived != null &&
+        (lifecycleState == null ||
+            lifecycleState == AppLifecycleState.resumed ||
+            lifecycleState == AppLifecycleState.inactive);
+
+    if (!canShowNow) {
+      _pendingSosPayload = data;
+      return;
+    }
+
+    _pendingSosPayload = null;
+    _onSosReceived!.call(
+      '${data['child_name'] ?? 'Child'}',
+      body.isNotEmpty ? body : null,
+    );
   }
 
   void _handleNotificationOpened(RemoteMessage message) {
@@ -334,13 +373,14 @@ class FcmService {
   Future<void> _showLocalNotification({
     required String title,
     required String body,
+    required String notificationType,
   }) async {
     await _ensureLocalNotificationsInitialized();
     await _localNotificationsPlugin.show(
       DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
       title,
       body,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
           _activityAlertsChannelId,
           _activityAlertsChannelName,
@@ -351,6 +391,8 @@ class FcmService {
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
+          interruptionLevel:
+              _iosInterruptionLevelForNotificationType(notificationType),
         ),
       ),
     );
@@ -370,28 +412,11 @@ class FcmService {
       final decoded = jsonDecode(payload);
       if (decoded is! Map<String, dynamic>) return;
       if ((decoded['notification_type'] ?? '') != 'sos') return;
-      final body = '${decoded['body'] ?? ''}'.trim();
-      _showSosOverlay(
-        childName: '${decoded['child_name'] ?? 'Child'}',
-        message: body.isNotEmpty ? body : null,
-        rawData: decoded,
-      );
+      unawaited(presentSosAlert(decoded));
       unawaited(_clearPendingSosPayload());
     } catch (_) {
       // Ignore malformed notification payloads.
     }
-  }
-
-  void _showSosOverlay({
-    required String childName,
-    required String? message,
-    required Map<String, dynamic> rawData,
-  }) {
-    if (_onSosReceived != null) {
-      _onSosReceived!.call(childName, message);
-      return;
-    }
-    _pendingSosPayload = Map<String, dynamic>.from(rawData);
   }
 
   void _flushPendingSos() {
@@ -412,12 +437,7 @@ class FcmService {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is! Map<String, dynamic>) return;
-      final body = '${decoded['body'] ?? ''}'.trim();
-      _showSosOverlay(
-        childName: '${decoded['child_name'] ?? 'Child'}',
-        message: body.isNotEmpty ? body : null,
-        rawData: decoded,
-      );
+      await presentSosAlert(decoded);
     } catch (_) {
       // Ignore malformed persisted payloads.
     } finally {
@@ -488,7 +508,7 @@ Future<void> _postListenWakeNotification(String sessionToken) async {
 
   await plugin.show(
     _listenWakeNotificationId,
-    'Kid Security',
+    'Family security',
     '',
     NotificationDetails(
       android: AndroidNotificationDetails(

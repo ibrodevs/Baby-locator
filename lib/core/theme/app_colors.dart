@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Kid Security palette — matches Figma screens.
+/// Family security palette — matches Figma screens.
 class AppColors {
   AppColors._();
 
@@ -9,7 +9,7 @@ class AppColors {
   static const Color primaryDark = Color(0xFF0B2A8A);
   static const Color primarySoft = Color(0xFFEAF0FE);
 
-  // Brand navy (used for "Kid Security" logo text)
+  // Brand navy (used for "Family security" logo text)
   static const Color navy = Color(0xFF0B2A8A);
 
   // Status

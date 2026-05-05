@@ -1,6 +1,6 @@
 {
   "@@locale": "kk",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Кіріңіз немесе ата-ана аккаунтын жасаңыз",
   "signIn": "Кіру",
   "createParentAccount": "Ата-ана аккаунтын жасау",
@@ -157,7 +157,7 @@
   "about": "Қолданба туралы",
   "privacyPolicy": "Құпиялылық саясаты",
   "signOut": "Шығу",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Профильді өңдеу",
   "updateProfileHint": "Көрсетілетін атауды және пайдаланушы атын жаңартыңыз.",
   "saveChanges": "Өзгерістерді сақтау",

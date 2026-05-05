@@ -1,5 +1,5 @@
 name: kid_security_android_bridge
-description: Local Android bridge plugin for Kid Security device stats, app blocking, and volume control.
+description: Local Android bridge plugin for Family security device stats, app blocking, and volume control.
 version: 0.0.1
 publish_to: "none"
 

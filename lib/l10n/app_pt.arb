@@ -1,6 +1,6 @@
 {
   "@@locale": "pt",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Entrar ou criar uma conta de responsável",
   "signIn": "Entrar",
   "createParentAccount": "Criar conta de responsável",
@@ -157,7 +157,7 @@
   "about": "Sobre",
   "privacyPolicy": "Política de privacidade",
   "signOut": "Sair",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Editar perfil",
   "updateProfileHint": "Atualize seu nome de exibição e nome de usuário.",
   "saveChanges": "Salvar alterações",

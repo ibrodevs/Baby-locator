@@ -9,7 +9,7 @@ class SAr extends S {
   SAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appName => 'Kid Security';
+  String get appName => 'Family security';
 
   @override
   String get signInOrCreate => 'سجّل الدخول أو أنشئ حساب والد';
@@ -505,7 +505,7 @@ class SAr extends S {
   String get signOut => 'تسجيل الخروج';
 
   @override
-  String get appVersion => 'Kid Security v1.0.0';
+  String get appVersion => 'Family security v1.0.0';
 
   @override
   String get editProfileTitle => 'تعديل الملف الشخصي';
@@ -761,7 +761,7 @@ class SAr extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

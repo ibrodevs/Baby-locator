@@ -3,7 +3,7 @@ import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../theme/app_colors.dart';
 
-/// Top header: avatar (optional) + "Kid Security" logo + settings gear + extras.
+/// Top header: avatar (optional) + "Family security" logo + settings gear + extras.
 class BrandHeader extends StatelessWidget {
   const BrandHeader({
     super.key,

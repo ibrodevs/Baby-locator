@@ -36,6 +36,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
   bool _splashDone = false;
   bool _introChecked = false;
   bool _introSeen = true;
+  bool _sosRouteVisible = false;
 
   @override
   void initState() {
@@ -74,16 +75,19 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
 
   void _showSosScreen(String childName, String? message) {
     final nav = rootNavigatorKey.currentState;
-    if (nav == null) return;
-    nav.push(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => SosAlertScreen(
-          childName: childName,
-          message: message,
-        ),
-      ),
-    );
+    if (nav == null || _sosRouteVisible) return;
+    _sosRouteVisible = true;
+    nav
+        .push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => SosAlertScreen(
+              childName: childName,
+              message: message,
+            ),
+          ),
+        )
+        .whenComplete(() => _sosRouteVisible = false);
   }
 
   Future<void> _syncNotificationSession(SessionUser? user) async {

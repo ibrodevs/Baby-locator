@@ -87,7 +87,8 @@ post_install do |installer|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
       # Отключаем Bitcode
       config.build_settings['ENABLE_BITCODE'] = 'NO'
+      # Явные Swift-модули ломают импорт Firebase/FirebaseCore на части конфигураций Xcode/CocoaPods
+      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
     end
   end
 end
-

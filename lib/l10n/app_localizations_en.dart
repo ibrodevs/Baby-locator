@@ -9,7 +9,7 @@ class SEn extends S {
   SEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Kid Security';
+  String get appName => 'Family security';
 
   @override
   String get signInOrCreate => 'Sign in or create a parent account';
@@ -508,7 +508,7 @@ class SEn extends S {
   String get signOut => 'Sign Out';
 
   @override
-  String get appVersion => 'Kid Security v1.0.0';
+  String get appVersion => 'Family security v1.0.0';
 
   @override
   String get editProfileTitle => 'Edit Profile';
@@ -763,7 +763,7 @@ class SEn extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

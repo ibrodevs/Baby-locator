@@ -1,6 +1,6 @@
 {
   "@@locale": "ky",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Кириңиз же ата-эне аккаунтун түзүңүз",
   "signIn": "Кирүү",
   "createParentAccount": "Ата-эне аккаунтун түзүү",
@@ -157,7 +157,7 @@
   "about": "Колдонмо жөнүндө",
   "privacyPolicy": "Купуялык саясаты",
   "signOut": "Чыгуу",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Профилди түзөтүү",
   "updateProfileHint": "Көрүнгөн атты жана колдонуучу атын жаңыртыңыз.",
   "saveChanges": "Өзгөртүүлөрдү сактоо",

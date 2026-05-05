@@ -9,7 +9,7 @@ class SKa extends S {
   SKa([String locale = 'ka']) : super(locale);
 
   @override
-  String get appName => 'Kid Security';
+  String get appName => 'Family security';
 
   @override
   String get signInOrCreate => 'შედით ან შექმენით მშობლის ანგარიში';
@@ -509,7 +509,7 @@ class SKa extends S {
   String get signOut => 'გასვლა';
 
   @override
-  String get appVersion => 'Kid Security v1.0.0';
+  String get appVersion => 'Family security v1.0.0';
 
   @override
   String get editProfileTitle => 'პროფილის რედაქტირება';
@@ -767,7 +767,7 @@ class SKa extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Kid Security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override

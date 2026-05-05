@@ -1,6 +1,6 @@
 {
   "@@locale": "uz",
-  "appName": "Kid Security",
+  "appName": "Family security",
   "signInOrCreate": "Ota-ona akkauntiga kiring yoki yarating",
   "signIn": "Kirish",
   "createParentAccount": "Ota-ona akkauntini yaratish",
@@ -149,7 +149,7 @@
   "about": "Ilova haqida",
   "privacyPolicy": "Maxfiylik siyosati",
   "signOut": "Chiqish",
-  "appVersion": "Kid Security v1.0.0",
+  "appVersion": "Family security v1.0.0",
   "editProfileTitle": "Profilni tahrirlash",
   "updateProfileHint": "Ko'rinadigan ismingiz va foydalanuvchi nomingizni yangilang.",
   "saveChanges": "O'zgarishlarni saqlash",

@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kid Security</string>
+	<string>Family security</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -54,17 +54,17 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Kid Security uses your location to share with your family.</string>
+	<string>Family security uses your location to share with your family.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Kid Security uses your location even in the background so the parent can see where the child is.</string>
+	<string>Family security uses your location even in the background so the parent can see where the child is.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Kid Security uses your location in the background to keep your family informed.</string>
+	<string>Family security uses your location in the background to keep your family informed.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Kid Security needs access to your photo library to set a profile picture.</string>
+	<string>Family security needs access to your photo library to set a profile picture.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Kid Security needs camera access to take a profile picture.</string>
+	<string>Family security needs camera access to take a profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Kid Security uses the microphone so a parent can hear what is happening around the child's phone.</string>
+	<string>Family security uses the microphone so a parent can hear what is happening around the child's phone.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
