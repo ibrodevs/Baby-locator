@@ -24,30 +24,32 @@ class ChildWebRTCService {
   String? get activeSessionToken => _isActive ? _sessionToken : null;
   bool get isActive => _isActive;
 
-  /// STUN + free public TURN servers (openrelay.metered.ca).
-  /// TURN is critical so peers can connect across cellular/NAT networks.
-  static const _iceServers = <String, dynamic>{
+  /// Fallback used only when the backend ICE-servers endpoint fails.
+  /// Production must use the backend so the child gets the same TURN
+  /// relay the parent does, otherwise cellular peers can't connect.
+  static const _fallbackIceServers = <String, dynamic>{
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
-      {
-        'urls': 'turn:openrelay.metered.ca:80',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
-      {
-        'urls': 'turn:openrelay.metered.ca:443',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
-      {
-        'urls': 'turn:openrelay.metered.ca:443?transport=tcp',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
     ],
     'sdpSemantics': 'unified-plan',
   };
+
+  Future<Map<String, dynamic>> _resolveIceServers() async {
+    try {
+      final data = await ApiClient.instance.fetchIceServers();
+      final servers = data['iceServers'];
+      if (servers is List && servers.isNotEmpty) {
+        return {
+          'iceServers': servers,
+          'sdpSemantics': 'unified-plan',
+        };
+      }
+    } catch (e) {
+      debugPrint('[ChildWebRTC] fetchIceServers failed: $e');
+    }
+    return _fallbackIceServers;
+  }
 
   /// Start capturing audio and signaling with the parent.
   /// Called when an FCM push with `webrtc_monitor_start` arrives,
@@ -82,34 +84,36 @@ class ChildWebRTCService {
         throw StateError('microphone_permission_denied');
       }
 
-      // 1. Capture microphone audio. We want LOUD ambient sound, so:
-      //    - echoCancellation off: parent isn't talking back, AEC just
-      //      attenuates speech that looks like an echo of nothing.
-      //    - noiseSuppression off: we want TV/voices/traffic, not just
-      //      "someone speaking right next to the phone".
-      //    - autoGainControl on: this is the single biggest contributor to
-      //      perceived loudness on the parent side — quiet rooms get pulled
-      //      up to a usable level by the mic AGC instead of relying on the
-      //      parent to crank their volume.
-      //    - stereo capture (channelCount=2) so distant sounds aren't
-      //      averaged into a thin mono signal.
+      // 1. Capture microphone audio. The earlier "loud at any cost" profile
+      //    (NS off, highpass off, fake stereo, +10x remote-track boost)
+      //    produced exactly the помехи the user is now complaining about:
+      //    constant hiss, low-frequency rumble from handling, and clipping
+      //    on top of the AGC. We bias toward CLEAN ambient capture:
+      //    - noiseSuppression on: kills the steady-state hiss/fan/AC noise
+      //      floor that AGC was otherwise amplifying into static.
+      //    - googHighpassFilter on: removes the sub-100 Hz handling rumble
+      //      (pocket movement, table thump, breath-on-mic).
+      //    - googTypingNoiseDetection on: drops sharp transient clicks.
+      //    - echoCancellation off: parent doesn't speak back, AEC has
+      //      nothing useful to do here and just adds artefacts.
+      //    - autoGainControl on: still needed so quiet rooms reach an
+      //      audible level; it now operates on already-cleaned signal.
+      //    - mono (channelCount=1): phones have a single mic capsule;
+      //      asking for stereo gave fake-stereo phase artefacts that the
+      //      parent heard as a swirly, unstable image.
       try {
         _localStream = await navigator.mediaDevices.getUserMedia({
           'audio': {
             'echoCancellation': false,
-            'noiseSuppression': false,
+            'noiseSuppression': true,
             'autoGainControl': true,
-            'channelCount': 2,
+            'channelCount': 1,
             'sampleRate': 48000,
-            // Hint to the WebRTC audio capture pipeline to keep the input
-            // gain as high as it can without clipping. flutter_webrtc passes
-            // these through to the native MediaConstraints; unsupported keys
-            // are ignored, supported ones (Android `googHighpassFilter`,
-            // iOS `volume`) materially boost the signal.
-            'volume': 1.0,
-            'googHighpassFilter': false,
-            'googTypingNoiseDetection': false,
+            'googHighpassFilter': true,
+            'googTypingNoiseDetection': true,
             'googAudioMirroring': false,
+            'googNoiseSuppression': true,
+            'googNoiseSuppression2': true,
           },
           'video': false,
         });
@@ -124,17 +128,18 @@ class ChildWebRTCService {
       }
 
       // 2. Create WebRTC peer connection.
-      _peerConnection = await createPeerConnection(_iceServers);
+      final iceConfig = await _resolveIceServers();
+      _peerConnection = await createPeerConnection(iceConfig);
 
       // 3. Add local audio tracks.
       for (final track in _localStream!.getAudioTracks()) {
         await _peerConnection!.addTrack(track, _localStream!);
       }
 
-      // Bump the encoder above its default ~32 kbps. Opus tops out around
-      // 510 kbps but anything over 128 kbps is wasted; 128 kbps stereo gives
-      // near-transparent quality and much louder, fuller ambient capture
-      // than the WebRTC voice-call default.
+      // Bump the encoder above its default ~32 kbps but NOT to the previous
+      // 128 kbps stereo target — for mono ambient capture 64 kbps is already
+      // transparent for Opus, and the lower bitrate ceiling means cellular
+      // congestion doesn't translate into audible artefacts as fast.
       try {
         final senders = await _peerConnection!.getSenders();
         for (final sender in senders) {
@@ -142,10 +147,10 @@ class ChildWebRTCService {
           final params = sender.parameters;
           final encodings = params.encodings ?? <RTCRtpEncoding>[];
           if (encodings.isEmpty) {
-            encodings.add(RTCRtpEncoding(maxBitrate: 128000));
+            encodings.add(RTCRtpEncoding(maxBitrate: 64000));
           } else {
             for (final enc in encodings) {
-              enc.maxBitrate = 128000;
+              enc.maxBitrate = 64000;
             }
           }
           params.encodings = encodings;
@@ -241,17 +246,17 @@ class ChildWebRTCService {
     await _sendSignal('offer', {'sdp': tunedSdp});
   }
 
-  /// Patch the Opus fmtp line so the codec is configured for high-quality,
-  /// loud ambient audio instead of the default voice-call profile:
-  ///   * `maxaveragebitrate=128000` — full music-grade bitrate.
-  ///   * `stereo=1; sprop-stereo=1` — preserve stereo capture end-to-end.
-  ///   * `usedtx=0` — DTX mutes "silence", which cuts out exactly the
-  ///     ambient room tone the parent is trying to listen for.
+  /// Patch the Opus fmtp line for clean, low-artefact ambient audio:
+  ///   * `maxaveragebitrate=64000` — plenty for mono speech+ambient at 48 kHz
+  ///     and low enough to avoid cellular congestion artefacts.
+  ///   * `stereo=0; sprop-stereo=0` — phones have a single mic; forcing
+  ///     stereo previously produced phasing/swirling artefacts the parent
+  ///     heard as помехи.
+  ///   * `usedtx=0` — DTX mutes "silence" and clicks back in noisily; off.
   ///   * `cbr=0` + `useinbandfec=1` — variable bitrate plus FEC keeps
   ///     quality up over flaky cellular without dropouts.
-  ///   * `maxplaybackrate=48000; sprop-maxcapturerate=48000` — make sure
-  ///     the negotiated sample rate stays at 48 kHz, not the 16 kHz the
-  ///     defaults sometimes settle on.
+  ///   * `maxplaybackrate=48000; sprop-maxcapturerate=48000` — keep the
+  ///     full 48 kHz path so highs aren't aliased.
   static String? _boostOpusSdp(String? sdp) {
     if (sdp == null || sdp.isEmpty) return sdp;
     final lines = sdp.split('\r\n');
@@ -264,9 +269,9 @@ class ChildWebRTCService {
     if (opusPayloadIds.isEmpty) return sdp;
 
     const desiredParams = <String, String>{
-      'maxaveragebitrate': '128000',
-      'stereo': '1',
-      'sprop-stereo': '1',
+      'maxaveragebitrate': '64000',
+      'stereo': '0',
+      'sprop-stereo': '0',
       'usedtx': '0',
       'cbr': '0',
       'useinbandfec': '1',

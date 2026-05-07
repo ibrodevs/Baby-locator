@@ -162,21 +162,21 @@ class STk extends S {
   }
 
   @override
-  String get safeZones => 'Howpsuz zolaklary';
+  String get safeZones => 'Ýerler';
 
   @override
   String get addNew => 'Täze goşuň';
 
   @override
-  String get noSafeZonesYet => 'Heniz howpsuz zolak ýok';
+  String get noSafeZonesYet => 'Heniz ýer ýok';
 
   @override
   String zone(String zoneName) {
-    return 'Zolak: $zoneName';
+    return 'Ýer: $zoneName';
   }
 
   @override
-  String get editZone => 'Zolagy redaktirlemek';
+  String get editZone => 'Ýeri redaktirläň';
 
   @override
   String get activeToday => 'BU GÜN IŞJEŇ';
@@ -205,17 +205,17 @@ class STk extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Häzirki zolak: $zoneName';
+    return 'Häzirki ýer: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Howpsuz zolak goşuň';
+  String get addSafeZone => 'Täze ýer goşuň';
 
   @override
-  String get editSafeZone => 'Howpsuz zolagy redaktirlemek';
+  String get editSafeZone => 'Ýeri redaktirläň';
 
   @override
-  String get deleteZoneTitle => 'Zolagy pozmaly?';
+  String get deleteZoneTitle => 'Ýer pozulsynmy?';
 
   @override
   String get deleteZoneMessage => 'Bu hereketi yzyna almak mümkin däl.';
@@ -227,10 +227,10 @@ class STk extends S {
   String get delete => 'Pozmak';
 
   @override
-  String get zoneEnabled => 'ZOLAK IŞJEŇ';
+  String get zoneEnabled => 'ÝER IŞJEŇ';
 
   @override
-  String get zoneName => 'ZOLAGYŇ ADY';
+  String get zoneName => 'ÝERIŇ ADY';
 
   @override
   String get zoneNameHint => 'mysal: Öý, Mekdep';
@@ -251,21 +251,20 @@ class STk extends S {
   String get radius => 'RADIUS';
 
   @override
-  String get locationMoveMap =>
-      'ÝER (Merkezi merkezi goýmak üçin kartany süýşüriň)';
+  String get locationMoveMap => 'ÝERI (Merkezi goýmak üçin kartany süýşüriň)';
 
   @override
   String get moveMapToSetCenter =>
-      'Zolagyň merkezini bellemek üçin kartany süýşüriň';
+      'Ýeriň merkezini goýmak üçin kartany süýşüriň';
 
   @override
-  String get createSafeZone => 'Howpsuz zolak dörediň';
+  String get createSafeZone => 'Ýer dörediň';
 
   @override
-  String get updateSafeZone => 'Howpsuz zolagy täzelemek';
+  String get updateSafeZone => 'Ýeri täzeläň';
 
   @override
-  String get pleaseEnterZoneName => 'Zolagyň adyny giriziň';
+  String get pleaseEnterZoneName => 'Ýeriň adyny giriziň';
 
   @override
   String get chooseAtLeastOneDayError => 'Azyndan bir işjeň gün saýlaň';
@@ -481,7 +480,7 @@ class STk extends S {
   String get batteryAlerts => 'Batareýa duýduryşlary';
 
   @override
-  String get safeZoneAlerts => 'Howpsuz zolak duýduryşlary';
+  String get safeZoneAlerts => 'Ýer bildirişleri';
 
   @override
   String get notificationPermissionRequired =>
@@ -803,4 +802,47 @@ class STk extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Kartadaky ýerler';
+
+  @override
+  String get placesAndChildren => 'Ýerler we çagalar';
+
+  @override
+  String placesCount(int count) {
+    return 'Ýerler: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Şu gün işjeň: $count';
+  }
+
+  @override
+  String get retry => 'Gaýtala';
+
+  @override
+  String get createPlaceHint =>
+      'Çagaňyz gelende ýa-da gidende bildiriş almak üçin ýer dörediň.';
+
+  @override
+  String get untitledPlace => 'Adsyz ýer';
+
+  @override
+  String get placeDeleted => 'Ýer pozuldy.';
+
+  @override
+  String get editLabel => 'Üýtget';
+
+  @override
+  String get disabledSchedule => 'Öçürilen';
+
+  @override
+  String get noDaysSelected => 'Günler saýlanmady';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radius $radius • $schedule';
+  }
 }

@@ -163,21 +163,21 @@ class SHy extends S {
   }
 
   @override
-  String get safeZones => 'Անվտանգ գոտիներ';
+  String get safeZones => 'Վայրեր';
 
   @override
   String get addNew => 'Ավելացնել';
 
   @override
-  String get noSafeZonesYet => 'Դեռ անվտանգ գոտիներ չկան';
+  String get noSafeZonesYet => 'Դեռ վայրեր չկան';
 
   @override
   String zone(String zoneName) {
-    return 'Գոտի՝ $zoneName';
+    return 'Վայր: $zoneName';
   }
 
   @override
-  String get editZone => 'Խմբագրել գոտին';
+  String get editZone => 'Խմբագրել վայրը';
 
   @override
   String get activeToday => 'ԱՅՍՕՐ ԱԿՏԻՎ';
@@ -206,17 +206,17 @@ class SHy extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Ընթացիկ գոտի՝ $zoneName';
+    return 'Ընթացիկ վայր: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Ավելացնել անվտանգ գոտի';
+  String get addSafeZone => 'Ավելացնել նոր վայր';
 
   @override
-  String get editSafeZone => 'Խմբագրել անվտանգ գոտին';
+  String get editSafeZone => 'Խմբագրել վայրը';
 
   @override
-  String get deleteZoneTitle => 'Ջնջե՞լ գոտին';
+  String get deleteZoneTitle => 'Ջնջե՞լ վայրը';
 
   @override
   String get deleteZoneMessage => 'Այս գործողությունը հնարավոր չէ հետարկել։';
@@ -228,10 +228,10 @@ class SHy extends S {
   String get delete => 'Ջնջել';
 
   @override
-  String get zoneEnabled => 'ԳՈՏԻՆ ՄԻԱՑՎԱԾ Է';
+  String get zoneEnabled => 'ՎԱՅՐԸ ՄԻԱՑՎԱԾ Է';
 
   @override
-  String get zoneName => 'ԳՈՏՈՒ ԱՆՎԱՆՈՒՄ';
+  String get zoneName => 'ՎԱՅՐԻ ԱՆՎԱՆՈՒՄ';
 
   @override
   String get zoneNameHint => 'օր.՝ Տուն, Դպրոց';
@@ -254,20 +254,20 @@ class SHy extends S {
 
   @override
   String get locationMoveMap =>
-      'ՏԵՂԱԴՐՈՒԹՅՈՒՆ (Տեղաշարժեք քարտեզը՝ կենտրոնը ընտրելու համար)';
+      'ՎԱՅՐԸ (Տեղափոխեք քարտեզը՝ կենտրոնը դնելու համար)';
 
   @override
   String get moveMapToSetCenter =>
-      'Տեղաշարժեք քարտեզը՝ գոտու կենտրոնը ընտրելու համար';
+      'Տեղափոխեք քարտեզը՝ վայրի կենտրոնը դնելու համար';
 
   @override
-  String get createSafeZone => 'Ստեղծել անվտանգ գոտի';
+  String get createSafeZone => 'Ստեղծել վայր';
 
   @override
-  String get updateSafeZone => 'Թարմացնել անվտանգ գոտին';
+  String get updateSafeZone => 'Թարմացնել վայրը';
 
   @override
-  String get pleaseEnterZoneName => 'Խնդրում ենք մուտքագրել գոտու անունը';
+  String get pleaseEnterZoneName => 'Մուտքագրեք վայրի անունը';
 
   @override
   String get chooseAtLeastOneDayError => 'Ընտրեք առնվազն մեկ ակտիվ օր';
@@ -486,7 +486,7 @@ class SHy extends S {
   String get batteryAlerts => 'Մարտկոցի ահազանգեր';
 
   @override
-  String get safeZoneAlerts => 'Անվտանգ գոտու ահազանգեր';
+  String get safeZoneAlerts => 'Վայրերի ծանուցումներ';
 
   @override
   String get notificationPermissionRequired =>
@@ -810,4 +810,47 @@ class SHy extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Վայրերը քարտեզի վրա';
+
+  @override
+  String get placesAndChildren => 'Վայրեր և երեխաներ';
+
+  @override
+  String placesCount(int count) {
+    return 'Վայրեր: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Այսօր ակտիվ: $count';
+  }
+
+  @override
+  String get retry => 'Կրկնել';
+
+  @override
+  String get createPlaceHint =>
+      'Ստեղծեք վայր, որպեսզի ծանուցում ստանաք, երբ երեխան գալիս կամ գնում է։';
+
+  @override
+  String get untitledPlace => 'Անանուն վայր';
+
+  @override
+  String get placeDeleted => 'Վայրը ջնջվեց։';
+
+  @override
+  String get editLabel => 'Խմբագրել';
+
+  @override
+  String get disabledSchedule => 'Անջատված';
+
+  @override
+  String get noDaysSelected => 'Օրեր ընտրված չեն';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Շառավիղ $radius • $schedule';
+  }
 }

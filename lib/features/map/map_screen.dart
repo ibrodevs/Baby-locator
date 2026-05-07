@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
+import '../../core/services/location_service.dart';
 import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
@@ -20,6 +21,8 @@ import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_menu_feature_screens.dart';
 import 'adaptive_map.dart';
+import 'map_models.dart';
+import 'movement_history_screen.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -28,6 +31,7 @@ class MapScreen extends ConsumerStatefulWidget {
 }
 
 class _MapScreenState extends ConsumerState<MapScreen> {
+  final _locationService = LocationService();
   Timer? _poll;
   String? _err;
   bool _sendingLoud = false;
@@ -38,6 +42,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   int? _loadingInviteChildId;
   final Map<int, String> _inviteCodeOverrides = {};
   final Map<int, DateTime?> _inviteExpiryOverrides = {};
+  ParentMapLocation? _parentLocation;
 
   @override
   void initState() {
@@ -48,6 +53,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _init() async {
     try {
       await _fetchAll();
+      await _loadParentLocation();
       _startPolling();
     } catch (e) {
       if (mounted) setState(() => _err = e.toString());
@@ -83,6 +89,26 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     } catch (e) {
       if (mounted) setState(() => _err = e.toString());
     }
+  }
+
+  Future<void> _loadParentLocation() async {
+    try {
+      final permission = await _locationService.ensurePermission();
+      if (permission != LocationPermissionStatus.granted) return;
+      final fix = await _locationService.currentOnce();
+      if (!mounted || fix == null) return;
+      final user = ref.read(sessionProvider).user;
+      final label = (user?.displayName.trim().isNotEmpty ?? false)
+          ? user!.displayName.trim()
+          : 'Родитель';
+      setState(() {
+        _parentLocation = ParentMapLocation(
+          latitude: fix.lat,
+          longitude: fix.lng,
+          label: label,
+        );
+      });
+    } catch (_) {}
   }
 
   void _selectChild(int? childId, {bool enableFollow = true}) {
@@ -244,6 +270,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   @override
   void dispose() {
     _poll?.cancel();
+    _locationService.stop();
     super.dispose();
   }
 
@@ -270,7 +297,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ? -1
         : locations
             .indexWhere((child) => child.childId == selectedLocation.childId);
-    final mapCenter = _mapCenterFor(locations, selectedChildId);
+    final mapCenter = _mapCenterFor(
+      locations,
+      selectedChildId,
+      parentLocation: _parentLocation,
+    );
     final childInfo =
         _buildSelectedChildInfo(context, selectedEntry, selectedLocation);
 
@@ -324,6 +355,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     latitude: mapCenter.$1,
                                     longitude: mapCenter.$2,
                                     children: locations,
+                                    parentLocation: _parentLocation,
                                     selectedIndex: selectedIndex >= 0
                                         ? selectedIndex
                                         : null,
@@ -348,10 +380,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                           _fetchAll();
                                         },
                                       )
-                                    : const AdaptiveMap(
-                                        latitude: 48.8566,
-                                        longitude: 2.3522,
-                                        children: [],
+                                    : AdaptiveMap(
+                                        latitude:
+                                            _parentLocation?.latitude ?? 48.8566,
+                                        longitude:
+                                            _parentLocation?.longitude ?? 2.3522,
+                                        children: const [],
+                                        parentLocation: _parentLocation,
                                       ),
                           ),
                           if (!hasChildren)
@@ -469,6 +504,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
+  void _openMovementHistory(BuildContext context, ChildLocation loc) {
+    final childId = loc.childId;
+    if (childId == null) {
+      _openActivity(context, loc);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MovementHistoryScreen(
+          childId: childId,
+          childName: loc.name,
+          avatarUrl: loc.avatarUrl,
+        ),
+      ),
+    );
+  }
+
   List<_MapChildEntry> _buildChildEntries(
     List<Map<String, dynamic>> allChildren,
     List<ChildLocation> locations,
@@ -500,7 +552,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       return _ChildInfoCard(
         loc: selectedLocation,
         onMessage: () => _openChat(context, selectedLocation),
-        onHistory: () => _openActivity(context, selectedLocation),
+        onHistory: () => _openMovementHistory(context, selectedLocation),
       );
     }
     if (!selectedEntry.hasJoined) {
@@ -521,8 +573,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   (double, double)? _mapCenterFor(
     List<ChildLocation> children,
     int? selectedChildId,
+    {ParentMapLocation? parentLocation}
   ) {
-    if (children.isEmpty) return null;
+    if (children.isEmpty) {
+      if (parentLocation == null) return null;
+      return (parentLocation.latitude, parentLocation.longitude);
+    }
 
     for (final child in children) {
       if (child.childId != null && child.childId == selectedChildId) {
@@ -536,7 +592,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       latSum += child.lat;
       lngSum += child.lng;
     }
-    return (latSum / children.length, lngSum / children.length);
+    if (parentLocation == null) {
+      return (latSum / children.length, lngSum / children.length);
+    }
+    return (
+      (latSum + parentLocation.latitude) / (children.length + 1),
+      (lngSum + parentLocation.longitude) / (children.length + 1),
+    );
   }
 }
 

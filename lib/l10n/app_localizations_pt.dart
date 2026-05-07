@@ -164,21 +164,21 @@ class SPt extends S {
   }
 
   @override
-  String get safeZones => 'Zonas seguras';
+  String get safeZones => 'Locais';
 
   @override
   String get addNew => 'Adicionar';
 
   @override
-  String get noSafeZonesYet => 'Nenhuma zona segura ainda';
+  String get noSafeZonesYet => 'Ainda não há locais';
 
   @override
   String zone(String zoneName) {
-    return 'Zona: $zoneName';
+    return 'Local: $zoneName';
   }
 
   @override
-  String get editZone => 'Editar zona';
+  String get editZone => 'Editar local';
 
   @override
   String get activeToday => 'ATIVO HOJE';
@@ -207,17 +207,17 @@ class SPt extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Zona atual: $zoneName';
+    return 'Local atual: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Adicionar zona segura';
+  String get addSafeZone => 'Adicionar novo local';
 
   @override
-  String get editSafeZone => 'Editar zona segura';
+  String get editSafeZone => 'Editar local';
 
   @override
-  String get deleteZoneTitle => 'Excluir zona?';
+  String get deleteZoneTitle => 'Excluir local?';
 
   @override
   String get deleteZoneMessage => 'Esta ação não pode ser desfeita.';
@@ -229,10 +229,10 @@ class SPt extends S {
   String get delete => 'Excluir';
 
   @override
-  String get zoneEnabled => 'ZONA ATIVADA';
+  String get zoneEnabled => 'LOCAL ATIVO';
 
   @override
-  String get zoneName => 'NOME DA ZONA';
+  String get zoneName => 'NOME DO LOCAL';
 
   @override
   String get zoneNameHint => 'ex. Casa, Escola';
@@ -255,19 +255,19 @@ class SPt extends S {
 
   @override
   String get locationMoveMap =>
-      'LOCALIZAÇÃO (Mova o mapa para centralizar o pin)';
+      'LOCALIZAÇÃO (Mova o mapa para definir o centro)';
 
   @override
-  String get moveMapToSetCenter => 'Mova o mapa para definir o centro da zona';
+  String get moveMapToSetCenter => 'Mova o mapa para definir o centro do local';
 
   @override
-  String get createSafeZone => 'Criar zona segura';
+  String get createSafeZone => 'Criar local';
 
   @override
-  String get updateSafeZone => 'Atualizar zona segura';
+  String get updateSafeZone => 'Atualizar local';
 
   @override
-  String get pleaseEnterZoneName => 'Por favor, insira um nome para a zona';
+  String get pleaseEnterZoneName => 'Digite um nome para o local';
 
   @override
   String get chooseAtLeastOneDayError => 'Escolha pelo menos um dia ativo';
@@ -484,7 +484,7 @@ class SPt extends S {
   String get batteryAlerts => 'Alertas de bateria';
 
   @override
-  String get safeZoneAlerts => 'Alertas de zonas seguras';
+  String get safeZoneAlerts => 'Alertas de locais';
 
   @override
   String get notificationPermissionRequired =>
@@ -809,4 +809,47 @@ class SPt extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Locais no mapa';
+
+  @override
+  String get placesAndChildren => 'Locais e crianças';
+
+  @override
+  String placesCount(int count) {
+    return 'Locais: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Ativos hoje: $count';
+  }
+
+  @override
+  String get retry => 'Tentar novamente';
+
+  @override
+  String get createPlaceHint =>
+      'Crie um local para receber notificações quando seu filho chegar ou sair.';
+
+  @override
+  String get untitledPlace => 'Local sem nome';
+
+  @override
+  String get placeDeleted => 'Local excluído.';
+
+  @override
+  String get editLabel => 'Editar';
+
+  @override
+  String get disabledSchedule => 'Desativado';
+
+  @override
+  String get noDaysSelected => 'Nenhum dia selecionado';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Raio $radius • $schedule';
+  }
 }

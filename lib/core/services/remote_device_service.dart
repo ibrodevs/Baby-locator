@@ -45,10 +45,33 @@ class RemoteDeviceService {
     //    be shown from the background).
     try {
       final mic = await ph.Permission.microphone.status;
-      if (!mic.isGranted) {
+      if (mic.isPermanentlyDenied) {
+        // Once the user picked "Don't ask again" the system dialog is a
+        // no-op. Send them to Settings so they can flip RECORD_AUDIO back
+        // on; otherwise every later around_start will hit
+        // SecurityException inside AroundAudioRecorder and the parent
+        // will sit on the listening screen forever.
+        await ph.openAppSettings();
+      } else if (!mic.isGranted) {
         await ph.Permission.microphone.request();
       }
     } catch (_) {}
+
+    // 2b. Android 13+ requires runtime POST_NOTIFICATIONS for the
+    //     foreground-service notification to actually show. Without it
+    //     the OS still creates the service but the notification icon
+    //     never appears, FCM data wake-ups become unreliable, and the
+    //     "Around" command often fails to deliver.
+    if (Platform.isAndroid) {
+      try {
+        final notif = await ph.Permission.notification.status;
+        if (notif.isPermanentlyDenied) {
+          await ph.openAppSettings();
+        } else if (!notif.isGranted) {
+          await ph.Permission.notification.request();
+        }
+      } catch (_) {}
+    }
 
     // 3. Ask the user to whitelist us from battery optimization. Required on
     //    most OEMs — otherwise Doze / App Standby will kill the service after

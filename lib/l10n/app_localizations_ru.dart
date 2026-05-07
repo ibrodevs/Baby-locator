@@ -162,21 +162,21 @@ class SRu extends S {
   }
 
   @override
-  String get safeZones => 'Безопасные зоны';
+  String get safeZones => 'Места';
 
   @override
   String get addNew => 'Добавить';
 
   @override
-  String get noSafeZonesYet => 'Безопасных зон пока нет';
+  String get noSafeZonesYet => 'Мест пока нет';
 
   @override
   String zone(String zoneName) {
-    return 'Зона: $zoneName';
+    return 'Место: $zoneName';
   }
 
   @override
-  String get editZone => 'Редактировать зону';
+  String get editZone => 'Редактировать место';
 
   @override
   String get activeToday => 'АКТИВНА СЕГОДНЯ';
@@ -205,17 +205,17 @@ class SRu extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Текущая зона: $zoneName';
+    return 'Текущее место: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Добавить безопасную зону';
+  String get addSafeZone => 'Добавить новое место';
 
   @override
-  String get editSafeZone => 'Редактировать безопасную зону';
+  String get editSafeZone => 'Редактировать место';
 
   @override
-  String get deleteZoneTitle => 'Удалить зону?';
+  String get deleteZoneTitle => 'Удалить место?';
 
   @override
   String get deleteZoneMessage => 'Это действие нельзя отменить.';
@@ -227,10 +227,10 @@ class SRu extends S {
   String get delete => 'Удалить';
 
   @override
-  String get zoneEnabled => 'ЗОНА АКТИВНА';
+  String get zoneEnabled => 'МЕСТО АКТИВНО';
 
   @override
-  String get zoneName => 'НАЗВАНИЕ ЗОНЫ';
+  String get zoneName => 'НАЗВАНИЕ МЕСТА';
 
   @override
   String get zoneNameHint => 'например, Дом, Школа';
@@ -257,16 +257,16 @@ class SRu extends S {
 
   @override
   String get moveMapToSetCenter =>
-      'Переместите карту для установки центра зоны';
+      'Переместите карту, чтобы установить центр места';
 
   @override
-  String get createSafeZone => 'Создать безопасную зону';
+  String get createSafeZone => 'Создать место';
 
   @override
-  String get updateSafeZone => 'Обновить безопасную зону';
+  String get updateSafeZone => 'Обновить место';
 
   @override
-  String get pleaseEnterZoneName => 'Пожалуйста, введите название зоны';
+  String get pleaseEnterZoneName => 'Пожалуйста, введите название места';
 
   @override
   String get chooseAtLeastOneDayError => 'Выберите хотя бы один активный день';
@@ -483,7 +483,7 @@ class SRu extends S {
   String get batteryAlerts => 'Уведомления о батарее';
 
   @override
-  String get safeZoneAlerts => 'Уведомления о безопасных зонах';
+  String get safeZoneAlerts => 'Уведомления о местах';
 
   @override
   String get notificationPermissionRequired =>
@@ -805,4 +805,47 @@ class SRu extends S {
 
   @override
   String get dontHaveCode => 'Есть код приглашения? Зарегистрироваться';
+
+  @override
+  String get placesOnMap => 'Места на карте';
+
+  @override
+  String get placesAndChildren => 'Места и дети';
+
+  @override
+  String placesCount(int count) {
+    return 'Мест: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Активны сегодня: $count';
+  }
+
+  @override
+  String get retry => 'Повторить';
+
+  @override
+  String get createPlaceHint =>
+      'Создайте место, чтобы получать уведомления, когда ребёнок приходит или уходит.';
+
+  @override
+  String get untitledPlace => 'Без названия';
+
+  @override
+  String get placeDeleted => 'Место удалено.';
+
+  @override
+  String get editLabel => 'Изменить';
+
+  @override
+  String get disabledSchedule => 'Выключено';
+
+  @override
+  String get noDaysSelected => 'Дни не выбраны';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Радиус $radius • $schedule';
+  }
 }

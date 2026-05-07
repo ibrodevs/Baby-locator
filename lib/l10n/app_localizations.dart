@@ -400,7 +400,7 @@ abstract class S {
   /// No description provided for @safeZones.
   ///
   /// In en, this message translates to:
-  /// **'Safe Zones'**
+  /// **'Places'**
   String get safeZones;
 
   /// No description provided for @addNew.
@@ -412,19 +412,19 @@ abstract class S {
   /// No description provided for @noSafeZonesYet.
   ///
   /// In en, this message translates to:
-  /// **'No safe zones yet'**
+  /// **'No places yet'**
   String get noSafeZonesYet;
 
   /// No description provided for @zone.
   ///
   /// In en, this message translates to:
-  /// **'Zone: {zoneName}'**
+  /// **'Place: {zoneName}'**
   String zone(String zoneName);
 
   /// No description provided for @editZone.
   ///
   /// In en, this message translates to:
-  /// **'Edit Zone'**
+  /// **'Edit place'**
   String get editZone;
 
   /// No description provided for @activeToday.
@@ -472,25 +472,25 @@ abstract class S {
   /// No description provided for @currentZone.
   ///
   /// In en, this message translates to:
-  /// **'Current zone: {zoneName}'**
+  /// **'Current place: {zoneName}'**
   String currentZone(String zoneName);
 
   /// No description provided for @addSafeZone.
   ///
   /// In en, this message translates to:
-  /// **'Add Safe Zone'**
+  /// **'Add New Place'**
   String get addSafeZone;
 
   /// No description provided for @editSafeZone.
   ///
   /// In en, this message translates to:
-  /// **'Edit Safe Zone'**
+  /// **'Edit Place'**
   String get editSafeZone;
 
   /// No description provided for @deleteZoneTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete Zone?'**
+  /// **'Delete place?'**
   String get deleteZoneTitle;
 
   /// No description provided for @deleteZoneMessage.
@@ -514,13 +514,13 @@ abstract class S {
   /// No description provided for @zoneEnabled.
   ///
   /// In en, this message translates to:
-  /// **'ZONE ENABLED'**
+  /// **'PLACE ENABLED'**
   String get zoneEnabled;
 
   /// No description provided for @zoneName.
   ///
   /// In en, this message translates to:
-  /// **'ZONE NAME'**
+  /// **'PLACE NAME'**
   String get zoneName;
 
   /// No description provided for @zoneNameHint.
@@ -568,25 +568,25 @@ abstract class S {
   /// No description provided for @moveMapToSetCenter.
   ///
   /// In en, this message translates to:
-  /// **'Move the map to set zone center'**
+  /// **'Move the map to set the place center'**
   String get moveMapToSetCenter;
 
   /// No description provided for @createSafeZone.
   ///
   /// In en, this message translates to:
-  /// **'Create Safe Zone'**
+  /// **'Create Place'**
   String get createSafeZone;
 
   /// No description provided for @updateSafeZone.
   ///
   /// In en, this message translates to:
-  /// **'Update Safe Zone'**
+  /// **'Update Place'**
   String get updateSafeZone;
 
   /// No description provided for @pleaseEnterZoneName.
   ///
   /// In en, this message translates to:
-  /// **'Please enter a zone name'**
+  /// **'Please enter a place name'**
   String get pleaseEnterZoneName;
 
   /// No description provided for @chooseAtLeastOneDayError.
@@ -970,7 +970,7 @@ abstract class S {
   /// No description provided for @safeZoneAlerts.
   ///
   /// In en, this message translates to:
-  /// **'Safe Zone Alerts'**
+  /// **'Place Alerts'**
   String get safeZoneAlerts;
 
   /// No description provided for @notificationPermissionRequired.
@@ -1530,6 +1530,78 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Have an invite code? Register'**
   String get dontHaveCode;
+
+  /// No description provided for @placesOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Places on the map'**
+  String get placesOnMap;
+
+  /// No description provided for @placesAndChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Places and children'**
+  String get placesAndChildren;
+
+  /// No description provided for @placesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Places: {count}'**
+  String placesCount(int count);
+
+  /// No description provided for @activeTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Active today: {count}'**
+  String activeTodayCount(int count);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @createPlaceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a place to receive notifications when your child arrives or leaves.'**
+  String get createPlaceHint;
+
+  /// No description provided for @untitledPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled place'**
+  String get untitledPlace;
+
+  /// No description provided for @placeDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Place deleted.'**
+  String get placeDeleted;
+
+  /// No description provided for @editLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editLabel;
+
+  /// No description provided for @disabledSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get disabledSchedule;
+
+  /// No description provided for @noDaysSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No days selected'**
+  String get noDaysSelected;
+
+  /// No description provided for @radiusSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Radius {radius} • {schedule}'**
+  String radiusSummary(String radius, String schedule);
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -162,21 +162,21 @@ class SUz extends S {
   }
 
   @override
-  String get safeZones => 'Xavfsiz hududlar';
+  String get safeZones => 'Joylar';
 
   @override
   String get addNew => 'Qo\'shish';
 
   @override
-  String get noSafeZonesYet => 'Hozircha xavfsiz hududlar yo\'q';
+  String get noSafeZonesYet => 'Hozircha joy yo\'q';
 
   @override
   String zone(String zoneName) {
-    return 'Hudud: $zoneName';
+    return 'Joy: $zoneName';
   }
 
   @override
-  String get editZone => 'Hududni tahrirlash';
+  String get editZone => 'Joyni tahrirlash';
 
   @override
   String get activeToday => 'BUGUN FAOL';
@@ -205,17 +205,17 @@ class SUz extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Joriy hudud: $zoneName';
+    return 'Joriy joy: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Xavfsiz hudud qo\'shish';
+  String get addSafeZone => 'Yangi joy qo\'shish';
 
   @override
-  String get editSafeZone => 'Xavfsiz hududni tahrirlash';
+  String get editSafeZone => 'Joyni tahrirlash';
 
   @override
-  String get deleteZoneTitle => 'Hudud o\'chirilsinmi?';
+  String get deleteZoneTitle => 'Joy o\'chirilsinmi?';
 
   @override
   String get deleteZoneMessage => 'Bu amalni bekor qilib bo\'lmaydi.';
@@ -227,10 +227,10 @@ class SUz extends S {
   String get delete => 'O\'chirish';
 
   @override
-  String get zoneEnabled => 'HUDUD YOQILGAN';
+  String get zoneEnabled => 'JOY FAOL';
 
   @override
-  String get zoneName => 'HUDUD NOMI';
+  String get zoneName => 'JOY NOMI';
 
   @override
   String get zoneNameHint => 'masalan, Uy, Maktab';
@@ -253,20 +253,20 @@ class SUz extends S {
 
   @override
   String get locationMoveMap =>
-      'JOYLASHUV (Markazni belgilash uchun xaritani siljiting)';
+      'JOYLASHUV (Markaziy nuqtani qo\'yish uchun xaritani suring)';
 
   @override
   String get moveMapToSetCenter =>
-      'Hudud markazini belgilash uchun xaritani siljiting';
+      'Joy markazini belgilash uchun xaritani suring';
 
   @override
-  String get createSafeZone => 'Xavfsiz hudud yaratish';
+  String get createSafeZone => 'Joy yaratish';
 
   @override
-  String get updateSafeZone => 'Xavfsiz hududni yangilash';
+  String get updateSafeZone => 'Joyni yangilash';
 
   @override
-  String get pleaseEnterZoneName => 'Iltimos, hudud nomini kiriting';
+  String get pleaseEnterZoneName => 'Iltimos, joy nomini kiriting';
 
   @override
   String get chooseAtLeastOneDayError => 'Kamida bitta faol kunni tanlang';
@@ -483,7 +483,7 @@ class SUz extends S {
   String get batteryAlerts => 'Batareya ogohlantirishlari';
 
   @override
-  String get safeZoneAlerts => 'Xavfsiz hudud ogohlantirishlari';
+  String get safeZoneAlerts => 'Joy bildirishnomalari';
 
   @override
   String get notificationPermissionRequired =>
@@ -808,4 +808,47 @@ class SUz extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Xaritadagi joylar';
+
+  @override
+  String get placesAndChildren => 'Joylar va bolalar';
+
+  @override
+  String placesCount(int count) {
+    return 'Joylar: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Bugun faol: $count';
+  }
+
+  @override
+  String get retry => 'Qayta urinish';
+
+  @override
+  String get createPlaceHint =>
+      'Farzandingiz kelganda yoki ketganda bildirishnoma olish uchun joy yarating.';
+
+  @override
+  String get untitledPlace => 'Nomsiz joy';
+
+  @override
+  String get placeDeleted => 'Joy o\'chirildi.';
+
+  @override
+  String get editLabel => 'Tahrirlash';
+
+  @override
+  String get disabledSchedule => 'O\'chirilgan';
+
+  @override
+  String get noDaysSelected => 'Kunlar tanlanmagan';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radius $radius • $schedule';
+  }
 }

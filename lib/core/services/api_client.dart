@@ -613,6 +613,16 @@ class ApiClient {
     });
   }
 
+  /// Backend-issued WebRTC ICE configuration. STUN list is always present;
+  /// TURN entries appear only when the server is configured with a TURN
+  /// relay. Without TURN, peers behind cellular NATs can't connect, which
+  /// is the "вечно загрузка, звука нет" symptom on real phones.
+  Future<Map<String, dynamic>> fetchIceServers() async {
+    final data = await _get('/api/webrtc/ice-servers/');
+    if (data is Map<String, dynamic>) return data;
+    return <String, dynamic>{'iceServers': <dynamic>[]};
+  }
+
   Future<void> deactivateMonitoring({
     int? childId,
     String? sessionToken,

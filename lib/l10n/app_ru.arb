@@ -9,13 +9,11 @@
   "displayName": "Отображаемое имя",
   "username": "Имя пользователя",
   "password": "Пароль",
-
   "navMap": "Карта",
   "navActivity": "Активность",
   "navChat": "Чат",
   "navStats": "Статистика",
   "navHome": "Главная",
-
   "waitingForLocation": "Ожидание геолокации от детей...",
   "addChildToTrack": "Добавьте ребёнка для начала отслеживания",
   "manageChildren": "Управление детьми",
@@ -33,7 +31,6 @@
   "hoursAgo": "{hours} ч. назад",
   "active": "Активен",
   "inactive": "Неактивен",
-
   "addChildToSeeActivity": "Добавьте ребёнка для просмотра активности",
   "activity": "Активность",
   "today": "Сегодня",
@@ -48,11 +45,11 @@
   "batteryStatus": "Статус батареи",
   "batteryAt": "Батарея: {battery}%",
   "noActivityYet": "Активности пока нет. События появятся, когда {childName} поделится местоположением.",
-  "safeZones": "Безопасные зоны",
+  "safeZones": "Места",
   "addNew": "Добавить",
-  "noSafeZonesYet": "Безопасных зон пока нет",
-  "zone": "Зона: {zoneName}",
-  "editZone": "Редактировать зону",
+  "noSafeZonesYet": "Мест пока нет",
+  "zone": "Место: {zoneName}",
+  "editZone": "Редактировать место",
   "activeToday": "АКТИВНА СЕГОДНЯ",
   "inactiveToday": "НЕАКТИВНА СЕГОДНЯ",
   "disabled": "ОТКЛЮЧЕНА",
@@ -60,16 +57,15 @@
   "noLocationUpdatesYet": "Обновлений местоположения за сегодня нет",
   "safetyScoreDetails": "{inZoneUpdates} из {totalUpdates} обновлений сегодня были в безопасных зонах",
   "coverage": "Охват: {percent}%",
-  "currentZone": "Текущая зона: {zoneName}",
-
-  "addSafeZone": "Добавить безопасную зону",
-  "editSafeZone": "Редактировать безопасную зону",
-  "deleteZoneTitle": "Удалить зону?",
+  "currentZone": "Текущее место: {zoneName}",
+  "addSafeZone": "Добавить новое место",
+  "editSafeZone": "Редактировать место",
+  "deleteZoneTitle": "Удалить место?",
   "deleteZoneMessage": "Это действие нельзя отменить.",
   "cancel": "Отмена",
   "delete": "Удалить",
-  "zoneEnabled": "ЗОНА АКТИВНА",
-  "zoneName": "НАЗВАНИЕ ЗОНЫ",
+  "zoneEnabled": "МЕСТО АКТИВНО",
+  "zoneName": "НАЗВАНИЕ МЕСТА",
   "zoneNameHint": "например, Дом, Школа",
   "activeWhen": "АКТИВНА КОГДА",
   "always": "Всегда",
@@ -77,29 +73,27 @@
   "chooseAtLeastOneDay": "Выберите хотя бы один день для этого расписания.",
   "radius": "РАДИУС",
   "locationMoveMap": "МЕСТОПОЛОЖЕНИЕ (Переместите карту, чтобы установить метку)",
-  "moveMapToSetCenter": "Переместите карту для установки центра зоны",
-  "createSafeZone": "Создать безопасную зону",
-  "updateSafeZone": "Обновить безопасную зону",
-  "pleaseEnterZoneName": "Пожалуйста, введите название зоны",
+  "moveMapToSetCenter": "Переместите карту, чтобы установить центр места",
+  "createSafeZone": "Создать место",
+  "updateSafeZone": "Обновить место",
+  "pleaseEnterZoneName": "Пожалуйста, введите название места",
   "chooseAtLeastOneDayError": "Выберите хотя бы один активный день",
-
   "addChildToChat": "Добавьте ребёнка для начала общения",
   "noMessagesYet": "Сообщений пока нет. Поздоровайтесь!",
   "sendMessage": "Написать сообщение...",
   "failedToSend": "Не удалось отправить: {error}",
-
   "helloUser": "Привет, {name}!",
   "kidMode": "Режим ребёнка",
   "myLocation": "Моё местоположение",
   "waitingForGps": "Ожидание GPS...",
-  "sharedWithParent": "Передано родителю \u00b7 {time}",
+  "sharedWithParent": "Передано родителю · {time}",
   "notSharedYet": "Ещё не передано",
   "imSafe": "Я в безопасности",
   "sos": "SOS",
   "sentImSafe": "Родителю отправлено «Я в безопасности»",
   "sosMessage": "SOS! Мне нужна помощь!",
   "sosLocation": " Местоположение: {address}",
-  "sosSent": "SOS отправлен \u2014 родитель будет уведомлён",
+  "sosSent": "SOS отправлен — родитель будет уведомлён",
   "allowUsageAccess": "Разрешить доступ к статистике использования",
   "usageAccessDescription": "Это позволяет родительской панели отображать реальные данные об экранном времени и ограничения приложений с этого телефона.",
   "openUsageAccess": "Открыть доступ к статистике",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Разрешите геолокацию для передачи данных",
   "grantLocationPermission": "Предоставьте разрешение, чтобы родитель мог видеть, где вы находитесь.",
   "allowLocation": "Разрешить геолокацию",
-
   "myChildren": "Мои дети",
   "addChild": "Добавить ребёнка",
   "noChildrenYet": "Детей пока нет. Нажмите «Добавить ребёнка», чтобы создать профиль.",
@@ -136,7 +129,6 @@
   "deleteChild": "Удалить ребёнка",
   "track": "Отслеживать",
   "edit": "Редактировать",
-
   "settings": "Настройки",
   "parent": "РОДИТЕЛЬ",
   "child": "РЕБЁНОК",
@@ -148,7 +140,7 @@
   "pushNotifications": "Push-уведомления",
   "locationAlerts": "Уведомления о местоположении",
   "batteryAlerts": "Уведомления о батарее",
-  "safeZoneAlerts": "Уведомления о безопасных зонах",
+  "safeZoneAlerts": "Уведомления о местах",
   "notificationPermissionRequired": "Для отправки уведомлений необходимо разрешение",
   "general": "Общее",
   "language": "Язык",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Имя пользователя не может быть пустым",
   "profileUpdated": "Профиль обновлён",
   "failedToUploadAvatar": "Не удалось загрузить аватар: {error}",
-
   "parentProfile": "Профиль родителя",
   "addChildForStats": "Сначала добавьте аккаунт ребёнка для просмотра статистики.",
   "insights": "АНАЛИТИКА",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} использовалось {date}",
   "limitMinutes": "Лимит {time}",
   "noLimit": "Без ограничений",
-  "usageTodayOverLimit": "{time} сегодня \u00b7 лимит превышен",
+  "usageTodayOverLimit": "{time} сегодня · лимит превышен",
   "usageToday": "{time} сегодня",
   "limitSavedFor": "Лимит сохранён для {appName}",
   "limitDisabledFor": "Лимит отключён для {appName}",
@@ -223,7 +214,6 @@
   "childProfile": "Профиль",
   "childSettingsTitle": "Настройки",
   "childLogout": "Выйти",
-
   "inviteChild": "Пригласить ребёнка",
   "inviteTitle": "Пригласите детей и других членов семьи в ваш круг",
   "inviteSubtitle": "Вашим близким необходимо установить приложение и присоединиться к кругу, используя код",
@@ -233,10 +223,21 @@
   "generateCode": "Сгенерировать код",
   "codeCopied": "Код скопирован в буфер обмена",
   "inviteShareText": "Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: {code}\n\nhttp://89.108.81.151/invite/{code}",
-  "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
+  "@inviteShareText": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "failedToGenerateCode": "Не удалось сгенерировать код: {error}",
-  "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },
-
+  "@failedToGenerateCode": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "childRegisterTitle": "Присоединиться к семье",
   "childRegisterSubtitle": "Введите код приглашения от родителя",
   "inviteCode": "Код приглашения",
@@ -246,5 +247,41 @@
   "register": "Зарегистрироваться",
   "invalidInviteCode": "Неверный или просроченный код приглашения",
   "alreadyHaveAccount": "Уже есть аккаунт? Войти",
-  "dontHaveCode": "Есть код приглашения? Зарегистрироваться"
+  "dontHaveCode": "Есть код приглашения? Зарегистрироваться",
+  "placesOnMap": "Места на карте",
+  "placesAndChildren": "Места и дети",
+  "placesCount": "Мест: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Активны сегодня: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Повторить",
+  "createPlaceHint": "Создайте место, чтобы получать уведомления, когда ребёнок приходит или уходит.",
+  "untitledPlace": "Без названия",
+  "placeDeleted": "Место удалено.",
+  "editLabel": "Изменить",
+  "disabledSchedule": "Выключено",
+  "noDaysSelected": "Дни не выбраны",
+  "radiusSummary": "Радиус {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

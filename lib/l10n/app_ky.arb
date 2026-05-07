@@ -9,13 +9,11 @@
   "displayName": "Көрүнгөн ат",
   "username": "Колдонуучу аты",
   "password": "Сырсөз",
-
   "navMap": "Карта",
   "navActivity": "Активдүүлүк",
   "navChat": "Чат",
   "navStats": "Статистика",
   "navHome": "Башкы бет",
-
   "waitingForLocation": "Балдардын жайгашкан жери күтүлүүдө...",
   "addChildToTrack": "Байкоону баштоо үчүн бала кошуңуз",
   "manageChildren": "Балдарды башкаруу",
@@ -33,7 +31,6 @@
   "hoursAgo": "{hours} саат мурун",
   "active": "Активдүү",
   "inactive": "Активдүү эмес",
-
   "addChildToSeeActivity": "Активдүүлүктү көрүү үчүн бала кошуңуз",
   "activity": "Активдүүлүк",
   "today": "Бүгүн",
@@ -48,11 +45,11 @@
   "batteryStatus": "Батарея абалы",
   "batteryAt": "Батарея: {battery}%",
   "noActivityYet": "Активдүүлүк жок. {childName} жайгашкан жерин жөнөткөндөн кийин окуялар пайда болот.",
-  "safeZones": "Коопсуз аймактар",
+  "safeZones": "Жерлер",
   "addNew": "Жаңы кошуу",
-  "noSafeZonesYet": "Коопсуз аймактар азырынча жок",
-  "zone": "Аймак: {zoneName}",
-  "editZone": "Аймакты түзөтүү",
+  "noSafeZonesYet": "Азырынча жерлер жок",
+  "zone": "Жер: {zoneName}",
+  "editZone": "Жерди түзөтүү",
   "activeToday": "БҮГҮН АКТИВДҮҮ",
   "inactiveToday": "БҮГҮН АКТИВДҮҮ ЭМЕС",
   "disabled": "ӨЧҮРҮЛГӨН",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Бүгүн жайгашуу жаңыртуулары жок",
   "safetyScoreDetails": "Бүгүн {totalUpdates} жаңыртуунун {inZoneUpdates}-и коопсуз аймактарда болду",
   "coverage": "Камтуу: {percent}%",
-  "currentZone": "Учурдагы аймак: {zoneName}",
-
-  "addSafeZone": "Коопсуз аймак кошуу",
-  "editSafeZone": "Коопсуз аймакты түзөтүү",
-  "deleteZoneTitle": "Аймакты жок кылуу?",
+  "currentZone": "Учурдагы жер: {zoneName}",
+  "addSafeZone": "Жаңы жер кошуу",
+  "editSafeZone": "Жерди түзөтүү",
+  "deleteZoneTitle": "Жер өчүрүлсүнбү?",
   "deleteZoneMessage": "Бул аракетти кайтарып болбойт.",
   "cancel": "Жокко чыгаруу",
   "delete": "Жок кылуу",
-  "zoneEnabled": "АЙМАК АКТИВДҮҮ",
-  "zoneName": "АЙМАКТЫН АТЫ",
+  "zoneEnabled": "ЖЕР АКТИВДҮҮ",
+  "zoneName": "ЖЕРДИН АТЫ",
   "zoneNameHint": "мис., Үй, Мектеп",
   "activeWhen": "КАЧАН АКТИВДҮҮ",
   "always": "Ар дайым",
   "daysOfWeek": "Жума күндөрү",
   "chooseAtLeastOneDay": "Бул график үчүн жок дегенде бир күн тандаңыз.",
   "radius": "РАДИУС",
-  "locationMoveMap": "ЖАЙГАШУУ (Белгиченин ортосуна коюу үчүн картаны жылдырыңыз)",
-  "moveMapToSetCenter": "Аймактын борборун орнотуу үчүн картаны жылдырыңыз",
-  "createSafeZone": "Коопсуз аймак түзүү",
-  "updateSafeZone": "Коопсуз аймакты жаңыртуу",
-  "pleaseEnterZoneName": "Аймактын атын киргизиңиз",
+  "locationMoveMap": "ЖАЙГАШКАН ЖЕР (Борбордук чекитти коюу үчүн картаны жылдырыңыз)",
+  "moveMapToSetCenter": "Жердин борборун коюу үчүн картаны жылдырыңыз",
+  "createSafeZone": "Жер түзүү",
+  "updateSafeZone": "Жерди жаңыртуу",
+  "pleaseEnterZoneName": "Жердин атын киргизиңиз",
   "chooseAtLeastOneDayError": "Жок дегенде бир активдүү күн тандаңыз",
-
   "addChildToChat": "Чатты баштоо үчүн бала кошуңуз",
   "noMessagesYet": "Билдирүүлөр жок. Саламдашыңыз!",
   "sendMessage": "Билдирүү жөнөтүү...",
   "failedToSend": "Жөнөтүлгөн жок: {error}",
-
   "helloUser": "Салам, {name}!",
   "kidMode": "Бала режими",
   "myLocation": "Менин жайгашуум",
   "waitingForGps": "GPS күтүлүүдө...",
-  "sharedWithParent": "Ата-энеге жөнөтүлдү \u00b7 {time}",
+  "sharedWithParent": "Ата-энеге жөнөтүлдү · {time}",
   "notSharedYet": "Азырынча жөнөтүлгөн жок",
   "imSafe": "Мен коопсуз жерде",
   "sos": "SOS",
   "sentImSafe": "Ата-энеңе «Мен коопсуз жерде» билдирүүсү жөнөтүлдү",
   "sosMessage": "SOS! Мага жардам керек!",
   "sosLocation": " Жайгашуу: {address}",
-  "sosSent": "SOS жөнөтүлдү \u2014 ата-эне кабарландырылат",
+  "sosSent": "SOS жөнөтүлдү — ата-эне кабарландырылат",
   "allowUsageAccess": "Колдонуу статистикасына уруксат берүү",
   "usageAccessDescription": "Бул ата-эне башкаруу тактасына бул телефондогу экран убактысынын чыныгы маалыматтарын жана колдонмо чектөөлөрүн көрсөтүүгө мүмкүндүк берет.",
   "openUsageAccess": "Колдонуу статистикасын ачуу",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Бөлүшүү үчүн геолокацияга уруксат бериңиз",
   "grantLocationPermission": "Ата-энеңиз кайда экениңизди билиши үчүн уруксат бериңиз.",
   "allowLocation": "Геолокацияга уруксат берүү",
-
   "myChildren": "Менин балдарым",
   "addChild": "Бала кошуу",
   "noChildrenYet": "Балдар жок. Профиль түзүү үчүн «Бала кошуу» баскычын басыңыз.",
@@ -136,7 +129,6 @@
   "deleteChild": "Баланы жок кылуу",
   "track": "Байкоо",
   "edit": "Түзөтүү",
-
   "settings": "Жөндөөлөр",
   "parent": "АТА-ЭНЕ",
   "child": "БАЛА",
@@ -148,7 +140,7 @@
   "pushNotifications": "Push-билдирмелер",
   "locationAlerts": "Жайгашуу эскертүүлөрү",
   "batteryAlerts": "Батарея эскертүүлөрү",
-  "safeZoneAlerts": "Коопсуз аймак эскертүүлөрү",
+  "safeZoneAlerts": "Жер тууралуу эскертмелер",
   "notificationPermissionRequired": "Эскертүү жөнөтүү үчүн уруксат талап кылынат",
   "general": "Жалпы",
   "language": "Тил",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Колдонуучу аты бош болбошу керек",
   "profileUpdated": "Профиль жаңыртылды",
   "failedToUploadAvatar": "Аватарды жүктөп берүү ийгиликсиз болду: {error}",
-
   "parentProfile": "Ата-эне профили",
   "addChildForStats": "Тикелей статистиканы көрүү үчүн алгач бала аккаунтун кошуңуз.",
   "insights": "ТАЛДОО",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} {date} күнү колдонулду",
   "limitMinutes": "Чектөө {time}",
   "noLimit": "Чектөөсүз",
-  "usageTodayOverLimit": "Бүгүн {time} \u00b7 чектөө ашып кетти",
+  "usageTodayOverLimit": "Бүгүн {time} · чектөө ашып кетти",
   "usageToday": "Бүгүн {time}",
   "limitSavedFor": "{appName} үчүн чектөө сакталды",
   "limitDisabledFor": "{appName} үчүн чектөө өчүрүлдү",
@@ -222,5 +213,41 @@
   "childNavSettings": "Жөндөөлөр",
   "childProfile": "Профиль",
   "childSettingsTitle": "Жөндөөлөр",
-  "childLogout": "Чыгуу"
+  "childLogout": "Чыгуу",
+  "placesOnMap": "Картадагы жерлер",
+  "placesAndChildren": "Жерлер жана балдар",
+  "placesCount": "Жерлер: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Бүгүн активдүү: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Кайталоо",
+  "createPlaceHint": "Балаңыз келгенде же кеткенде эскертме алуу үчүн жер түзүңүз.",
+  "untitledPlace": "Аты жок жер",
+  "placeDeleted": "Жер өчүрүлдү.",
+  "editLabel": "Түзөтүү",
+  "disabledSchedule": "Өчүрүлгөн",
+  "noDaysSelected": "Күндөр тандалган жок",
+  "radiusSummary": "Радиус {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

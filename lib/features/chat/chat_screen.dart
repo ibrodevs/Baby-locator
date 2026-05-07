@@ -461,7 +461,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       'sender': user.id,
       'text': text,
       'created_at': DateTime.now().toUtc().toIso8601String(),
-      'sender_name': user.role == UserRole.parent ? 'Родитель' : 'Ребёнок',
+      'sender_name': user.role == UserRole.parent
+          ? S.of(context).parentLabel
+          : S.of(context).childLabel,
       'sender_avatar_url': user.avatarUrl,
       'is_read': false,
       'file_url': null,
@@ -1041,6 +1043,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
             text: (msg['text'] as String?) ?? '',
             time: _formatTime(msg['created_at'] as String),
             isMine: isMine,
+            isParentSender: isParent ? isMine : !isMine,
             senderName: (msg['sender_name'] as String?) ?? '',
             senderAvatarUrl: msg['sender_avatar_url'] as String?,
             read: msg['is_read'] as bool? ?? false,
@@ -1242,6 +1245,7 @@ class _Bubble extends StatelessWidget {
     required this.text,
     required this.time,
     required this.isMine,
+    required this.isParentSender,
     required this.senderName,
     required this.senderAvatarUrl,
     required this.read,
@@ -1254,6 +1258,7 @@ class _Bubble extends StatelessWidget {
   final String text;
   final String time;
   final bool isMine;
+  final bool isParentSender;
   final String senderName;
   final String? senderAvatarUrl;
   final bool read;
@@ -1282,6 +1287,7 @@ class _Bubble extends StatelessWidget {
         children: [
           if (!isMine) ...[
             _RoleAvatar(
+              isParentSender: isParentSender,
               senderName: senderName,
               senderAvatarUrl: senderAvatarUrl,
               color: AppColors.accent,
@@ -1458,6 +1464,7 @@ class _Bubble extends StatelessWidget {
           if (isMine) ...[
             const SizedBox(width: 8),
             _RoleAvatar(
+              isParentSender: isParentSender,
               senderName: senderName,
               senderAvatarUrl: senderAvatarUrl,
               color: AppColors.primary,
@@ -1582,11 +1589,13 @@ class _Bubble extends StatelessWidget {
 
 class _RoleAvatar extends StatelessWidget {
   const _RoleAvatar({
+    required this.isParentSender,
     required this.senderName,
     required this.senderAvatarUrl,
     required this.color,
   });
 
+  final bool isParentSender;
   final String senderName;
   final String? senderAvatarUrl;
   final Color color;
@@ -1603,7 +1612,6 @@ class _RoleAvatar extends StatelessWidget {
       );
     }
 
-    final isParent = senderName == 'Родитель';
     return Container(
       width: 28,
       height: 28,
@@ -1612,7 +1620,9 @@ class _RoleAvatar extends StatelessWidget {
         color: color.withValues(alpha: 0.15),
       ),
       child: Icon(
-        isParent ? Icons.family_restroom_rounded : Icons.child_care_rounded,
+        isParentSender
+            ? Icons.family_restroom_rounded
+            : Icons.child_care_rounded,
         size: 16,
         color: color,
       ),

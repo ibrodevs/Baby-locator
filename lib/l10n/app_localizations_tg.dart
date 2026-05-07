@@ -163,21 +163,21 @@ class STg extends S {
   }
 
   @override
-  String get safeZones => 'Минтақаҳои бехатар';
+  String get safeZones => 'Ҷойҳо';
 
   @override
   String get addNew => 'Илова кардан';
 
   @override
-  String get noSafeZonesYet => 'Ҳоло минтақаи бехатаре нест';
+  String get noSafeZonesYet => 'Ҳоло ҷойҳо нестанд';
 
   @override
   String zone(String zoneName) {
-    return 'Минтақа: $zoneName';
+    return 'Ҷой: $zoneName';
   }
 
   @override
-  String get editZone => 'Таҳрири минтақа';
+  String get editZone => 'Таҳрири ҷой';
 
   @override
   String get activeToday => 'ИМРӮЗ ФАЪОЛ';
@@ -206,17 +206,17 @@ class STg extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Минтақаи ҳозира: $zoneName';
+    return 'Ҷойи ҷорӣ: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Илова кардани минтақаи бехатар';
+  String get addSafeZone => 'Илова кардани ҷойи нав';
 
   @override
-  String get editSafeZone => 'Таҳрири минтақаи бехатар';
+  String get editSafeZone => 'Таҳрири ҷой';
 
   @override
-  String get deleteZoneTitle => 'Минтақа нест карда шавад?';
+  String get deleteZoneTitle => 'Ҷой тоза шавад?';
 
   @override
   String get deleteZoneMessage => 'Ин амалро бозгардонидан мумкин нест.';
@@ -228,10 +228,10 @@ class STg extends S {
   String get delete => 'Нест кардан';
 
   @override
-  String get zoneEnabled => 'МИНТАҚА ФАЪОЛ АСТ';
+  String get zoneEnabled => 'ҶОЙ ФАЪОЛ АСТ';
 
   @override
-  String get zoneName => 'НОМИ МИНТАҚА';
+  String get zoneName => 'НОМИ ҶОЙ';
 
   @override
   String get zoneNameHint => 'Масалан: Хона, Мактаб';
@@ -254,20 +254,20 @@ class STg extends S {
 
   @override
   String get locationMoveMap =>
-      'МАВҚЕЪ (Харитаро ба маркази нишонгузор ҳаракат диҳед)';
+      'ҶОЙГИРШАВӢ (Барои гузоштани нуқтаи марказӣ харитаро ҳаракат диҳед)';
 
   @override
   String get moveMapToSetCenter =>
-      'Харитаро ҳаракат диҳед то маркази минтақа муайян шавад';
+      'Барои гузоштани маркази ҷой харитаро ҳаракат диҳед';
 
   @override
-  String get createSafeZone => 'Сохтани минтақаи бехатар';
+  String get createSafeZone => 'Сохтани ҷой';
 
   @override
-  String get updateSafeZone => 'Навсозии минтақаи бехатар';
+  String get updateSafeZone => 'Навсозии ҷой';
 
   @override
-  String get pleaseEnterZoneName => 'Лутфан номи минтақаро ворид кунед';
+  String get pleaseEnterZoneName => 'Лутфан номи ҷойро ворид кунед';
 
   @override
   String get chooseAtLeastOneDayError =>
@@ -485,7 +485,7 @@ class STg extends S {
   String get batteryAlerts => 'Огоҳиномаҳои батарея';
 
   @override
-  String get safeZoneAlerts => 'Огоҳиномаҳои минтақаи бехатар';
+  String get safeZoneAlerts => 'Огоҳиномаҳои ҷой';
 
   @override
   String get notificationPermissionRequired =>
@@ -809,4 +809,47 @@ class STg extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Ҷойҳо дар харита';
+
+  @override
+  String get placesAndChildren => 'Ҷойҳо ва кӯдакон';
+
+  @override
+  String placesCount(int count) {
+    return 'Ҷойҳо: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Имрӯз фаъол: $count';
+  }
+
+  @override
+  String get retry => 'Такрор';
+
+  @override
+  String get createPlaceHint =>
+      'Ҷой созед, то ҳангоми омадан ё рафтани кӯдак огоҳинома гиред.';
+
+  @override
+  String get untitledPlace => 'Ҷойи беном';
+
+  @override
+  String get placeDeleted => 'Ҷой тоза шуд.';
+
+  @override
+  String get editLabel => 'Таҳрир';
+
+  @override
+  String get disabledSchedule => 'Хомӯш';
+
+  @override
+  String get noDaysSelected => 'Рӯзҳо интихоб нашудаанд';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Радиус $radius • $schedule';
+  }
 }

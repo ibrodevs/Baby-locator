@@ -9,13 +9,11 @@
   "displayName": "Görkezme ady",
   "username": "Ulanyjy ady",
   "password": "Açar söz",
-
   "navMap": "Karta",
   "navActivity": "Işjeňlik",
   "navChat": "Söhbet",
   "navStats": "Statistika",
   "navHome": "Baş sahypa",
-
   "waitingForLocation": "Çagalaryň ýerini paýlaşmagyna garaşylýar...",
   "addChildToTrack": "Yzarlamagy başlatmak üçin çaga goşuň",
   "manageChildren": "Çagalary dolandyrmak",
@@ -33,7 +31,6 @@
   "hoursAgo": "{hours} sag. öň",
   "active": "Işjeň",
   "inactive": "Işjeň däl",
-
   "addChildToSeeActivity": "Işjeňligi görmek üçin çaga goşuň",
   "activity": "Işjeňlik",
   "today": "Şu gün",
@@ -48,11 +45,11 @@
   "batteryStatus": "Batareýa ýagdaýy",
   "batteryAt": "Batareýa {battery}%",
   "noActivityYet": "Heniz işjeňlik ýok. {childName} ýerini paýlaşandan soň wakalar görner.",
-  "safeZones": "Howpsuz zolaklary",
+  "safeZones": "Ýerler",
   "addNew": "Täze goşuň",
-  "noSafeZonesYet": "Heniz howpsuz zolak ýok",
-  "zone": "Zolak: {zoneName}",
-  "editZone": "Zolagy redaktirlemek",
+  "noSafeZonesYet": "Heniz ýer ýok",
+  "zone": "Ýer: {zoneName}",
+  "editZone": "Ýeri redaktirläň",
   "activeToday": "BU GÜN IŞJEŇ",
   "inactiveToday": "BU GÜN IŞJEŇ DÄL",
   "disabled": "ÖÇÜRILEN",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Şu gün heniz ýer täzelenmeleri ýok",
   "safetyScoreDetails": "Şu gün {totalUpdates} täzelemeden {inZoneUpdates} sanysy howpsuz zolakda boldy",
   "coverage": "Örtüm: {percent}%",
-  "currentZone": "Häzirki zolak: {zoneName}",
-
-  "addSafeZone": "Howpsuz zolak goşuň",
-  "editSafeZone": "Howpsuz zolagy redaktirlemek",
-  "deleteZoneTitle": "Zolagy pozmaly?",
+  "currentZone": "Häzirki ýer: {zoneName}",
+  "addSafeZone": "Täze ýer goşuň",
+  "editSafeZone": "Ýeri redaktirläň",
+  "deleteZoneTitle": "Ýer pozulsynmy?",
   "deleteZoneMessage": "Bu hereketi yzyna almak mümkin däl.",
   "cancel": "Ýatyr",
   "delete": "Pozmak",
-  "zoneEnabled": "ZOLAK IŞJEŇ",
-  "zoneName": "ZOLAGYŇ ADY",
+  "zoneEnabled": "ÝER IŞJEŇ",
+  "zoneName": "ÝERIŇ ADY",
   "zoneNameHint": "mysal: Öý, Mekdep",
   "activeWhen": "HAÇAN IŞJEŇ",
   "always": "Hemişe",
   "daysOfWeek": "Hepdäniň günleri",
   "chooseAtLeastOneDay": "Bu tertip üçin azyndan bir gün saýlaň.",
   "radius": "RADIUS",
-  "locationMoveMap": "ÝER (Merkezi merkezi goýmak üçin kartany süýşüriň)",
-  "moveMapToSetCenter": "Zolagyň merkezini bellemek üçin kartany süýşüriň",
-  "createSafeZone": "Howpsuz zolak dörediň",
-  "updateSafeZone": "Howpsuz zolagy täzelemek",
-  "pleaseEnterZoneName": "Zolagyň adyny giriziň",
+  "locationMoveMap": "ÝERI (Merkezi goýmak üçin kartany süýşüriň)",
+  "moveMapToSetCenter": "Ýeriň merkezini goýmak üçin kartany süýşüriň",
+  "createSafeZone": "Ýer dörediň",
+  "updateSafeZone": "Ýeri täzeläň",
+  "pleaseEnterZoneName": "Ýeriň adyny giriziň",
   "chooseAtLeastOneDayError": "Azyndan bir işjeň gün saýlaň",
-
   "addChildToChat": "Söhbet başlatmak üçin çaga goşuň",
   "noMessagesYet": "Heniz habar ýok. Salam aýdyň!",
   "sendMessage": "Habar iberiň...",
   "failedToSend": "Iberip bolmady: {error}",
-
   "helloUser": "Salam, {name}!",
-  "kidMode": "Çaga re\u017eimi",
+  "kidMode": "Çaga režimi",
   "myLocation": "Meniň ýerim",
   "waitingForGps": "GPS-i garaşylýar...",
-  "sharedWithParent": "Ene-ata bilen paýlaşyldy \u00b7 {time}",
+  "sharedWithParent": "Ene-ata bilen paýlaşyldy · {time}",
   "notSharedYet": "Heniz paýlaşylmady",
   "imSafe": "Men howpsuz",
   "sos": "SOS",
   "sentImSafe": "Ene-ataňyza \"Men howpsuz\" iberildi",
   "sosMessage": "SOS! Kömek gerek!",
   "sosLocation": " Ýer: {address}",
-  "sosSent": "SOS iberildi \u2014 ene-ata habar berler",
+  "sosSent": "SOS iberildi — ene-ata habar berler",
   "allowUsageAccess": "Ulanmak hukukyna rugsat beriň",
   "usageAccessDescription": "Bu ene-ata paneline bu telefondan real ekran wagty maglumatlaryny we goýma çäklendirmelerini görkezmäge mümkinçilik berýär.",
   "openUsageAccess": "Ulanmak hukukyny açyň",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Ýer paýlaşmaga rugsat beriň",
   "grantLocationPermission": "Ene-ataňyzyň siziň nirededigi görmegi üçin rugsat beriň.",
   "allowLocation": "Ýere rugsat beriň",
-
   "myChildren": "Meniň çagalarym",
   "addChild": "Çaga goşuň",
   "noChildrenYet": "Heniz çaga ýok. Döretmek üçin \"Çaga goşuň\" düwmesine basyň.",
@@ -136,7 +129,6 @@
   "deleteChild": "Çagany pozmak",
   "track": "Yzarlamak",
   "edit": "Redaktirlemek",
-
   "settings": "Sazlamalar",
   "parent": "ENE-ATA",
   "child": "ÇAGA",
@@ -148,7 +140,7 @@
   "pushNotifications": "Öňe itmek bildirişleri",
   "locationAlerts": "Ýer duýduryşlary",
   "batteryAlerts": "Batareýa duýduryşlary",
-  "safeZoneAlerts": "Howpsuz zolak duýduryşlary",
+  "safeZoneAlerts": "Ýer bildirişleri",
   "notificationPermissionRequired": "Duýduryş ibermek üçin bildiriş rugsady gerek",
   "general": "Umumy",
   "language": "Dil",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Ulanyjy ady boş bolup bilmez",
   "profileUpdated": "Profil täzelendi",
   "failedToUploadAvatar": "Avatary ýüklemek başartmady: {error}",
-
   "parentProfile": "Ene-ata profili",
   "addChildForStats": "Göni statistikany görmek üçin ilki çaga hasaby goşuň.",
   "insights": "DÜŞÜNJELER",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} {date} günde ulanylan",
   "limitMinutes": "Çäklendirme {time}",
   "noLimit": "Çäklendirme ýok",
-  "usageTodayOverLimit": "Şu gün {time} \u00b7 çäkden aşdy",
+  "usageTodayOverLimit": "Şu gün {time} · çäkden aşdy",
   "usageToday": "Şu gün {time}",
   "limitSavedFor": "{appName} üçin çäklendirme saklandy",
   "limitDisabledFor": "{appName} üçin çäklendirme öçürildi",
@@ -222,5 +213,41 @@
   "childNavSettings": "Sazlamalar",
   "childProfile": "Profil",
   "childSettingsTitle": "Sazlamalar",
-  "childLogout": "Çykmak"
+  "childLogout": "Çykmak",
+  "placesOnMap": "Kartadaky ýerler",
+  "placesAndChildren": "Ýerler we çagalar",
+  "placesCount": "Ýerler: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Şu gün işjeň: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Gaýtala",
+  "createPlaceHint": "Çagaňyz gelende ýa-da gidende bildiriş almak üçin ýer dörediň.",
+  "untitledPlace": "Adsyz ýer",
+  "placeDeleted": "Ýer pozuldy.",
+  "editLabel": "Üýtget",
+  "disabledSchedule": "Öçürilen",
+  "noDaysSelected": "Günler saýlanmady",
+  "radiusSummary": "Radius {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

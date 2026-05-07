@@ -36,8 +36,9 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
   // "Звук вокруг" runs over WebRTC (Opus + jitter buffer + congestion
   // control) — the same peer-to-peer audio pipeline as the monitoring
   // feature. It is the only protocol on this stack that delivers smooth
-  // continuous voice on cellular networks; the previous HTTP-streaming
-  // implementation glitched whenever the network paused for >1-2s.
+  // continuous voice on cellular networks; the HTTP-PCM streaming
+  // alternative glitches whenever the network pauses for >1-2s and
+  // sits on "loading" forever on real phones.
   final ParentWebRTCService _liveAudio = ParentWebRTCService();
 
   Map<String, dynamic>? _stats;
@@ -170,8 +171,9 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return _FeatureScaffold(
-      title: 'Звук вокруг ребёнка',
+      title: t.aroundSoundScreenTitle,
       subtitle: widget.childName,
       onRefresh: _loadSummary,
       child: ListView(
@@ -182,7 +184,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
             childName: widget.childName,
             avatarUrl: widget.avatarUrl,
             accent: AppColors.success,
-            subtitle: _active ? 'Телефон на связи' : 'Телефон офлайн',
+            subtitle: _active ? t.phoneOnline : t.phoneOffline,
             trailing: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -194,7 +196,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  _battery > 0 ? 'Батарея $_battery%' : 'Батарея неизвестна',
+                  _battery > 0 ? t.batteryPercent(_battery) : t.batteryUnknown,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondaryLight,
@@ -224,9 +226,9 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Онлайн аудио с телефона ребёнка',
+                        t.liveAudioCardTitle,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
@@ -239,7 +241,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                 const SizedBox(height: 12),
                 Text(
                   _status.isEmpty
-                      ? 'Нажмите кнопку ниже, чтобы начать непрерывно слушать звук рядом с ребёнком.'
+                      ? t.tapToStartListeningAroundChild
                       : _status,
                   style: const TextStyle(
                     fontSize: 14,
@@ -291,9 +293,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                           : Icons.play_arrow_rounded,
                     ),
                     label: Text(
-                      _listening
-                          ? 'Остановить прослушивание'
-                          : 'Начать слушать',
+                      _listening ? t.stopListeningLabel : t.startListeningLabel,
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                   ),
@@ -306,18 +306,18 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
             child: Row(
               children: [
                 _MiniStat(
-                  label: 'Статус',
-                  value: _active ? 'Онлайн' : 'Офлайн',
+                  label: t.statusLabel,
+                  value: _active ? t.onlineLabel : t.offlineLabel,
                   color: _active ? AppColors.success : AppColors.danger,
                 ),
                 _MiniStat(
-                  label: 'Зарядка',
-                  value: _charging ? 'Да' : 'Нет',
+                  label: t.chargingShort,
+                  value: _charging ? t.chargingShort : t.notChargingShort,
                   color: _charging ? AppColors.success : AppColors.textMuted,
                 ),
                 _MiniStat(
-                  label: 'Звук',
-                  value: _listening ? 'Идёт' : 'Ждёт',
+                  label: t.soundLabel,
+                  value: _listening ? t.listeningNowLabel : t.waitingLabel,
                   color: _listening ? AppColors.primary : AppColors.textMuted,
                 ),
               ],
@@ -444,6 +444,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
   }
 
   Future<void> _editLimit(Map<String, dynamic> app) async {
+    final t = S.of(context);
     final result = await showModalBottomSheet<_LimitEditResult>(
       context: context,
       isScrollControlled: true,
@@ -470,7 +471,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    app['app_name'] as String? ?? 'Приложение',
+                    app['app_name'] as String? ?? t.appLabel,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -479,8 +480,8 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                   const SizedBox(height: 18),
                   Row(
                     children: [
-                      const Text(
-                        'Включить лимит',
+                      Text(
+                        t.enableLimitLabel,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -499,8 +500,8 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      const Text(
-                        'Дневной лимит',
+                      Text(
+                        t.dailyLimit,
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -508,7 +509,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                       ),
                       const Spacer(),
                       Text(
-                        _formatMinutes(minutes),
+                        t.formatCompactDuration(minutes),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
@@ -541,8 +542,8 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      child: const Text(
-                        'Сохранить',
+                      child: Text(
+                        t.saveLimit,
                         style: TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -568,12 +569,13 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     required bool enabled,
     required int minutes,
   }) async {
+    final t = S.of(context);
     final previousStats = _cloneStats();
     setState(() {
       _saving = true;
       _applyLimitLocally(
         packageName: app['package_name'] as String? ?? '',
-        appName: app['app_name'] as String? ?? 'Приложение',
+        appName: app['app_name'] as String? ?? t.appLabel,
         iconB64: app['icon_b64'] as String?,
         enabled: enabled,
         minutes: minutes,
@@ -583,14 +585,16 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
       await ApiClient.instance.setChildAppLimit(
         childId: widget.childId,
         packageName: app['package_name'] as String? ?? '',
-        appName: app['app_name'] as String? ?? 'Приложение',
+        appName: app['app_name'] as String? ?? t.appLabel,
         dailyLimitMinutes: minutes,
         enabled: enabled,
       );
       if (!mounted) return;
       showAppSnackBar(
         context,
-        enabled ? 'Лимит сохранён.' : 'Лимит отключён.',
+        enabled
+            ? t.limitSavedFor(app['app_name'] as String? ?? t.appLabel)
+            : t.limitDisabledFor(app['app_name'] as String? ?? t.appLabel),
         type: AppFeedbackType.success,
       );
       unawaited(_refreshSilently());
@@ -612,11 +616,13 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
   Future<void> _toggleBlock(Map<String, dynamic> app) async {
     if (_saving) return;
     final pkg = app['package_name'] as String? ?? '';
-    final name = app['app_name'] as String? ?? 'Приложение';
+    final t = S.of(context);
+    final name = app['app_name'] as String? ?? t.appLabel;
     if (pkg.isEmpty) return;
     final previousStats = _cloneStats();
     final previousBlockedPackages = Set<String>.from(_blockedPackages);
-    final previousBlockedIdByPackage = Map<String, int>.from(_blockedIdByPackage);
+    final previousBlockedIdByPackage =
+        Map<String, int>.from(_blockedIdByPackage);
     setState(() {
       _saving = true;
       _applyBlockedLocally(
@@ -640,9 +646,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        _blockedPackages.contains(pkg)
-            ? '$name заблокировано.'
-            : '$name разблокировано.',
+        _blockedPackages.contains(pkg) ? t.appBlocked(name) : t.appUnblocked(name),
         type: AppFeedbackType.success,
       );
       unawaited(_refreshSilently());
@@ -665,8 +669,9 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return _FeatureScaffold(
-      title: 'Лимиты на игры',
+      title: t.gameLimitsMenuTitle,
       subtitle: widget.childName,
       onRefresh: _load,
       child: _loading
@@ -679,7 +684,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                   childName: widget.childName,
                   avatarUrl: widget.avatarUrl,
                   accent: AppColors.primary,
-                  subtitle: 'Управление экранным временем и блокировками',
+                  subtitle: t.gameLimitsSubtitle,
                   trailing: _saving
                       ? const SizedBox(
                           width: 18,
@@ -692,19 +697,19 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                 Row(
                   children: [
                     _MiniStat(
-                      label: 'Сегодня',
-                      value: _formatMinutes(_selectedTotal),
+                      label: t.today,
+                      value: t.formatCompactDuration(_selectedTotal),
                       color: AppColors.primary,
                     ),
                     _MiniStat(
-                      label: 'Лимиты',
+                      label: t.limitsLabel,
                       value: _selectedLimit > 0
-                          ? _formatMinutes(_selectedLimit)
-                          : 'Нет',
+                          ? t.formatCompactDuration(_selectedLimit)
+                          : t.noLimit,
                       color: AppColors.success,
                     ),
                     _MiniStat(
-                      label: 'Превышено',
+                      label: t.exceededLabel,
                       value: '$_overLimitApps',
                       color: _overLimitApps > 0
                           ? AppColors.danger
@@ -714,9 +719,9 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                 ),
                 if (!_usageAccessGranted) ...[
                   const SizedBox(height: 14),
-                  const AppCard(
+                  AppCard(
                     child: Text(
-                      'На телефоне ребёнка нужно открыть доступ к статистике использования, чтобы видеть реальные данные приложений и управлять лимитами.',
+                      t.grantUsageAccessHint,
                       style: TextStyle(
                         color: AppColors.textSecondaryLight,
                         height: 1.45,
@@ -733,9 +738,9 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                 ],
                 const SizedBox(height: 16),
                 if (_apps.isEmpty)
-                  const AppCard(
+                  AppCard(
                     child: Text(
-                      'Пока нет данных по приложениям для выбранного ребёнка.',
+                      t.noAppUsageData,
                       style: TextStyle(color: AppColors.textSecondaryLight),
                     ),
                   )
@@ -747,7 +752,8 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
   }
 
   Widget _buildAppCard(Map<String, dynamic> app) {
-    final appName = app['app_name'] as String? ?? 'Приложение';
+    final t = S.of(context);
+    final appName = app['app_name'] as String? ?? t.appLabel;
     final packageName = app['package_name'] as String? ?? '';
     final usageMinutes = (app['usage_minutes'] as int?) ?? 0;
     final enabled = (app['limit_enabled'] as bool?) ?? false;
@@ -805,7 +811,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                 _InfoChip(
                   icon: Icons.schedule_rounded,
                   color: AppColors.primary,
-                  label: _formatMinutes(usageMinutes),
+                  label: t.formatCompactDuration(usageMinutes),
                 ),
                 const SizedBox(width: 8),
                 _InfoChip(
@@ -814,13 +820,15 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                       ? AppColors.success
                       : AppColors.textMuted,
                   label: dailyLimitMinutes != null && enabled
-                      ? 'Лимит ${_formatMinutes(dailyLimitMinutes)}'
-                      : 'Без лимита',
+                      ? t.limitWithValue(
+                          t.formatCompactDuration(dailyLimitMinutes),
+                        )
+                      : t.noLimit,
                 ),
                 const Spacer(),
                 if (blocked)
-                  const Text(
-                    'Заблокировано',
+                  Text(
+                    t.blocked,
                     style: TextStyle(
                       color: AppColors.danger,
                       fontSize: 12,
@@ -842,8 +850,8 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text(
-                      'Изменить лимит',
+                    child: Text(
+                      t.editLimitLabel,
                       style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -861,7 +869,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                       ),
                     ),
                     child: Text(
-                      blocked ? 'Разблокировать' : 'Блокировать',
+                      blocked ? t.unblockLabel : t.block,
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -875,12 +883,7 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
   }
 
   String _formatMinutes(int minutes) {
-    if (minutes <= 0) return '0м';
-    final hours = minutes ~/ 60;
-    final remainingMinutes = minutes % 60;
-    if (hours == 0) return '$remainingMinutesм';
-    if (remainingMinutes == 0) return '$hoursч';
-    return '$hoursч $remainingMinutesм';
+    return S.of(context).formatCompactDuration(minutes);
   }
 
   List<Map<String, dynamic>> _asList(dynamic value) {
@@ -1046,8 +1049,9 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return _FeatureScaffold(
-      title: 'Достижения ребёнка',
+      title: t.achievementsScreenTitle,
       subtitle: widget.childName,
       onRefresh: _load,
       child: _loading
@@ -1093,8 +1097,8 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Звёзды, задачи и доступные награды',
+                            Text(
+                              t.achievementsHeroSubtitle,
                               style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 13,
@@ -1114,8 +1118,8 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                               fontWeight: FontWeight.w900,
                             ),
                           ),
-                          const Text(
-                            'заработано',
+                          Text(
+                            t.earnedShortLabel,
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -1130,17 +1134,17 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                 Row(
                   children: [
                     _MiniStat(
-                      label: 'Баланс',
+                      label: t.balanceLabel,
                       value: '$_balanceStars',
                       color: AppColors.primary,
                     ),
                     _MiniStat(
-                      label: 'Задач ждёт',
+                      label: t.waitingTasksLabel,
                       value: '$_pendingTasks',
                       color: AppColors.warning,
                     ),
                     _MiniStat(
-                      label: 'Одобрено',
+                      label: t.taskApprovedStatus,
                       value: '$_approvedTasks',
                       color: AppColors.success,
                     ),
@@ -1154,8 +1158,8 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                   ),
                 ],
                 const SizedBox(height: 18),
-                const Text(
-                  'Задачи',
+                Text(
+                  t.tasksLabel,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -1164,17 +1168,17 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                 ),
                 const SizedBox(height: 10),
                 if (_tasks.isEmpty)
-                  const AppCard(
+                  AppCard(
                     child: Text(
-                      'Пока задач нет.',
+                      t.noTasksYetLabel,
                       style: TextStyle(color: AppColors.textSecondaryLight),
                     ),
                   )
                 else
                   ..._tasks.take(8).map(_buildTaskCard),
                 const SizedBox(height: 18),
-                const Text(
-                  'Награды',
+                Text(
+                  t.rewardsLabel,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -1183,9 +1187,9 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                 ),
                 const SizedBox(height: 10),
                 if (_rewards.isEmpty)
-                  const AppCard(
+                  AppCard(
                     child: Text(
-                      'Пока наград нет.',
+                      t.noRewardsYetLabel,
                       style: TextStyle(color: AppColors.textSecondaryLight),
                     ),
                   )
@@ -1195,7 +1199,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                   const SizedBox(height: 14),
                   AppCard(
                     child: Text(
-                      'Выполнено, ждёт подтверждения: $_completedTasks',
+                      t.completedAwaitingApproval(_completedTasks),
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimaryLight,
@@ -1209,14 +1213,15 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
   }
 
   Widget _buildTaskCard(Map<String, dynamic> task) {
+    final t = S.of(context);
     final status = task['status'] as String? ?? 'pending';
     final statusData = switch (status) {
-      'approved' => ('Одобрено', AppColors.success),
-      'completed' => ('Ждёт одобрения', AppColors.warning),
-      _ => ('В процессе', AppColors.primary),
+      'approved' => (t.taskApprovedStatus, AppColors.success),
+      'completed' => (t.taskCompletedStatus, AppColors.warning),
+      _ => (t.taskInProgressLabel, AppColors.primary),
     };
     final rewardStars = (task['reward_stars'] as int?) ?? 0;
-    final title = task['title'] as String? ?? 'Задача';
+    final title = task['title'] as String? ?? t.tasksLabel;
     final description = task['description'] as String? ?? '';
 
     return Padding(
@@ -1253,7 +1258,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
             ],
             const SizedBox(height: 10),
             Text(
-              '+$rewardStars звёзд',
+              t.starsAmountLabel(rewardStars),
               style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -1267,8 +1272,9 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
   }
 
   Widget _buildRewardCard(Map<String, dynamic> reward) {
+    final t = S.of(context);
     final claimed = (reward['claimed'] as bool?) ?? false;
-    final title = reward['title'] as String? ?? 'Награда';
+    final title = reward['title'] as String? ?? t.rewardsLabel;
     final requiredStars = (reward['required_stars'] as int?) ?? 0;
     final claimedAt = DateTime.tryParse(reward['claimed_at'] as String? ?? '');
     return Padding(
@@ -1305,8 +1311,10 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
                   const SizedBox(height: 4),
                   Text(
                     claimed && claimedAt != null
-                        ? 'Достигнуто ${claimedAt.day.toString().padLeft(2, '0')}.${claimedAt.month.toString().padLeft(2, '0')}.${claimedAt.year}'
-                        : 'Нужно $requiredStars звёзд',
+                        ? t.achievedOn(
+                            '${claimedAt.day.toString().padLeft(2, '0')}.${claimedAt.month.toString().padLeft(2, '0')}.${claimedAt.year}',
+                          )
+                        : '${t.requiredStars}: $requiredStars',
                     style: const TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondaryLight,
@@ -1316,7 +1324,7 @@ class _MenuAchievementsScreenState extends State<MenuAchievementsScreen> {
               ),
             ),
             StatusBadge(
-              text: claimed ? 'Достигнуто' : 'Доступна',
+              text: claimed ? t.achievedLabel : t.availableLabel,
               color: claimed ? AppColors.success : AppColors.warning,
             ),
           ],
@@ -1408,7 +1416,7 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
         context,
         _active
             ? S.of(context).loudSignalSent(widget.childName)
-            : 'Громкий сигнал остановлен.',
+            : S.of(context).loudSignalStoppedLabel,
         type: AppFeedbackType.success,
       );
     } catch (e) {
@@ -1426,12 +1434,13 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     final battery = (_device['battery'] as int?) ?? 0;
     final charging = (_device['charging'] as bool?) ?? false;
     final isActive = (_device['active'] as bool?) ?? false;
 
     return _FeatureScaffold(
-      title: 'Громкий сигнал',
+      title: t.loudSignalScreenTitle,
       subtitle: widget.childName,
       onRefresh: _load,
       child: _loading
@@ -1445,25 +1454,25 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
                   avatarUrl: widget.avatarUrl,
                   accent: _active ? AppColors.danger : AppColors.primary,
                   subtitle: _active
-                      ? 'Сейчас на устройстве включён громкий сигнал'
-                      : 'Отправьте сигнал, чтобы ребёнок быстро нашёл телефон',
+                      ? t.loudSignalActiveSubtitle
+                      : t.loudSignalInactiveSubtitle,
                 ),
                 const SizedBox(height: 14),
                 Row(
                   children: [
                     _MiniStat(
-                      label: 'Связь',
-                      value: isActive ? 'Онлайн' : 'Офлайн',
+                      label: t.connectionLabel,
+                      value: isActive ? t.onlineLabel : t.offlineLabel,
                       color: isActive ? AppColors.success : AppColors.danger,
                     ),
                     _MiniStat(
-                      label: 'Батарея',
-                      value: battery > 0 ? '$battery%' : 'Нет',
+                      label: t.batteryLabel,
+                      value: battery > 0 ? '$battery%' : t.noData,
                       color: AppColors.primary,
                     ),
                     _MiniStat(
-                      label: 'Зарядка',
-                      value: charging ? 'Да' : 'Нет',
+                      label: t.chargingShort,
+                      value: charging ? t.chargingShort : t.notChargingShort,
                       color: charging ? AppColors.success : AppColors.textMuted,
                     ),
                   ],
@@ -1475,8 +1484,8 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
                     children: [
                       Text(
                         _active
-                            ? 'Сигнал уже отправлен'
-                            : 'Отправить громкий звуковой сигнал',
+                            ? t.signalAlreadySentLabel
+                            : t.sendLoudSignalLabel,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -1486,8 +1495,8 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
                       const SizedBox(height: 8),
                       Text(
                         _active
-                            ? 'Если ребёнок уже нашёл телефон, вы можете сразу остановить сигнал.'
-                            : 'Полезно, когда телефон рядом, но его не видно или он в беззвучном режиме.',
+                            ? t.stopSignalHint
+                            : t.sendSignalHint,
                         style: const TextStyle(
                           fontSize: 14,
                           height: 1.45,
@@ -1524,7 +1533,7 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
                                 : Icons.notifications_active_outlined,
                           ),
                           label: Text(
-                            _active ? 'Остановить сигнал' : 'Включить сигнал',
+                            _active ? t.stopSignalLabel : t.startSignalLabel,
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),

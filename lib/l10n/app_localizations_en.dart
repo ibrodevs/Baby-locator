@@ -161,21 +161,21 @@ class SEn extends S {
   }
 
   @override
-  String get safeZones => 'Safe Zones';
+  String get safeZones => 'Places';
 
   @override
   String get addNew => 'Add New';
 
   @override
-  String get noSafeZonesYet => 'No safe zones yet';
+  String get noSafeZonesYet => 'No places yet';
 
   @override
   String zone(String zoneName) {
-    return 'Zone: $zoneName';
+    return 'Place: $zoneName';
   }
 
   @override
-  String get editZone => 'Edit Zone';
+  String get editZone => 'Edit place';
 
   @override
   String get activeToday => 'ACTIVE TODAY';
@@ -204,17 +204,17 @@ class SEn extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Current zone: $zoneName';
+    return 'Current place: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Add Safe Zone';
+  String get addSafeZone => 'Add New Place';
 
   @override
-  String get editSafeZone => 'Edit Safe Zone';
+  String get editSafeZone => 'Edit Place';
 
   @override
-  String get deleteZoneTitle => 'Delete Zone?';
+  String get deleteZoneTitle => 'Delete place?';
 
   @override
   String get deleteZoneMessage => 'This action cannot be undone.';
@@ -226,10 +226,10 @@ class SEn extends S {
   String get delete => 'Delete';
 
   @override
-  String get zoneEnabled => 'ZONE ENABLED';
+  String get zoneEnabled => 'PLACE ENABLED';
 
   @override
-  String get zoneName => 'ZONE NAME';
+  String get zoneName => 'PLACE NAME';
 
   @override
   String get zoneNameHint => 'e.g. Home, School';
@@ -254,16 +254,16 @@ class SEn extends S {
   String get locationMoveMap => 'LOCATION (Move map to center pin)';
 
   @override
-  String get moveMapToSetCenter => 'Move the map to set zone center';
+  String get moveMapToSetCenter => 'Move the map to set the place center';
 
   @override
-  String get createSafeZone => 'Create Safe Zone';
+  String get createSafeZone => 'Create Place';
 
   @override
-  String get updateSafeZone => 'Update Safe Zone';
+  String get updateSafeZone => 'Update Place';
 
   @override
-  String get pleaseEnterZoneName => 'Please enter a zone name';
+  String get pleaseEnterZoneName => 'Please enter a place name';
 
   @override
   String get chooseAtLeastOneDayError => 'Choose at least one active day';
@@ -480,7 +480,7 @@ class SEn extends S {
   String get batteryAlerts => 'Battery Alerts';
 
   @override
-  String get safeZoneAlerts => 'Safe Zone Alerts';
+  String get safeZoneAlerts => 'Place Alerts';
 
   @override
   String get notificationPermissionRequired =>
@@ -800,4 +800,47 @@ class SEn extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Places on the map';
+
+  @override
+  String get placesAndChildren => 'Places and children';
+
+  @override
+  String placesCount(int count) {
+    return 'Places: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Active today: $count';
+  }
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get createPlaceHint =>
+      'Create a place to receive notifications when your child arrives or leaves.';
+
+  @override
+  String get untitledPlace => 'Untitled place';
+
+  @override
+  String get placeDeleted => 'Place deleted.';
+
+  @override
+  String get editLabel => 'Edit';
+
+  @override
+  String get disabledSchedule => 'Disabled';
+
+  @override
+  String get noDaysSelected => 'No days selected';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radius $radius • $schedule';
+  }
 }

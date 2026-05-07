@@ -45,11 +45,11 @@
   "batteryStatus": "Batareya holati",
   "batteryAt": "Batareya {battery}% da",
   "noActivityYet": "Hozircha faollik yo'q. {childName} joylashuvini ulashgach hodisalar shu yerda ko'rinadi.",
-  "safeZones": "Xavfsiz hududlar",
+  "safeZones": "Joylar",
   "addNew": "Qo'shish",
-  "noSafeZonesYet": "Hozircha xavfsiz hududlar yo'q",
-  "zone": "Hudud: {zoneName}",
-  "editZone": "Hududni tahrirlash",
+  "noSafeZonesYet": "Hozircha joy yo'q",
+  "zone": "Joy: {zoneName}",
+  "editZone": "Joyni tahrirlash",
   "activeToday": "BUGUN FAOL",
   "inactiveToday": "BUGUN NOFAOL",
   "disabled": "O'CHIRILGAN",
@@ -57,26 +57,26 @@
   "noLocationUpdatesYet": "Bugun joylashuv yangilanishlari yo'q",
   "safetyScoreDetails": "Bugungi {totalUpdates} yangilanishdan {inZoneUpdates} tasi xavfsiz hududda bo'lgan",
   "coverage": "Qamrov: {percent}%",
-  "currentZone": "Joriy hudud: {zoneName}",
-  "addSafeZone": "Xavfsiz hudud qo'shish",
-  "editSafeZone": "Xavfsiz hududni tahrirlash",
-  "deleteZoneTitle": "Hudud o'chirilsinmi?",
+  "currentZone": "Joriy joy: {zoneName}",
+  "addSafeZone": "Yangi joy qo'shish",
+  "editSafeZone": "Joyni tahrirlash",
+  "deleteZoneTitle": "Joy o'chirilsinmi?",
   "deleteZoneMessage": "Bu amalni bekor qilib bo'lmaydi.",
   "cancel": "Bekor qilish",
   "delete": "O'chirish",
-  "zoneEnabled": "HUDUD YOQILGAN",
-  "zoneName": "HUDUD NOMI",
+  "zoneEnabled": "JOY FAOL",
+  "zoneName": "JOY NOMI",
   "zoneNameHint": "masalan, Uy, Maktab",
   "activeWhen": "QACHON FAOL",
   "always": "Har doim",
   "daysOfWeek": "Hafta kunlari",
   "chooseAtLeastOneDay": "Bu jadval uchun kamida bitta kunni tanlang.",
   "radius": "RADIUS",
-  "locationMoveMap": "JOYLASHUV (Markazni belgilash uchun xaritani siljiting)",
-  "moveMapToSetCenter": "Hudud markazini belgilash uchun xaritani siljiting",
-  "createSafeZone": "Xavfsiz hudud yaratish",
-  "updateSafeZone": "Xavfsiz hududni yangilash",
-  "pleaseEnterZoneName": "Iltimos, hudud nomini kiriting",
+  "locationMoveMap": "JOYLASHUV (Markaziy nuqtani qo'yish uchun xaritani suring)",
+  "moveMapToSetCenter": "Joy markazini belgilash uchun xaritani suring",
+  "createSafeZone": "Joy yaratish",
+  "updateSafeZone": "Joyni yangilash",
+  "pleaseEnterZoneName": "Iltimos, joy nomini kiriting",
   "chooseAtLeastOneDayError": "Kamida bitta faol kunni tanlang",
   "addChildToChat": "Chatni boshlash uchun bola qo'shing",
   "noMessagesYet": "Hozircha xabarlar yo'q. Salom yozing!",
@@ -140,7 +140,7 @@
   "pushNotifications": "Push bildirishnomalar",
   "locationAlerts": "Joylashuv ogohlantirishlari",
   "batteryAlerts": "Batareya ogohlantirishlari",
-  "safeZoneAlerts": "Xavfsiz hudud ogohlantirishlari",
+  "safeZoneAlerts": "Joy bildirishnomalari",
   "notificationPermissionRequired": "Ogohlantirish yuborish uchun bildirishnoma ruxsati kerak",
   "general": "Umumiy",
   "language": "Til",
@@ -213,5 +213,41 @@
   "childNavSettings": "Sozlamalar",
   "childProfile": "Profil",
   "childSettingsTitle": "Sozlamalar",
-  "childLogout": "Chiqish"
+  "childLogout": "Chiqish",
+  "placesOnMap": "Xaritadagi joylar",
+  "placesAndChildren": "Joylar va bolalar",
+  "placesCount": "Joylar: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Bugun faol: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Qayta urinish",
+  "createPlaceHint": "Farzandingiz kelganda yoki ketganda bildirishnoma olish uchun joy yarating.",
+  "untitledPlace": "Nomsiz joy",
+  "placeDeleted": "Joy o'chirildi.",
+  "editLabel": "Tahrirlash",
+  "disabledSchedule": "O'chirilgan",
+  "noDaysSelected": "Kunlar tanlanmagan",
+  "radiusSummary": "Radius {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

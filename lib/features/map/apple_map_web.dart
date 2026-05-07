@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:ui_web' as ui;
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import '../../core/providers/session_providers.dart';
+import 'map_models.dart';
 
 class AppleMapWeb extends StatefulWidget {
   const AppleMapWeb({
@@ -9,12 +11,14 @@ class AppleMapWeb extends StatefulWidget {
     required this.latitude,
     required this.longitude,
     this.children = const [],
+    this.parentLocation,
     this.onChildTapped,
   });
 
   final double latitude;
   final double longitude;
   final List<ChildLocation> children;
+  final ParentMapLocation? parentLocation;
   final ValueChanged<int>? onChildTapped;
 
   @override
@@ -55,7 +59,7 @@ class _AppleMapWebState extends State<AppleMapWeb> {
             var map = new mapkit.Map("$_viewId");
             map.region = region;
 
-            // Добавляем маркеры детей
+            // Добавляем маркеры детей и родителя
             ${_generateMarkersJS()}
           }
         ''';
@@ -67,13 +71,25 @@ class _AppleMapWebState extends State<AppleMapWeb> {
 
   String _generateMarkersJS() {
     final buffer = StringBuffer();
+    final parentLocation = widget.parentLocation;
+    if (parentLocation != null) {
+      buffer.writeln('''
+        var parentPos = new mapkit.Coordinate(${parentLocation.latitude}, ${parentLocation.longitude});
+        var parentAnnotation = new mapkit.MarkerAnnotation(parentPos, {
+          title: ${jsonEncode(parentLocation.label)},
+          glyphText: "P",
+          color: "#22A06B"
+        });
+        map.addAnnotation(parentAnnotation);
+      ''');
+    }
     for (int i = 0; i < widget.children.length; i++) {
       final c = widget.children[i];
       buffer.writeln('''
         var childPos$i = new mapkit.Coordinate(${c.lat}, ${c.lng});
         var annotation$i = new mapkit.MarkerAnnotation(childPos$i, {
-          title: "${c.name}",
-          glyphText: "${c.name.isNotEmpty ? c.name[0].toUpperCase() : '?'}",
+          title: ${jsonEncode(c.name)},
+          glyphText: ${jsonEncode(c.name.isNotEmpty ? c.name[0].toUpperCase() : '?')},
           color: "#1C62F0"
         });
         annotation$i.addEventListener("select", function() {

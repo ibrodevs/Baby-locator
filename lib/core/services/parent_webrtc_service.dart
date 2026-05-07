@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import 'api_client.dart';
 
@@ -29,6 +31,9 @@ final AndroidAudioConfiguration _parentAndroidAudio = AndroidAudioConfiguration(
 /// (SDP offer from the child, ICE candidates) and establishes a
 /// WebRTC P2P audio connection.  Audio plays through the device speaker.
 class ParentWebRTCService {
+  String _tr(Map<String, String> values) =>
+      pickLocalizedExtra(ui.PlatformDispatcher.instance.locale.toLanguageTag(), values);
+
   RTCPeerConnection? _peerConnection;
   Timer? _pollTimer;
   Timer? _connectWatchdog;
@@ -51,35 +56,38 @@ class ParentWebRTCService {
   bool get isListening => _isListening;
   String? get sessionToken => _sessionToken;
 
-  /// STUN + free public TURN servers (openrelay.metered.ca).
-  /// TURN is critical so peers can connect across cellular/NAT networks.
-  static const _iceServers = <String, dynamic>{
+  /// Fallback used only when the backend ICE-servers endpoint fails. STUN
+  /// alone won't traverse the symmetric NATs most cellular carriers run, so
+  /// production traffic must come from the backend (which can hand out
+  /// time-limited TURN credentials).
+  static const _fallbackIceServers = <String, dynamic>{
     'iceServers': [
       {'urls': 'stun:stun.l.google.com:19302'},
       {'urls': 'stun:stun1.l.google.com:19302'},
-      {
-        'urls': 'turn:openrelay.metered.ca:80',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
-      {
-        'urls': 'turn:openrelay.metered.ca:443',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
-      {
-        'urls': 'turn:openrelay.metered.ca:443?transport=tcp',
-        'username': 'openrelayproject',
-        'credential': 'openrelayproject',
-      },
     ],
     'sdpSemantics': 'unified-plan',
   };
 
-  /// Patch the Opus fmtp parameters so the negotiated session uses a high
-  /// bitrate, stereo, no DTX (DTX mutes ambient silence — the very thing
-  /// the parent is trying to hear), in-band FEC for cellular resilience,
-  /// and 48 kHz playback. See child_webrtc_service for the offer side.
+  Future<Map<String, dynamic>> _resolveIceServers() async {
+    try {
+      final data = await ApiClient.instance.fetchIceServers();
+      final servers = data['iceServers'];
+      if (servers is List && servers.isNotEmpty) {
+        return {
+          'iceServers': servers,
+          'sdpSemantics': 'unified-plan',
+        };
+      }
+    } catch (e) {
+      debugPrint('[ParentWebRTC] fetchIceServers failed: $e');
+    }
+    return _fallbackIceServers;
+  }
+
+  /// Patch the Opus fmtp parameters so the negotiated session matches the
+  /// child's clean-ambient profile: mono, 64 kbps, no DTX (DTX would mute
+  /// quiet room tone), in-band FEC for cellular resilience, full 48 kHz
+  /// playback. See child_webrtc_service for the offer side.
   static String? _boostOpusSdp(String? sdp) {
     if (sdp == null || sdp.isEmpty) return sdp;
     final lines = sdp.split('\r\n');
@@ -92,9 +100,9 @@ class ParentWebRTCService {
     if (opusPayloadIds.isEmpty) return sdp;
 
     const desiredParams = <String, String>{
-      'maxaveragebitrate': '128000',
-      'stereo': '1',
-      'sprop-stereo': '1',
+      'maxaveragebitrate': '64000',
+      'stereo': '0',
+      'sprop-stereo': '0',
       'usedtx': '0',
       'cbr': '0',
       'useinbandfec': '1',
@@ -173,15 +181,21 @@ class ParentWebRTCService {
 
     for (final track in stream.getAudioTracks()) {
       track.enabled = true;
-      // Do NOT call Helper.setVolume on remote tracks: on iOS that bridges to
-      // `audioTrack.source.volume = …`, but RTCAudioTrack.source is only
-      // populated for *local* tracks. Touching it on a remote track crashes
-      // the app with EXC_BAD_ACCESS at 0x10. On Android the same call DOES
-      // work and lets us push playback above the platform default — quiet
-      // ambient capture is the whole point of the feature.
+      // Do NOT call Helper.setVolume on remote tracks on iOS: it bridges to
+      // `audioTrack.source.volume = …`, and RTCAudioTrack.source is only
+      // populated for *local* tracks — touching it on a remote track crashes
+      // the app with EXC_BAD_ACCESS at 0x10.
+      //
+      // On Android setVolume on a remote track works, but the previous 10x
+      // gain was the audible source of "помехи": it pushed the already-AGC'd
+      // signal far past unity, clipping every transient and saturating any
+      // residual noise floor into hiss/crackle. 2x is enough headroom over
+      // platform default to compensate for media-stream playback being
+      // routed through music stream at moderate volume, without driving
+      // the decoder into clipping.
       if (Platform.isAndroid) {
         try {
-          await Helper.setVolume(10.0, track);
+          await Helper.setVolume(2.0, track);
         } catch (_) {}
       }
     }
@@ -235,7 +249,10 @@ class ParentWebRTCService {
     _disconnectWatchdog = null;
 
     try {
-      onStatus?.call('Устанавливаем соединение...');
+      onStatus?.call(_tr({
+        'en': 'Setting up connection...',
+        'ru': 'Устанавливаем соединение...',
+      }));
 
       // 1. Create WebRTC peer connection (receive-only).
       //    For audio-only sessions we deliberately do NOT create an
@@ -244,7 +261,8 @@ class ParentWebRTCService {
       //    `sink(event)` (EXC_BAD_ACCESS at 0x10). Audio playback on iOS
       //    happens automatically through RTCAudioSession once a remote
       //    audio track is added to the peer connection.
-      _peerConnection = await createPeerConnection(_iceServers);
+      final iceConfig = await _resolveIceServers();
+      _peerConnection = await createPeerConnection(iceConfig);
 
       // Now it is safe to configure routing for loud-speaker playback.
       await _configureParentAudioSession();
@@ -291,12 +309,18 @@ class ParentWebRTCService {
           case RTCPeerConnectionState.RTCPeerConnectionStateConnecting:
             _disconnectWatchdog?.cancel();
             _disconnectWatchdog = null;
-            onStatus?.call('Подключаемся к ребёнку...');
+            onStatus?.call(_tr({
+              'en': 'Connecting to child...',
+              'ru': 'Подключаемся к ребёнку...',
+            }));
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateConnected:
             _disconnectWatchdog?.cancel();
             _disconnectWatchdog = null;
-            onStatus?.call('Соединение установлено');
+            onStatus?.call(_tr({
+              'en': 'Connection established',
+              'ru': 'Соединение установлено',
+            }));
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
             // Transient — every cell handoff or short congestion spike
@@ -307,11 +331,22 @@ class ParentWebRTCService {
             if (!_audioStartedNotified) {
               onStatus?.call(
                 _receivedOffer
-                    ? 'Сигнал от телефона ребёнка получен, продолжаем подключение...'
-                    : 'Ждём ответ от телефона ребёнка...',
+                    ? _tr({
+                        'en':
+                            'Signal from the child phone received, continuing connection...',
+                        'ru':
+                            'Сигнал от телефона ребёнка получен, продолжаем подключение...',
+                      })
+                    : _tr({
+                        'en': 'Waiting for a response from the child phone...',
+                        'ru': 'Ждём ответ от телефона ребёнка...',
+                      }),
               );
             } else {
-              onStatus?.call('Связь нестабильна, восстанавливаем звук...');
+              onStatus?.call(_tr({
+                'en': 'Connection is unstable, restoring audio...',
+                'ru': 'Связь нестабильна, восстанавливаем звук...',
+              }));
             }
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateFailed:
@@ -322,11 +357,21 @@ class ParentWebRTCService {
             if (!_audioStartedNotified) {
               onStatus?.call(
                 _receivedOffer
-                    ? 'Переподключаем аудиоканал...'
-                    : 'Подключение заняло больше времени, продолжаем ждать...',
+                    ? _tr({
+                        'en': 'Reconnecting audio channel...',
+                        'ru': 'Переподключаем аудиоканал...',
+                      })
+                    : _tr({
+                        'en': 'Connection is taking longer, still waiting...',
+                        'ru':
+                            'Подключение заняло больше времени, продолжаем ждать...',
+                      }),
               );
             } else {
-              onStatus?.call('Аудиоканал потерян, переподключаемся...');
+              onStatus?.call(_tr({
+                'en': 'Audio channel lost, reconnecting...',
+                'ru': 'Аудиоканал потерян, переподключаемся...',
+              }));
             }
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateClosed:
@@ -342,12 +387,18 @@ class ParentWebRTCService {
 
       // 4. Activate monitoring via REST — creates session + sends FCM to child
       //    and creates a polling-backed command as a fallback.
-      onStatus?.call('Будим телефон ребёнка...');
+      onStatus?.call(_tr({
+        'en': 'Waking the child phone...',
+        'ru': 'Будим телефон ребёнка...',
+      }));
       final response = await ApiClient.instance.activateMonitoring(childId);
       _sessionToken = response['session_token'] as String? ?? '';
 
       if (_sessionToken == null || _sessionToken!.isEmpty) {
-        onError?.call('Не удалось активировать мониторинг');
+        onError?.call(_tr({
+          'en': 'Could not activate monitoring',
+          'ru': 'Не удалось активировать мониторинг',
+        }));
         await stopListening();
         return;
       }
@@ -366,26 +417,29 @@ class ParentWebRTCService {
       //    error after a longer grace period so polling fallback has time.
       _connectWatchdog = Timer(const Duration(seconds: 8), () {
         if (!_isListening || _audioStartedNotified) return;
-        onStatus?.call(
-          'Ждём ответ от телефона ребёнка... '
-          'Это может занять до 30 секунд при заблокированном экране.',
-        );
+        onStatus?.call(_tr({
+          'en':
+              'Waiting for a response from the child phone... This can take up to 30 seconds when the screen is locked.',
+          'ru':
+              'Ждём ответ от телефона ребёнка... Это может занять до 30 секунд при заблокированном экране.',
+        }));
         _connectWatchdog = Timer(const Duration(seconds: 22), () {
           if (_isListening && !_audioStartedNotified) {
-            onError?.call(
-              'Телефон ребёнка не ответил вовремя. Проверьте, что на нём '
-              'открывалось приложение после входа, есть интернет, отключены '
-              'жёсткие ограничения батареи, а сервер может отправлять FCM. '
-              'Разрешение на микрофон тоже должно быть включено, но это не '
-              'единственная возможная причина.',
-            );
+            onError?.call(_tr({
+              'en':
+                  'The child phone did not respond in time. Check that the app was opened after sign-in, internet works, strict battery restrictions are disabled, and the server can send FCM. Microphone permission should also be enabled.',
+              'ru':
+                  'Телефон ребёнка не ответил вовремя. Проверьте, что на нём открывалось приложение после входа, есть интернет, отключены жёсткие ограничения батареи, а сервер может отправлять FCM. Разрешение на микрофон тоже должно быть включено, но это не единственная возможная причина.',
+            }));
             stopListening();
           }
         });
       });
     } catch (e) {
       debugPrint('[ParentWebRTC] startListening error: $e');
-      onError?.call('Сбой соединения: $e');
+      onError?.call(
+        '${_tr({'en': 'Connection error', 'ru': 'Сбой соединения'})}: $e',
+      );
       await stopListening();
     }
   }
@@ -457,7 +511,10 @@ class ParentWebRTCService {
         onError?.call(
           (message != null && message.isNotEmpty)
               ? message
-              : 'Не удалось включить микрофон на телефоне ребёнка.',
+              : _tr({
+                  'en': 'Could not enable the microphone on the child phone.',
+                  'ru': 'Не удалось включить микрофон на телефоне ребёнка.',
+                }),
         );
         Future.microtask(stopListening);
         break;

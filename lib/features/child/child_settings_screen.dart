@@ -119,7 +119,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                           AvatarCircle(
                             initials: (user?.displayName.isNotEmpty ?? false)
                                 ? user!.displayName[0].toUpperCase()
-                                : 'K',
+                                : t.childLabel[0].toUpperCase(),
                             color: palette.primary,
                             size: 80,
                             image: avatarImageProvider(user?.avatarUrl),
@@ -138,7 +138,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      user?.displayName ?? user?.username ?? 'Kid',
+                      user?.displayName ?? user?.username ?? t.childLabel,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,

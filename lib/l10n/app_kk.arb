@@ -9,13 +9,11 @@
   "displayName": "Көрсетілетін атау",
   "username": "Пайдаланушы аты",
   "password": "Құпия сөз",
-
   "navMap": "Карта",
   "navActivity": "Белсенділік",
   "navChat": "Чат",
   "navStats": "Статистика",
   "navHome": "Басты бет",
-
   "waitingForLocation": "Балалардың орналасқан жерін күтуде...",
   "addChildToTrack": "Қадағалауды бастау үшін бала қосыңыз",
   "manageChildren": "Балаларды басқару",
@@ -33,7 +31,6 @@
   "hoursAgo": "{hours} сағ. бұрын",
   "active": "Белсенді",
   "inactive": "Белсенді емес",
-
   "addChildToSeeActivity": "Белсенділікті көру үшін бала қосыңыз",
   "activity": "Белсенділік",
   "today": "Бүгін",
@@ -48,11 +45,11 @@
   "batteryStatus": "Батарея күйі",
   "batteryAt": "Батарея: {battery}%",
   "noActivityYet": "Белсенділік жоқ. {childName} орналасқан жерін жіберген соң оқиғалар пайда болады.",
-  "safeZones": "Қауіпсіз аймақтар",
+  "safeZones": "Орындар",
   "addNew": "Жаңа қосу",
-  "noSafeZonesYet": "Қауіпсіз аймақтар әлі жоқ",
-  "zone": "Аймақ: {zoneName}",
-  "editZone": "Аймақты өңдеу",
+  "noSafeZonesYet": "Әзірге орындар жоқ",
+  "zone": "Орын: {zoneName}",
+  "editZone": "Орынды өңдеу",
   "activeToday": "БҮГІН БЕЛСЕНДІ",
   "inactiveToday": "БҮГІН БЕЛСЕНДІ ЕМЕС",
   "disabled": "ӨШІРІЛГЕН",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Бүгін орын жаңартулары жоқ",
   "safetyScoreDetails": "Бүгін {totalUpdates} жаңартудың {inZoneUpdates}-і қауіпсіз аймақтарда болды",
   "coverage": "Қамту: {percent}%",
-  "currentZone": "Ағымдағы аймақ: {zoneName}",
-
-  "addSafeZone": "Қауіпсіз аймақ қосу",
-  "editSafeZone": "Қауіпсіз аймақты өңдеу",
-  "deleteZoneTitle": "Аймақты жою?",
+  "currentZone": "Қазіргі орын: {zoneName}",
+  "addSafeZone": "Жаңа орын қосу",
+  "editSafeZone": "Орынды өңдеу",
+  "deleteZoneTitle": "Орын жойылсын ба?",
   "deleteZoneMessage": "Бұл әрекетті болдырмауға болмайды.",
   "cancel": "Болдырмау",
   "delete": "Жою",
-  "zoneEnabled": "АЙМАҚ БЕЛСЕНДІ",
-  "zoneName": "АЙМАҚ АТАУЫ",
+  "zoneEnabled": "ОРЫН БЕЛСЕНДІ",
+  "zoneName": "ОРЫН АТАУЫ",
   "zoneNameHint": "мысалы, Үй, Мектеп",
   "activeWhen": "БЕЛСЕНДІ БОЛҒАНДА",
   "always": "Әрқашан",
   "daysOfWeek": "Апта күндері",
   "chooseAtLeastOneDay": "Бұл кестеге кем дегенде бір күн таңдаңыз.",
   "radius": "РАДИУС",
-  "locationMoveMap": "ОРЫН (Белгішені ортасына қою үшін картаны жылжытыңыз)",
-  "moveMapToSetCenter": "Аймақ орталығын орнату үшін картаны жылжытыңыз",
-  "createSafeZone": "Қауіпсіз аймақ жасау",
-  "updateSafeZone": "Қауіпсіз аймақты жаңарту",
-  "pleaseEnterZoneName": "Аймақ атауын енгізіңіз",
+  "locationMoveMap": "ОРНАЛАСУ (Орталық нүктені қою үшін картаны жылжытыңыз)",
+  "moveMapToSetCenter": "Орынның ортасын белгілеу үшін картаны жылжытыңыз",
+  "createSafeZone": "Орын жасау",
+  "updateSafeZone": "Орынды жаңарту",
+  "pleaseEnterZoneName": "Орын атауын енгізіңіз",
   "chooseAtLeastOneDayError": "Кем дегенде бір белсенді күн таңдаңыз",
-
   "addChildToChat": "Чатты бастау үшін бала қосыңыз",
   "noMessagesYet": "Хабарлар жоқ. Сәлем айтыңыз!",
   "sendMessage": "Хабар жіберу...",
   "failedToSend": "Жіберілмеді: {error}",
-
   "helloUser": "Сәлем, {name}!",
   "kidMode": "Бала режимі",
   "myLocation": "Менің орным",
   "waitingForGps": "GPS күтуде...",
-  "sharedWithParent": "Ата-анаға жіберілді \u00b7 {time}",
+  "sharedWithParent": "Ата-анаға жіберілді · {time}",
   "notSharedYet": "Әлі жіберілмеді",
   "imSafe": "Мен қауіпсіздікте",
   "sos": "SOS",
   "sentImSafe": "Ата-анаңа «Мен қауіпсіздікте» хабары жіберілді",
   "sosMessage": "SOS! Маған көмек керек!",
   "sosLocation": " Орын: {address}",
-  "sosSent": "SOS жіберілді \u2014 ата-ана хабарландырылады",
+  "sosSent": "SOS жіберілді — ата-ана хабарландырылады",
   "allowUsageAccess": "Пайдалану статистикасына рұқсат беру",
   "usageAccessDescription": "Бұл ата-ана бақылау тақтасына осы телефондағы экран уақытының нақты деректерін және қолданба шектеулерін көрсетуге мүмкіндік береді.",
   "openUsageAccess": "Пайдалану статистикасын ашу",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Бөлісу үшін геолокацияға рұқсат беріңіз",
   "grantLocationPermission": "Ата-анаңыз сіздің қайда екеніңізді білу үшін рұқсат беріңіз.",
   "allowLocation": "Геолокацияға рұқсат беру",
-
   "myChildren": "Менің балаларым",
   "addChild": "Бала қосу",
   "noChildrenYet": "Балалар жоқ. Профиль жасау үшін «Бала қосу» түймесін басыңыз.",
@@ -136,7 +129,6 @@
   "deleteChild": "Баланы жою",
   "track": "Қадағалау",
   "edit": "Өңдеу",
-
   "settings": "Параметрлер",
   "parent": "АТА-АНА",
   "child": "БАЛА",
@@ -148,7 +140,7 @@
   "pushNotifications": "Push-хабарландырулар",
   "locationAlerts": "Орын туралы ескертулер",
   "batteryAlerts": "Батарея туралы ескертулер",
-  "safeZoneAlerts": "Қауіпсіз аймақ ескертулері",
+  "safeZoneAlerts": "Орын хабарламалары",
   "notificationPermissionRequired": "Ескертулер жіберу үшін рұқсат қажет",
   "general": "Жалпы",
   "language": "Тіл",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Пайдаланушы аты бос болмауы тиіс",
   "profileUpdated": "Профиль жаңартылды",
   "failedToUploadAvatar": "Аватарды жүктеу сәтсіз болды: {error}",
-
   "parentProfile": "Ата-ана профилі",
   "addChildForStats": "Тікелей статистиканы көру үшін алдымен бала аккаунтын қосыңыз.",
   "insights": "ТАЛДАУ",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} {date} күні пайдаланылды",
   "limitMinutes": "Шектеу {time}",
   "noLimit": "Шектеусіз",
-  "usageTodayOverLimit": "Бүгін {time} \u00b7 шектеу асып кетті",
+  "usageTodayOverLimit": "Бүгін {time} · шектеу асып кетті",
   "usageToday": "Бүгін {time}",
   "limitSavedFor": "{appName} үшін шектеу сақталды",
   "limitDisabledFor": "{appName} үшін шектеу өшірілді",
@@ -222,5 +213,41 @@
   "childNavSettings": "Параметрлер",
   "childProfile": "Профиль",
   "childSettingsTitle": "Параметрлер",
-  "childLogout": "Шығу"
+  "childLogout": "Шығу",
+  "placesOnMap": "Картадағы орындар",
+  "placesAndChildren": "Орындар және балалар",
+  "placesCount": "Орындар: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Бүгін белсенді: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Қайталау",
+  "createPlaceHint": "Балаңыз келгенде немесе кеткенде хабарлама алу үшін орын жасаңыз.",
+  "untitledPlace": "Атаусыз орын",
+  "placeDeleted": "Орын жойылды.",
+  "editLabel": "Өңдеу",
+  "disabledSchedule": "Өшірілген",
+  "noDaysSelected": "Күндер таңдалмаған",
+  "radiusSummary": "Радиус {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

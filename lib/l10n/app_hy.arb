@@ -45,11 +45,11 @@
   "batteryStatus": "Մարտկոցի վիճակ",
   "batteryAt": "Մարտկոցը {battery}% է",
   "noActivityYet": "Դեռ ակտիվություն չկա։ Իրադարձությունները կհայտնվեն, երբ {childName}-ը կկիսվի տեղադրությամբ։",
-  "safeZones": "Անվտանգ գոտիներ",
+  "safeZones": "Վայրեր",
   "addNew": "Ավելացնել",
-  "noSafeZonesYet": "Դեռ անվտանգ գոտիներ չկան",
-  "zone": "Գոտի՝ {zoneName}",
-  "editZone": "Խմբագրել գոտին",
+  "noSafeZonesYet": "Դեռ վայրեր չկան",
+  "zone": "Վայր: {zoneName}",
+  "editZone": "Խմբագրել վայրը",
   "activeToday": "ԱՅՍՕՐ ԱԿՏԻՎ",
   "inactiveToday": "ԱՅՍՕՐ ԱՊԱԱԿՏԻՎ",
   "disabled": "ԱՆՋԱՏՎԱԾ",
@@ -57,26 +57,26 @@
   "noLocationUpdatesYet": "Այսօր տեղադրության թարմացումներ չկան",
   "safetyScoreDetails": "Այսօրվա {totalUpdates} թարմացումներից {inZoneUpdates}-ը եղել է անվտանգ գոտիներում",
   "coverage": "Ծածկույթ՝ {percent}%",
-  "currentZone": "Ընթացիկ գոտի՝ {zoneName}",
-  "addSafeZone": "Ավելացնել անվտանգ գոտի",
-  "editSafeZone": "Խմբագրել անվտանգ գոտին",
-  "deleteZoneTitle": "Ջնջե՞լ գոտին",
+  "currentZone": "Ընթացիկ վայր: {zoneName}",
+  "addSafeZone": "Ավելացնել նոր վայր",
+  "editSafeZone": "Խմբագրել վայրը",
+  "deleteZoneTitle": "Ջնջե՞լ վայրը",
   "deleteZoneMessage": "Այս գործողությունը հնարավոր չէ հետարկել։",
   "cancel": "Չեղարկել",
   "delete": "Ջնջել",
-  "zoneEnabled": "ԳՈՏԻՆ ՄԻԱՑՎԱԾ Է",
-  "zoneName": "ԳՈՏՈՒ ԱՆՎԱՆՈՒՄ",
+  "zoneEnabled": "ՎԱՅՐԸ ՄԻԱՑՎԱԾ Է",
+  "zoneName": "ՎԱՅՐԻ ԱՆՎԱՆՈՒՄ",
   "zoneNameHint": "օր.՝ Տուն, Դպրոց",
   "activeWhen": "ԵՐԲ Է ԱԿՏԻՎ",
   "always": "Միշտ",
   "daysOfWeek": "Շաբաթվա օրեր",
   "chooseAtLeastOneDay": "Ընտրեք առնվազն մեկ օր այս ժամանակացույցի համար։",
   "radius": "ՇԱՎԻՂ",
-  "locationMoveMap": "ՏԵՂԱԴՐՈՒԹՅՈՒՆ (Տեղաշարժեք քարտեզը՝ կենտրոնը ընտրելու համար)",
-  "moveMapToSetCenter": "Տեղաշարժեք քարտեզը՝ գոտու կենտրոնը ընտրելու համար",
-  "createSafeZone": "Ստեղծել անվտանգ գոտի",
-  "updateSafeZone": "Թարմացնել անվտանգ գոտին",
-  "pleaseEnterZoneName": "Խնդրում ենք մուտքագրել գոտու անունը",
+  "locationMoveMap": "ՎԱՅՐԸ (Տեղափոխեք քարտեզը՝ կենտրոնը դնելու համար)",
+  "moveMapToSetCenter": "Տեղափոխեք քարտեզը՝ վայրի կենտրոնը դնելու համար",
+  "createSafeZone": "Ստեղծել վայր",
+  "updateSafeZone": "Թարմացնել վայրը",
+  "pleaseEnterZoneName": "Մուտքագրեք վայրի անունը",
   "chooseAtLeastOneDayError": "Ընտրեք առնվազն մեկ ակտիվ օր",
   "addChildToChat": "Ավելացրեք երեխա՝ չատը սկսելու համար",
   "noMessagesYet": "Դեռ հաղորդագրություններ չկան։ Ասեք բարև։",
@@ -140,7 +140,7 @@
   "pushNotifications": "Push ծանուցումներ",
   "locationAlerts": "Տեղադրության ահազանգեր",
   "batteryAlerts": "Մարտկոցի ահազանգեր",
-  "safeZoneAlerts": "Անվտանգ գոտու ահազանգեր",
+  "safeZoneAlerts": "Վայրերի ծանուցումներ",
   "notificationPermissionRequired": "Ահազանգեր ուղարկելու համար անհրաժեշտ է ծանուցումների թույլտվություն",
   "general": "Ընդհանուր",
   "language": "Լեզու",
@@ -213,5 +213,41 @@
   "childNavSettings": "Կարգավորումներ",
   "childProfile": "Պրոֆիլ",
   "childSettingsTitle": "Կարգավորումներ",
-  "childLogout": "Դուրս գալ"
+  "childLogout": "Դուրս գալ",
+  "placesOnMap": "Վայրերը քարտեզի վրա",
+  "placesAndChildren": "Վայրեր և երեխաներ",
+  "placesCount": "Վայրեր: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Այսօր ակտիվ: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Կրկնել",
+  "createPlaceHint": "Ստեղծեք վայր, որպեսզի ծանուցում ստանաք, երբ երեխան գալիս կամ գնում է։",
+  "untitledPlace": "Անանուն վայր",
+  "placeDeleted": "Վայրը ջնջվեց։",
+  "editLabel": "Խմբագրել",
+  "disabledSchedule": "Անջատված",
+  "noDaysSelected": "Օրեր ընտրված չեն",
+  "radiusSummary": "Շառավիղ {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -5,10 +5,11 @@ import AVFoundation
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
-  private let liveAudioChannelName = "kid_security/live_audio_player"
+  static let liveAudioChannelName = "kid_security/live_audio_player"
   private var liveAudioEngine: AVAudioEngine?
   private var liveAudioPlayerNode: AVAudioPlayerNode?
   private var liveAudioFormat: AVAudioFormat?
+  private var registeredMessengers: [ObjectIdentifier: FlutterMethodChannel] = [:]
 
   override func application(
     _ application: UIApplication,
@@ -22,7 +23,23 @@ import AVFoundation
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
-    configureLiveAudioChannel(binaryMessenger: engineBridge.applicationRegistrar.messenger())
+    registerLiveAudioChannel(on: engineBridge.applicationRegistrar.messenger())
+  }
+
+  /// Public so SceneDelegate can register the channel against the
+  /// FlutterViewController's engine. Scene-based iOS apps don't always
+  /// route `didInitializeImplicitFlutterEngine` to the AppDelegate, so
+  /// without this the parent's "Around" feature throws
+  /// MissingPluginException on real devices.
+  func registerLiveAudioChannel(on messenger: FlutterBinaryMessenger) {
+    let key = ObjectIdentifier(messenger as AnyObject)
+    if registeredMessengers[key] != nil { return }
+    let channel = FlutterMethodChannel(
+      name: AppDelegate.liveAudioChannelName,
+      binaryMessenger: messenger
+    )
+    attachLiveAudioHandler(to: channel)
+    registeredMessengers[key] = channel
   }
 
   private func configureAudioSession() {
@@ -30,7 +47,7 @@ import AVFoundation
     do {
       try session.setCategory(
         .playAndRecord,
-        mode: .voiceChat,
+        mode: .default,
         options: [.allowBluetooth, .defaultToSpeaker, .mixWithOthers]
       )
       try session.setActive(true)
@@ -39,8 +56,7 @@ import AVFoundation
     }
   }
 
-  private func configureLiveAudioChannel(binaryMessenger: FlutterBinaryMessenger) {
-    let channel = FlutterMethodChannel(name: liveAudioChannelName, binaryMessenger: binaryMessenger)
+  private func attachLiveAudioHandler(to channel: FlutterMethodChannel) {
     channel.setMethodCallHandler { [weak self] call, result in
       guard let self = self else {
         result(FlutterError(code: "deallocated", message: nil, details: nil))
@@ -101,12 +117,16 @@ import AVFoundation
     engine.attach(player)
     engine.connect(player, to: engine.mainMixerNode, format: format)
 
+    // Don't reconfigure the AVAudioSession category here. The original
+    // code called setCategory(.playback, options: [.allowBluetooth,
+    // .defaultToSpeaker]) — those options are only valid for
+    // .playAndRecord and throw `OSStatus -50` on a real iPhone. The
+    // throw aborts the whole `do` block before engine.start() runs, so
+    // the audio engine never starts and the parent hears silence. The
+    // simulator is more permissive, which is why "around" worked there
+    // but not on a phone. The session was already configured in
+    // configureAudioSession() at launch with a compatible combination.
     do {
-      try AVAudioSession.sharedInstance().setCategory(
-        .playback,
-        mode: .default,
-        options: [.allowBluetooth, .defaultToSpeaker]
-      )
       try AVAudioSession.sharedInstance().setActive(true)
       try engine.start()
     } catch {

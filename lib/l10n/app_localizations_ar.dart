@@ -161,21 +161,21 @@ class SAr extends S {
   }
 
   @override
-  String get safeZones => 'المناطق الآمنة';
+  String get safeZones => 'الأماكن';
 
   @override
   String get addNew => 'إضافة جديد';
 
   @override
-  String get noSafeZonesYet => 'لا توجد مناطق آمنة بعد';
+  String get noSafeZonesYet => 'لا توجد أماكن بعد';
 
   @override
   String zone(String zoneName) {
-    return 'المنطقة: $zoneName';
+    return 'المكان: $zoneName';
   }
 
   @override
-  String get editZone => 'تعديل المنطقة';
+  String get editZone => 'تعديل المكان';
 
   @override
   String get activeToday => 'نشط اليوم';
@@ -204,17 +204,17 @@ class SAr extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'المنطقة الحالية: $zoneName';
+    return 'المكان الحالي: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'إضافة منطقة آمنة';
+  String get addSafeZone => 'إضافة مكان جديد';
 
   @override
-  String get editSafeZone => 'تعديل المنطقة الآمنة';
+  String get editSafeZone => 'تعديل المكان';
 
   @override
-  String get deleteZoneTitle => 'حذف المنطقة؟';
+  String get deleteZoneTitle => 'حذف المكان؟';
 
   @override
   String get deleteZoneMessage => 'لا يمكن التراجع عن هذا الإجراء.';
@@ -226,10 +226,10 @@ class SAr extends S {
   String get delete => 'حذف';
 
   @override
-  String get zoneEnabled => 'المنطقة مفعّلة';
+  String get zoneEnabled => 'المكان مفعّل';
 
   @override
-  String get zoneName => 'اسم المنطقة';
+  String get zoneName => 'اسم المكان';
 
   @override
   String get zoneNameHint => 'مثلاً: المنزل، المدرسة';
@@ -250,19 +250,19 @@ class SAr extends S {
   String get radius => 'النطاق';
 
   @override
-  String get locationMoveMap => 'الموقع (حرّك الخريطة لتوسيط الدبوس)';
+  String get locationMoveMap => 'الموقع (حرّك الخريطة لتحديد نقطة المركز)';
 
   @override
-  String get moveMapToSetCenter => 'حرّك الخريطة لتحديد مركز المنطقة';
+  String get moveMapToSetCenter => 'حرّك الخريطة لتحديد مركز المكان';
 
   @override
-  String get createSafeZone => 'إنشاء منطقة آمنة';
+  String get createSafeZone => 'إنشاء مكان';
 
   @override
-  String get updateSafeZone => 'تحديث المنطقة الآمنة';
+  String get updateSafeZone => 'تحديث المكان';
 
   @override
-  String get pleaseEnterZoneName => 'يرجى إدخال اسم المنطقة';
+  String get pleaseEnterZoneName => 'يرجى إدخال اسم المكان';
 
   @override
   String get chooseAtLeastOneDayError => 'اختر يوماً نشطاً واحداً على الأقل';
@@ -477,7 +477,7 @@ class SAr extends S {
   String get batteryAlerts => 'تنبيهات البطارية';
 
   @override
-  String get safeZoneAlerts => 'تنبيهات المنطقة الآمنة';
+  String get safeZoneAlerts => 'تنبيهات الأماكن';
 
   @override
   String get notificationPermissionRequired =>
@@ -798,4 +798,47 @@ class SAr extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'الأماكن على الخريطة';
+
+  @override
+  String get placesAndChildren => 'الأماكن والأطفال';
+
+  @override
+  String placesCount(int count) {
+    return 'الأماكن: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'النشطة اليوم: $count';
+  }
+
+  @override
+  String get retry => 'إعادة المحاولة';
+
+  @override
+  String get createPlaceHint =>
+      'أنشئ مكانًا لتلقي إشعارات عند وصول طفلك أو مغادرته.';
+
+  @override
+  String get untitledPlace => 'مكان بدون اسم';
+
+  @override
+  String get placeDeleted => 'تم حذف المكان.';
+
+  @override
+  String get editLabel => 'تعديل';
+
+  @override
+  String get disabledSchedule => 'معطّل';
+
+  @override
+  String get noDaysSelected => 'لم يتم اختيار أيام';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'نصف القطر $radius • $schedule';
+  }
 }

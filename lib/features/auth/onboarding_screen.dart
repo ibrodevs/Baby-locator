@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -55,7 +56,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     final t = S.of(context);
     final code = _codeController.text.replaceAll(RegExp(r'\D'), '');
     if (code.isEmpty) {
-      setState(() => _error = _enterInviteCodeError(context));
+      setState(() => _error = t.enterInviteCodeError);
       return;
     }
 
@@ -271,7 +272,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                   ),
                                 ),
                                 child: Text(
-                                  _signInAsParent(context),
+                                  t.signInAsParentCta,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w800,
@@ -293,52 +294,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       ),
     );
   }
-}
-
-String _enterInviteCodeError(BuildContext context) {
-  final code = Localizations.localeOf(context).languageCode;
-  return switch (code) {
-    'ar' => 'أدخل رمز الدعوة',
-    'az' => 'Dəvət kodunu daxil edin',
-    'de' => 'Gib den Einladungscode ein',
-    'es' => 'Introduce el código de invitación',
-    'fr' => "Saisissez le code d'invitation",
-    'hy' => 'Մուտքագրեք հրավերի կոդը',
-    'it' => 'Inserisci il codice di invito',
-    'ka' => 'შეიყვანეთ მოსაწვევის კოდი',
-    'kk' => 'Шақыру кодын енгізіңіз',
-    'ky' => 'Чакыруу кодун киргизиңиз',
-    'pl' => 'Wpisz kod zaproszenia',
-    'pt' => 'Digite o código de convite',
-    'ru' => 'Введите код приглашения',
-    'tg' => 'Рамзи даъватро ворид кунед',
-    'tk' => 'Çakylyk koduny giriziň',
-    'uz' => 'Taklif kodini kiriting',
-    _ => 'Enter the invite code',
-  };
-}
-
-String _signInAsParent(BuildContext context) {
-  final code = Localizations.localeOf(context).languageCode;
-  return switch (code) {
-    'ar' => 'تسجيل الدخول كوالد',
-    'az' => 'Valideyn kimi daxil ol',
-    'de' => 'Als Elternteil anmelden',
-    'es' => 'Iniciar sesión como padre',
-    'fr' => 'Se connecter en tant que parent',
-    'hy' => 'Մուտք գործել որպես ծնող',
-    'it' => 'Accedi come genitore',
-    'ka' => 'შესვლა როგორც მშობელი',
-    'kk' => 'Ата-ана ретінде кіру',
-    'ky' => 'Ата-эне катары кирүү',
-    'pl' => 'Zaloguj się jako rodzic',
-    'pt' => 'Entrar como responsável',
-    'ru' => 'Войти как родитель',
-    'tg' => 'Ҳамчун волид ворид шавед',
-    'tk' => 'Ene-ata hökmünde gir',
-    'uz' => 'Ota-ona sifatida kirish',
-    _ => 'Sign in as parent',
-  };
 }
 
 class _BlurOrb extends StatelessWidget {

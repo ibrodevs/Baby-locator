@@ -9,13 +9,11 @@
   "displayName": "Nom d'affichage",
   "username": "Nom d'utilisateur",
   "password": "Mot de passe",
-
   "navMap": "Carte",
   "navActivity": "Activité",
   "navChat": "Chat",
   "navStats": "Stats",
   "navHome": "Accueil",
-
   "waitingForLocation": "En attente que les enfants partagent leur position...",
   "addChildToTrack": "Ajoutez un enfant pour commencer le suivi",
   "manageChildren": "Gérer les enfants",
@@ -33,7 +31,6 @@
   "hoursAgo": "Il y a {hours} h",
   "active": "Actif",
   "inactive": "Inactif",
-
   "addChildToSeeActivity": "Ajoutez un enfant pour voir l'activité",
   "activity": "Activité",
   "today": "Aujourd'hui",
@@ -48,11 +45,11 @@
   "batteryStatus": "État de la batterie",
   "batteryAt": "Batterie à {battery}%",
   "noActivityYet": "Aucune activité pour l'instant. Les événements apparaîtront dès que {childName} partagera sa position.",
-  "safeZones": "Zones sécurisées",
+  "safeZones": "Lieux",
   "addNew": "Ajouter",
-  "noSafeZonesYet": "Aucune zone sécurisée pour l'instant",
-  "zone": "Zone : {zoneName}",
-  "editZone": "Modifier la zone",
+  "noSafeZonesYet": "Aucun lieu pour le moment",
+  "zone": "Lieu : {zoneName}",
+  "editZone": "Modifier le lieu",
   "activeToday": "ACTIF AUJOURD'HUI",
   "inactiveToday": "INACTIF AUJOURD'HUI",
   "disabled": "DÉSACTIVÉ",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Aucune mise à jour de position aujourd'hui",
   "safetyScoreDetails": "{inZoneUpdates} sur {totalUpdates} mises à jour étaient dans des zones sécurisées aujourd'hui",
   "coverage": "Couverture : {percent}%",
-  "currentZone": "Zone actuelle : {zoneName}",
-
-  "addSafeZone": "Ajouter une zone sécurisée",
-  "editSafeZone": "Modifier la zone sécurisée",
-  "deleteZoneTitle": "Supprimer la zone ?",
+  "currentZone": "Lieu actuel : {zoneName}",
+  "addSafeZone": "Ajouter un nouveau lieu",
+  "editSafeZone": "Modifier le lieu",
+  "deleteZoneTitle": "Supprimer le lieu ?",
   "deleteZoneMessage": "Cette action est irréversible.",
   "cancel": "Annuler",
   "delete": "Supprimer",
-  "zoneEnabled": "ZONE ACTIVÉE",
-  "zoneName": "NOM DE LA ZONE",
+  "zoneEnabled": "LIEU ACTIF",
+  "zoneName": "NOM DU LIEU",
   "zoneNameHint": "ex. Maison, École",
   "activeWhen": "ACTIF QUAND",
   "always": "Toujours",
   "daysOfWeek": "Jours de la semaine",
   "chooseAtLeastOneDay": "Choisissez au moins un jour pour ce planning.",
   "radius": "RAYON",
-  "locationMoveMap": "POSITION (Déplacez la carte pour centrer l'épingle)",
-  "moveMapToSetCenter": "Déplacez la carte pour définir le centre de la zone",
-  "createSafeZone": "Créer une zone sécurisée",
-  "updateSafeZone": "Mettre à jour la zone sécurisée",
-  "pleaseEnterZoneName": "Veuillez entrer un nom de zone",
+  "locationMoveMap": "EMPLACEMENT (Déplacez la carte pour définir le centre)",
+  "moveMapToSetCenter": "Déplacez la carte pour définir le centre du lieu",
+  "createSafeZone": "Créer un lieu",
+  "updateSafeZone": "Mettre à jour le lieu",
+  "pleaseEnterZoneName": "Veuillez saisir un nom de lieu",
   "chooseAtLeastOneDayError": "Choisissez au moins un jour actif",
-
   "addChildToChat": "Ajoutez un enfant pour commencer à discuter",
   "noMessagesYet": "Aucun message pour l'instant. Dites bonjour !",
   "sendMessage": "Envoyer un message...",
   "failedToSend": "Échec de l'envoi : {error}",
-
   "helloUser": "Bonjour, {name} !",
   "kidMode": "Mode enfant",
   "myLocation": "Ma position",
   "waitingForGps": "En attente du GPS...",
-  "sharedWithParent": "Partagé avec le parent \u00b7 {time}",
+  "sharedWithParent": "Partagé avec le parent · {time}",
   "notSharedYet": "Pas encore partagé",
   "imSafe": "Je suis en sécurité",
   "sos": "SOS",
   "sentImSafe": "\"Je suis en sécurité\" envoyé à votre parent",
   "sosMessage": "SOS ! J'ai besoin d'aide !",
   "sosLocation": " Position : {address}",
-  "sosSent": "SOS envoyé \u2014 le parent sera notifié",
+  "sosSent": "SOS envoyé — le parent sera notifié",
   "allowUsageAccess": "Autoriser l'accès à l'utilisation",
   "usageAccessDescription": "Cela permet au tableau de bord parent d'afficher les données réelles de temps d'écran et les limites d'applications de ce téléphone.",
   "openUsageAccess": "Ouvrir l'accès à l'utilisation",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Autoriser la localisation pour partager",
   "grantLocationPermission": "Accordez la permission pour que votre parent puisse voir où vous êtes.",
   "allowLocation": "Autoriser la localisation",
-
   "myChildren": "Mes enfants",
   "addChild": "Ajouter un enfant",
   "noChildrenYet": "Aucun enfant pour l'instant. Appuyez sur \"Ajouter un enfant\" pour en créer un.",
@@ -136,7 +129,6 @@
   "deleteChild": "Supprimer l'enfant",
   "track": "Suivre",
   "edit": "Modifier",
-
   "settings": "Paramètres",
   "parent": "PARENT",
   "child": "ENFANT",
@@ -148,7 +140,7 @@
   "pushNotifications": "Notifications push",
   "locationAlerts": "Alertes de localisation",
   "batteryAlerts": "Alertes de batterie",
-  "safeZoneAlerts": "Alertes de zones sécurisées",
+  "safeZoneAlerts": "Alertes de lieux",
   "notificationPermissionRequired": "L'autorisation de notification est requise pour envoyer des alertes",
   "general": "Général",
   "language": "Langue",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Le nom d'utilisateur ne peut pas être vide",
   "profileUpdated": "Profil mis à jour",
   "failedToUploadAvatar": "Échec du téléversement de l'avatar : {error}",
-
   "parentProfile": "Profil parent",
   "addChildForStats": "Ajoutez d'abord un compte enfant pour voir les statistiques en direct.",
   "insights": "INFORMATIONS",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} utilisé le {date}",
   "limitMinutes": "Limite {time}",
   "noLimit": "Aucune limite",
-  "usageTodayOverLimit": "{time} aujourd'hui \u00b7 dépassement de limite",
+  "usageTodayOverLimit": "{time} aujourd'hui · dépassement de limite",
   "usageToday": "{time} aujourd'hui",
   "limitSavedFor": "Limite enregistrée pour {appName}",
   "limitDisabledFor": "Limite désactivée pour {appName}",
@@ -222,5 +213,41 @@
   "childNavSettings": "Paramètres",
   "childProfile": "Profil",
   "childSettingsTitle": "Paramètres",
-  "childLogout": "Se déconnecter"
+  "childLogout": "Se déconnecter",
+  "placesOnMap": "Lieux sur la carte",
+  "placesAndChildren": "Lieux et enfants",
+  "placesCount": "Lieux : {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Actifs aujourd'hui : {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Réessayer",
+  "createPlaceHint": "Créez un lieu pour recevoir des notifications lorsque votre enfant arrive ou part.",
+  "untitledPlace": "Lieu sans nom",
+  "placeDeleted": "Lieu supprimé.",
+  "editLabel": "Modifier",
+  "disabledSchedule": "Désactivé",
+  "noDaysSelected": "Aucun jour sélectionné",
+  "radiusSummary": "Rayon {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

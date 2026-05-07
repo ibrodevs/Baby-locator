@@ -568,6 +568,386 @@ class ExtraL10n {
       });
 }
 
+extension SUiMoreExtras on S {
+  String _pickMore(Map<String, String> values) =>
+      pickLocalizedExtra(localeName, values);
+  String _fillMore(String template, Map<String, Object> values) =>
+      fillLocalizedExtra(template, values);
+
+  String get okAction => _pickMore({
+        'ar': 'حسناً',
+        'az': 'Oldu',
+        'de': 'OK',
+        'en': 'OK',
+        'es': 'OK',
+        'fr': 'OK',
+        'hy': 'Լավ',
+        'it': 'OK',
+        'ka': 'კარგი',
+        'kk': 'OK',
+        'ky': 'Макул',
+        'pl': 'OK',
+        'pt': 'OK',
+        'ru': 'ОК',
+        'tg': 'Хуб',
+        'tk': 'Bolýar',
+        'uz': 'OK',
+      });
+
+  String get signInAsParent => _pickMore({
+        'ar': 'تسجيل الدخول كوالد',
+        'az': 'Valideyn kimi daxil ol',
+        'de': 'Als Elternteil anmelden',
+        'en': 'Sign in as parent',
+        'es': 'Iniciar sesión como padre',
+        'fr': 'Se connecter en tant que parent',
+        'hy': 'Մուտք գործել որպես ծնող',
+        'it': 'Accedi come genitore',
+        'ka': 'შესვლა როგორც მშობელი',
+        'kk': 'Ата-ана ретінде кіру',
+        'ky': 'Ата-эне катары кирүү',
+        'pl': 'Zaloguj się jako rodzic',
+        'pt': 'Entrar como responsável',
+        'ru': 'Войти как родитель',
+        'tg': 'Ҳамчун волид ворид шавед',
+        'tk': 'Ene-ata hökmünde gir',
+        'uz': 'Ota-ona sifatida kirish',
+      });
+
+  String get enterInviteCodeError => _pickMore({
+        'ar': 'أدخل رمز الدعوة',
+        'az': 'Dəvət kodunu daxil edin',
+        'de': 'Gib den Einladungscode ein',
+        'en': 'Enter the invite code',
+        'es': 'Introduce el código de invitación',
+        'fr': "Saisissez le code d'invitation",
+        'hy': 'Մուտքագրեք հրավերի կոդը',
+        'it': 'Inserisci il codice di invito',
+        'ka': 'შეიყვანეთ მოსაწვევის კოდი',
+        'kk': 'Шақыру кодын енгізіңіз',
+        'ky': 'Чакыруу кодун киргизиңиз',
+        'pl': 'Wpisz kod zaproszenia',
+        'pt': 'Digite o código de convite',
+        'ru': 'Введите код приглашения',
+        'tg': 'Рамзи даъватро ворид кунед',
+        'tk': 'Çakylyk koduny giriziň',
+        'uz': 'Taklif kodini kiriting',
+      });
+
+  String get onlineAroundSoundMenuTitle => _pickMore({
+        'en': 'Live audio\naround child',
+        'ru': 'Онлайн звук\nвокруг ребенка',
+      });
+
+  String get gameLimitsMenuTitle => _pickMore({
+        'en': 'Game limits',
+        'ru': 'Лимиты на игры',
+      });
+
+  String get movementHistoryMenuTitle => _pickMore({
+        'en': 'Movement\nhistory',
+        'ru': 'История\nпередвижения',
+      });
+
+  String get childAchievementsMenuTitle => _pickMore({
+        'en': 'Child\nachievements',
+        'ru': 'Достижения\nребенка',
+      });
+
+  String get loudSignalMenuTitle => _pickMore({
+        'en': 'Loud\nsignal',
+        'ru': 'Громкий\nсигнал',
+      });
+
+  String get aroundSoundScreenTitle =>
+      onlineAroundSoundMenuTitle.replaceAll('\n', ' ');
+
+  String get movementHistoryScreenTitle =>
+      movementHistoryMenuTitle.replaceAll('\n', ' ');
+
+  String get achievementsScreenTitle =>
+      childAchievementsMenuTitle.replaceAll('\n', ' ');
+
+  String get loudSignalScreenTitle =>
+      loudSignalMenuTitle.replaceAll('\n', ' ');
+
+  String get signInAsParentCta => signInAsParent;
+
+  String get sosNeedsHelpFallback => _pickMore({
+        'en': 'needs help!',
+        'ru': 'нуждается в помощи!',
+      });
+
+  String get parentLabel => _pickMore({
+        'en': 'Parent',
+        'ru': 'Родитель',
+      });
+
+  String get phoneOnline => _pickMore({
+        'en': 'Phone is online',
+        'ru': 'Телефон на связи',
+      });
+
+  String get phoneOffline => _pickMore({
+        'en': 'Phone is offline',
+        'ru': 'Телефон офлайн',
+      });
+
+  String get liveAudioCardTitle => _pickMore({
+        'en': "Live audio from the child's phone",
+        'ru': 'Онлайн аудио с телефона ребёнка',
+      });
+
+  String get tapToStartListeningAroundChild => _pickMore({
+        'en': 'Tap the button below to start listening near the child.',
+        'ru':
+            'Нажмите кнопку ниже, чтобы начать непрерывно слушать звук рядом с ребёнком.',
+      });
+
+  String get startListeningLabel => _pickMore({
+        'en': 'Start listening',
+        'ru': 'Начать слушать',
+      });
+
+  String get stopListeningLabel => _pickMore({
+        'en': 'Stop listening',
+        'ru': 'Остановить прослушивание',
+      });
+
+  String get statusLabel => _pickMore({
+        'en': 'Status',
+        'ru': 'Статус',
+      });
+
+  String get onlineLabel => _pickMore({
+        'en': 'Online',
+        'ru': 'Онлайн',
+      });
+
+  String get offlineLabel => _pickMore({
+        'en': 'Offline',
+        'ru': 'Офлайн',
+      });
+
+  String get soundLabel => _pickMore({
+        'en': 'Audio',
+        'ru': 'Звук',
+      });
+
+  String get listeningNowLabel => _pickMore({
+        'en': 'On',
+        'ru': 'Идёт',
+      });
+
+  String get waitingLabel => _pickMore({
+        'en': 'Waiting',
+        'ru': 'Ждёт',
+      });
+
+  String get gameLimitsSubtitle => _pickMore({
+        'en': 'Screen time and blocking controls',
+        'ru': 'Управление экранным временем и блокировками',
+      });
+
+  String get limitsLabel => _pickMore({
+        'en': 'Limits',
+        'ru': 'Лимиты',
+      });
+
+  String get exceededLabel => _pickMore({
+        'en': 'Exceeded',
+        'ru': 'Превышено',
+      });
+
+  String get enableLimitLabel => _pickMore({
+        'en': 'Enable limit',
+        'ru': 'Включить лимит',
+      });
+
+  String limitWithValue(String value) => _fillMore(
+        _pickMore({
+          'en': 'Limit {value}',
+          'ru': 'Лимит {value}',
+        }),
+        {'value': value},
+      );
+
+  String get editLimitLabel => _pickMore({
+        'en': 'Edit limit',
+        'ru': 'Изменить лимит',
+      });
+
+  String get unblockLabel => _pickMore({
+        'en': 'Unblock',
+        'ru': 'Разблокировать',
+      });
+
+  String formatCompactDuration(int minutes) {
+    final normalized = minutes < 0 ? 0 : minutes;
+    final hours = normalized ~/ 60;
+    final remainingMinutes = normalized % 60;
+    final isRu = localeName.toLowerCase().startsWith('ru');
+    final minuteUnit = isRu ? 'м' : 'm';
+    final hourUnit = isRu ? 'ч' : 'h';
+    if (normalized == 0) return '0$minuteUnit';
+    if (hours == 0) return '$remainingMinutes$minuteUnit';
+    if (remainingMinutes == 0) return '$hours$hourUnit';
+    return '$hours$hourUnit $remainingMinutes$minuteUnit';
+  }
+
+  String get achievementsHeroSubtitle => _pickMore({
+        'en': 'Stars, tasks and available rewards',
+        'ru': 'Звёзды, задачи и доступные награды',
+      });
+
+  String get earnedShortLabel => _pickMore({
+        'en': 'earned',
+        'ru': 'заработано',
+      });
+
+  String get balanceLabel => _pickMore({
+        'en': 'Balance',
+        'ru': 'Баланс',
+      });
+
+  String get waitingTasksLabel => _pickMore({
+        'en': 'Waiting tasks',
+        'ru': 'Задач ждёт',
+      });
+
+  String get tasksLabel => _pickMore({
+        'en': 'Tasks',
+        'ru': 'Задачи',
+      });
+
+  String get rewardsLabel => _pickMore({
+        'en': 'Rewards',
+        'ru': 'Награды',
+      });
+
+  String get noTasksYetLabel => _pickMore({
+        'en': 'No tasks yet.',
+        'ru': 'Пока задач нет.',
+      });
+
+  String get noRewardsYetLabel => _pickMore({
+        'en': 'No rewards yet.',
+        'ru': 'Пока наград нет.',
+      });
+
+  String completedAwaitingApproval(int count) => _fillMore(
+        _pickMore({
+          'en': 'Completed, waiting for approval: {count}',
+          'ru': 'Выполнено, ждёт подтверждения: {count}',
+        }),
+        {'count': count},
+      );
+
+  String get taskInProgressLabel => _pickMore({
+        'en': 'In progress',
+        'ru': 'В процессе',
+      });
+
+  String starsAmountLabel(int count) => _fillMore(
+        _pickMore({
+          'en': '+{count} stars',
+          'ru': '+{count} звёзд',
+        }),
+        {'count': count},
+      );
+
+  String achievedOn(String date) => _fillMore(
+        _pickMore({
+          'en': 'Achieved {date}',
+          'ru': 'Достигнуто {date}',
+        }),
+        {'date': date},
+      );
+
+  String get achievedLabel => _pickMore({
+        'en': 'Achieved',
+        'ru': 'Достигнуто',
+      });
+
+  String get availableLabel => _pickMore({
+        'en': 'Available',
+        'ru': 'Доступна',
+      });
+
+  String get loudSignalStoppedLabel => _pickMore({
+        'en': 'Loud signal stopped.',
+        'ru': 'Громкий сигнал остановлен.',
+      });
+
+  String get loudSignalActiveSubtitle => _pickMore({
+        'en': 'A loud signal is currently playing on the device',
+        'ru': 'Сейчас на устройстве включён громкий сигнал',
+      });
+
+  String get loudSignalInactiveSubtitle => _pickMore({
+        'en': 'Send a signal so the child can quickly find the phone',
+        'ru': 'Отправьте сигнал, чтобы ребёнок быстро нашёл телефон',
+      });
+
+  String get connectionLabel => _pickMore({
+        'en': 'Connection',
+        'ru': 'Связь',
+      });
+
+  String get batteryLabel => _pickMore({
+        'en': 'Battery',
+        'ru': 'Батарея',
+      });
+
+  String get signalAlreadySentLabel => _pickMore({
+        'en': 'Signal already sent',
+        'ru': 'Сигнал уже отправлен',
+      });
+
+  String get sendLoudSignalLabel => _pickMore({
+        'en': 'Send loud sound signal',
+        'ru': 'Отправить громкий звуковой сигнал',
+      });
+
+  String get stopSignalHint => _pickMore({
+        'en': 'If the child already found the phone, you can stop the signal.',
+        'ru':
+            'Если ребёнок уже нашёл телефон, вы можете сразу остановить сигнал.',
+      });
+
+  String get sendSignalHint => _pickMore({
+        'en':
+            'Helpful when the phone is nearby, but out of sight or in silent mode.',
+        'ru':
+            'Полезно, когда телефон рядом, но его не видно или он в беззвучном режиме.',
+      });
+
+  String get stopSignalLabel => _pickMore({
+        'en': 'Stop signal',
+        'ru': 'Остановить сигнал',
+      });
+
+  String get startSignalLabel => _pickMore({
+        'en': 'Enable signal',
+        'ru': 'Включить сигнал',
+      });
+
+  String get yesterdayLabel => _pickMore({
+        'en': 'Yesterday',
+        'ru': 'Вчера',
+      });
+
+  String get last7DaysLabel => _pickMore({
+        'en': '7 days',
+        'ru': '7 дней',
+      });
+
+  String get noMovementDataForPeriod => _pickMore({
+        'en': 'No movement data for the selected period yet.',
+        'ru': 'Пока нет данных о передвижениях за выбранный период.',
+      });
+}
+
 extension SExtras on S {
   String _pick(Map<String, String> values) =>
       pickLocalizedExtra(localeName, values);

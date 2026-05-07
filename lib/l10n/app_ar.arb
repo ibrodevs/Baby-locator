@@ -9,13 +9,11 @@
   "displayName": "الاسم المعروض",
   "username": "اسم المستخدم",
   "password": "كلمة المرور",
-
   "navMap": "الخريطة",
   "navActivity": "النشاط",
   "navChat": "المحادثة",
   "navStats": "الإحصاءات",
   "navHome": "الرئيسية",
-
   "waitingForLocation": "في انتظار مشاركة الأطفال لموقعهم...",
   "addChildToTrack": "أضف طفلاً لبدء التتبع",
   "manageChildren": "إدارة الأطفال",
@@ -33,7 +31,6 @@
   "hoursAgo": "منذ {hours} س",
   "active": "نشط",
   "inactive": "غير نشط",
-
   "addChildToSeeActivity": "أضف طفلاً لمشاهدة النشاط",
   "activity": "النشاط",
   "today": "اليوم",
@@ -48,11 +45,11 @@
   "batteryStatus": "حالة البطارية",
   "batteryAt": "البطارية عند {battery}%",
   "noActivityYet": "لا يوجد نشاط بعد. ستظهر الأحداث عندما يشارك {childName} موقعه.",
-  "safeZones": "المناطق الآمنة",
+  "safeZones": "الأماكن",
   "addNew": "إضافة جديد",
-  "noSafeZonesYet": "لا توجد مناطق آمنة بعد",
-  "zone": "المنطقة: {zoneName}",
-  "editZone": "تعديل المنطقة",
+  "noSafeZonesYet": "لا توجد أماكن بعد",
+  "zone": "المكان: {zoneName}",
+  "editZone": "تعديل المكان",
   "activeToday": "نشط اليوم",
   "inactiveToday": "غير نشط اليوم",
   "disabled": "معطّل",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "لا توجد تحديثات للموقع اليوم",
   "safetyScoreDetails": "{inZoneUpdates} من {totalUpdates} تحديثاً كانت داخل المناطق الآمنة اليوم",
   "coverage": "التغطية: {percent}%",
-  "currentZone": "المنطقة الحالية: {zoneName}",
-
-  "addSafeZone": "إضافة منطقة آمنة",
-  "editSafeZone": "تعديل المنطقة الآمنة",
-  "deleteZoneTitle": "حذف المنطقة؟",
+  "currentZone": "المكان الحالي: {zoneName}",
+  "addSafeZone": "إضافة مكان جديد",
+  "editSafeZone": "تعديل المكان",
+  "deleteZoneTitle": "حذف المكان؟",
   "deleteZoneMessage": "لا يمكن التراجع عن هذا الإجراء.",
   "cancel": "إلغاء",
   "delete": "حذف",
-  "zoneEnabled": "المنطقة مفعّلة",
-  "zoneName": "اسم المنطقة",
+  "zoneEnabled": "المكان مفعّل",
+  "zoneName": "اسم المكان",
   "zoneNameHint": "مثلاً: المنزل، المدرسة",
   "activeWhen": "نشط عند",
   "always": "دائماً",
   "daysOfWeek": "أيام الأسبوع",
   "chooseAtLeastOneDay": "اختر يوماً واحداً على الأقل لهذا الجدول.",
   "radius": "النطاق",
-  "locationMoveMap": "الموقع (حرّك الخريطة لتوسيط الدبوس)",
-  "moveMapToSetCenter": "حرّك الخريطة لتحديد مركز المنطقة",
-  "createSafeZone": "إنشاء منطقة آمنة",
-  "updateSafeZone": "تحديث المنطقة الآمنة",
-  "pleaseEnterZoneName": "يرجى إدخال اسم المنطقة",
+  "locationMoveMap": "الموقع (حرّك الخريطة لتحديد نقطة المركز)",
+  "moveMapToSetCenter": "حرّك الخريطة لتحديد مركز المكان",
+  "createSafeZone": "إنشاء مكان",
+  "updateSafeZone": "تحديث المكان",
+  "pleaseEnterZoneName": "يرجى إدخال اسم المكان",
   "chooseAtLeastOneDayError": "اختر يوماً نشطاً واحداً على الأقل",
-
   "addChildToChat": "أضف طفلاً لبدء المحادثة",
   "noMessagesYet": "لا توجد رسائل بعد. قل مرحباً!",
   "sendMessage": "اكتب رسالة...",
   "failedToSend": "فشل الإرسال: {error}",
-
   "helloUser": "مرحباً، {name}!",
   "kidMode": "وضع الطفل",
   "myLocation": "موقعي",
   "waitingForGps": "في انتظار GPS...",
-  "sharedWithParent": "تمت المشاركة مع الوالد \u00b7 {time}",
+  "sharedWithParent": "تمت المشاركة مع الوالد · {time}",
   "notSharedYet": "لم تتم المشاركة بعد",
   "imSafe": "أنا بأمان",
   "sos": "SOS",
   "sentImSafe": "تم إرسال \"أنا بأمان\" إلى والدك",
   "sosMessage": "SOS! أحتاج إلى مساعدة!",
   "sosLocation": " الموقع: {address}",
-  "sosSent": "تم إرسال SOS \u2014 سيتم إشعار الوالد",
+  "sosSent": "تم إرسال SOS — سيتم إشعار الوالد",
   "allowUsageAccess": "السماح بالوصول إلى استخدام التطبيقات",
   "usageAccessDescription": "يتيح ذلك للوحة تحكم الوالد عرض بيانات وقت الشاشة الفعلية وقيود التطبيقات من هذا الهاتف.",
   "openUsageAccess": "فتح وصول الاستخدام",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "اسمح بالموقع للمشاركة",
   "grantLocationPermission": "امنح الإذن حتى يتمكن والدك من معرفة مكانك.",
   "allowLocation": "السماح بالموقع",
-
   "myChildren": "أطفالي",
   "addChild": "إضافة طفل",
   "noChildrenYet": "لا يوجد أطفال بعد. اضغط على \"إضافة طفل\" لإنشاء حساب.",
@@ -136,7 +129,6 @@
   "deleteChild": "حذف الطفل",
   "track": "تتبع",
   "edit": "تعديل",
-
   "settings": "الإعدادات",
   "parent": "الوالد",
   "child": "الطفل",
@@ -148,7 +140,7 @@
   "pushNotifications": "إشعارات الدفع",
   "locationAlerts": "تنبيهات الموقع",
   "batteryAlerts": "تنبيهات البطارية",
-  "safeZoneAlerts": "تنبيهات المنطقة الآمنة",
+  "safeZoneAlerts": "تنبيهات الأماكن",
   "notificationPermissionRequired": "إذن الإشعارات مطلوب لإرسال التنبيهات",
   "general": "عام",
   "language": "اللغة",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "لا يمكن أن يكون اسم المستخدم فارغاً",
   "profileUpdated": "تم تحديث الملف الشخصي",
   "failedToUploadAvatar": "فشل رفع الصورة الرمزية: {error}",
-
   "parentProfile": "ملف الوالد",
   "addChildForStats": "أضف حساب طفل أولاً لعرض الإحصاءات المباشرة.",
   "insights": "رؤى",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} في {date}",
   "limitMinutes": "الحد {time}",
   "noLimit": "بلا حد",
-  "usageTodayOverLimit": "{time} اليوم \u00b7 تجاوز الحد",
+  "usageTodayOverLimit": "{time} اليوم · تجاوز الحد",
   "usageToday": "{time} اليوم",
   "limitSavedFor": "تم حفظ الحد لـ {appName}",
   "limitDisabledFor": "تم تعطيل الحد لـ {appName}",
@@ -222,5 +213,41 @@
   "childNavSettings": "الإعدادات",
   "childProfile": "الملف الشخصي",
   "childSettingsTitle": "الإعدادات",
-  "childLogout": "تسجيل الخروج"
+  "childLogout": "تسجيل الخروج",
+  "placesOnMap": "الأماكن على الخريطة",
+  "placesAndChildren": "الأماكن والأطفال",
+  "placesCount": "الأماكن: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "النشطة اليوم: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "إعادة المحاولة",
+  "createPlaceHint": "أنشئ مكانًا لتلقي إشعارات عند وصول طفلك أو مغادرته.",
+  "untitledPlace": "مكان بدون اسم",
+  "placeDeleted": "تم حذف المكان.",
+  "editLabel": "تعديل",
+  "disabledSchedule": "معطّل",
+  "noDaysSelected": "لم يتم اختيار أيام",
+  "radiusSummary": "نصف القطر {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

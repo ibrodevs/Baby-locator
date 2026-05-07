@@ -15,9 +15,9 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
-import '../activity/activity_screen.dart';
 import '../chat/chat_screen.dart';
-import '../map/map_screen.dart';
+import '../map/map_places_screen.dart';
+import '../map/movement_history_screen.dart';
 import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
 import 'stats_menu_feature_screens.dart';
@@ -1180,7 +1180,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _openMapScreen() async {
-    await _openEmbeddedScreen(const MapScreen());
+    await _openStandaloneScreen(const MapPlacesScreen());
   }
 
   Future<void> _openChats() async {
@@ -1192,10 +1192,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _openHistory() async {
-    final childId = _selectedMenuChildIdOrWarn();
-    if (childId == null) return;
-    await _openEmbeddedScreen(
-      ActivityScreen(initialSelectedChildId: childId),
+    final child = _selectedMenuChildOrWarn();
+    if (child == null) return;
+    await _openStandaloneScreen(
+      MovementHistoryScreen(
+        childId: child['id'] as int,
+        childName: _displayNameForChild(child),
+        avatarUrl: child['avatar_url'] as String?,
+      ),
     );
   }
 

@@ -162,21 +162,21 @@ class SAz extends S {
   }
 
   @override
-  String get safeZones => 'Təhlükəsiz zonalar';
+  String get safeZones => 'Məkanlar';
 
   @override
   String get addNew => 'Yeni əlavə et';
 
   @override
-  String get noSafeZonesYet => 'Hələ təhlükəsiz zona yoxdur';
+  String get noSafeZonesYet => 'Hələ məkan yoxdur';
 
   @override
   String zone(String zoneName) {
-    return 'Zona: $zoneName';
+    return 'Məkan: $zoneName';
   }
 
   @override
-  String get editZone => 'Zonanı redaktə et';
+  String get editZone => 'Məkanı redaktə et';
 
   @override
   String get activeToday => 'BU GÜN AKTİV';
@@ -205,17 +205,17 @@ class SAz extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Cari zona: $zoneName';
+    return 'Cari məkan: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Təhlükəsiz zona əlavə et';
+  String get addSafeZone => 'Yeni məkan əlavə et';
 
   @override
-  String get editSafeZone => 'Təhlükəsiz zonanı redaktə et';
+  String get editSafeZone => 'Məkanı redaktə et';
 
   @override
-  String get deleteZoneTitle => 'Zona silinsin?';
+  String get deleteZoneTitle => 'Məkan silinsin?';
 
   @override
   String get deleteZoneMessage => 'Bu əməliyyat geri alına bilməz.';
@@ -227,10 +227,10 @@ class SAz extends S {
   String get delete => 'Sil';
 
   @override
-  String get zoneEnabled => 'ZONA AKTİV';
+  String get zoneEnabled => 'MƏKAN AKTİVDİR';
 
   @override
-  String get zoneName => 'ZONANIN ADI';
+  String get zoneName => 'MƏKANIN ADI';
 
   @override
   String get zoneNameHint => 'məs. Ev, Məktəb';
@@ -252,20 +252,20 @@ class SAz extends S {
 
   @override
   String get locationMoveMap =>
-      'YER (Mərkəz iynəsini qurmaq üçün xəritəni sürüşdürün)';
+      'MƏKAN (Mərkəz nöqtəsini qoymaq üçün xəritəni hərəkət etdirin)';
 
   @override
   String get moveMapToSetCenter =>
-      'Zona mərkəzini təyin etmək üçün xəritəni sürüşdürün';
+      'Məkanın mərkəzini qoymaq üçün xəritəni hərəkət etdirin';
 
   @override
-  String get createSafeZone => 'Təhlükəsiz zona yarat';
+  String get createSafeZone => 'Məkan yarat';
 
   @override
-  String get updateSafeZone => 'Təhlükəsiz zonanı yenilə';
+  String get updateSafeZone => 'Məkanı yenilə';
 
   @override
-  String get pleaseEnterZoneName => 'Zəhmət olmasa zona adı daxil edin';
+  String get pleaseEnterZoneName => 'Zəhmət olmasa məkan adını daxil edin';
 
   @override
   String get chooseAtLeastOneDayError => 'Ən azı bir aktiv gün seçin';
@@ -482,7 +482,7 @@ class SAz extends S {
   String get batteryAlerts => 'Batareya xəbərdarlıqları';
 
   @override
-  String get safeZoneAlerts => 'Təhlükəsiz zona xəbərdarlıqları';
+  String get safeZoneAlerts => 'Məkan bildirişləri';
 
   @override
   String get notificationPermissionRequired =>
@@ -805,4 +805,47 @@ class SAz extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Xəritədə məkanlar';
+
+  @override
+  String get placesAndChildren => 'Məkanlar və uşaqlar';
+
+  @override
+  String placesCount(int count) {
+    return 'Məkanlar: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Bu gün aktiv: $count';
+  }
+
+  @override
+  String get retry => 'Təkrar et';
+
+  @override
+  String get createPlaceHint =>
+      'Uşağınız gələndə və ya gedəndə bildiriş almaq üçün məkan yaradın.';
+
+  @override
+  String get untitledPlace => 'Adsız məkan';
+
+  @override
+  String get placeDeleted => 'Məkan silindi.';
+
+  @override
+  String get editLabel => 'Redaktə et';
+
+  @override
+  String get disabledSchedule => 'Söndürülüb';
+
+  @override
+  String get noDaysSelected => 'Günlər seçilməyib';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radius $radius • $schedule';
+  }
 }

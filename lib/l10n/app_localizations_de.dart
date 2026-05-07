@@ -163,21 +163,21 @@ class SDe extends S {
   }
 
   @override
-  String get safeZones => 'Sicherzonen';
+  String get safeZones => 'Orte';
 
   @override
   String get addNew => 'Neu hinzufügen';
 
   @override
-  String get noSafeZonesYet => 'Noch keine Sicherzonen';
+  String get noSafeZonesYet => 'Noch keine Orte';
 
   @override
   String zone(String zoneName) {
-    return 'Zone: $zoneName';
+    return 'Ort: $zoneName';
   }
 
   @override
-  String get editZone => 'Zone bearbeiten';
+  String get editZone => 'Ort bearbeiten';
 
   @override
   String get activeToday => 'HEUTE AKTIV';
@@ -207,17 +207,17 @@ class SDe extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Aktuelle Zone: $zoneName';
+    return 'Aktueller Ort: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Sicherzone hinzufügen';
+  String get addSafeZone => 'Neuen Ort hinzufügen';
 
   @override
-  String get editSafeZone => 'Sicherzone bearbeiten';
+  String get editSafeZone => 'Ort bearbeiten';
 
   @override
-  String get deleteZoneTitle => 'Zone löschen?';
+  String get deleteZoneTitle => 'Ort löschen?';
 
   @override
   String get deleteZoneMessage =>
@@ -230,10 +230,10 @@ class SDe extends S {
   String get delete => 'Löschen';
 
   @override
-  String get zoneEnabled => 'ZONE AKTIVIERT';
+  String get zoneEnabled => 'ORT AKTIV';
 
   @override
-  String get zoneName => 'ZONENNAME';
+  String get zoneName => 'ORTSNAME';
 
   @override
   String get zoneNameHint => 'z. B. Zuhause, Schule';
@@ -256,20 +256,20 @@ class SDe extends S {
 
   @override
   String get locationMoveMap =>
-      'STANDORT (Karte verschieben, um Pin zu zentrieren)';
+      'STANDORT (Karte bewegen, um die Mitte festzulegen)';
 
   @override
   String get moveMapToSetCenter =>
-      'Karte verschieben, um Zonenmittelpunkt festzulegen';
+      'Bewegen Sie die Karte, um die Ortsmitte festzulegen';
 
   @override
-  String get createSafeZone => 'Sicherzone erstellen';
+  String get createSafeZone => 'Ort erstellen';
 
   @override
-  String get updateSafeZone => 'Sicherzone aktualisieren';
+  String get updateSafeZone => 'Ort aktualisieren';
 
   @override
-  String get pleaseEnterZoneName => 'Bitte geben Sie einen Zonennamen ein';
+  String get pleaseEnterZoneName => 'Bitte einen Ortsnamen eingeben';
 
   @override
   String get chooseAtLeastOneDayError =>
@@ -487,7 +487,7 @@ class SDe extends S {
   String get batteryAlerts => 'Akkubenachrichtigungen';
 
   @override
-  String get safeZoneAlerts => 'Sicherzonenbenachrichtigungen';
+  String get safeZoneAlerts => 'Ort-Benachrichtigungen';
 
   @override
   String get notificationPermissionRequired =>
@@ -809,4 +809,47 @@ class SDe extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Orte auf der Karte';
+
+  @override
+  String get placesAndChildren => 'Orte und Kinder';
+
+  @override
+  String placesCount(int count) {
+    return 'Orte: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Heute aktiv: $count';
+  }
+
+  @override
+  String get retry => 'Erneut versuchen';
+
+  @override
+  String get createPlaceHint =>
+      'Erstellen Sie einen Ort, um Benachrichtigungen zu erhalten, wenn Ihr Kind ankommt oder geht.';
+
+  @override
+  String get untitledPlace => 'Unbenannter Ort';
+
+  @override
+  String get placeDeleted => 'Ort gelöscht.';
+
+  @override
+  String get editLabel => 'Bearbeiten';
+
+  @override
+  String get disabledSchedule => 'Deaktiviert';
+
+  @override
+  String get noDaysSelected => 'Keine Tage ausgewählt';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radius $radius • $schedule';
+  }
 }

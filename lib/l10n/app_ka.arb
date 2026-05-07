@@ -45,11 +45,11 @@
   "batteryStatus": "ბატარეის მდგომარეობა",
   "batteryAt": "ბატარეა {battery}%",
   "noActivityYet": "აქტივობა ჯერ არ არის. მოვლენები გამოჩნდება, როცა {childName} მდებარეობას გააზიარებს.",
-  "safeZones": "უსაფრთხო ზონები",
+  "safeZones": "ადგილები",
   "addNew": "დამატება",
-  "noSafeZonesYet": "უსაფრთხო ზონები ჯერ არ არის",
-  "zone": "ზონა: {zoneName}",
-  "editZone": "ზონის რედაქტირება",
+  "noSafeZonesYet": "ჯერ ადგილები არ არის",
+  "zone": "ადგილი: {zoneName}",
+  "editZone": "ადგილის რედაქტირება",
   "activeToday": "დღეს აქტიურია",
   "inactiveToday": "დღეს არააქტიურია",
   "disabled": "გამორთულია",
@@ -57,26 +57,26 @@
   "noLocationUpdatesYet": "დღეს მდებარეობის განახლებები არ არის",
   "safetyScoreDetails": "დღევანდელი {totalUpdates} განახლებიდან {inZoneUpdates} იყო უსაფრთხო ზონებში",
   "coverage": "დაფარვა: {percent}%",
-  "currentZone": "მიმდინარე ზონა: {zoneName}",
-  "addSafeZone": "უსაფრთხო ზონის დამატება",
-  "editSafeZone": "უსაფრთხო ზონის რედაქტირება",
-  "deleteZoneTitle": "წავშალოთ ზონა?",
+  "currentZone": "მიმდინარე ადგილი: {zoneName}",
+  "addSafeZone": "ახალი ადგილის დამატება",
+  "editSafeZone": "ადგილის რედაქტირება",
+  "deleteZoneTitle": "წავშალოთ ადგილი?",
   "deleteZoneMessage": "ეს მოქმედება ვეღარ გაუქმდება.",
   "cancel": "გაუქმება",
   "delete": "წაშლა",
-  "zoneEnabled": "ზონა ჩართულია",
-  "zoneName": "ზონის სახელი",
+  "zoneEnabled": "ადგილი აქტიურია",
+  "zoneName": "ადგილის სახელი",
   "zoneNameHint": "მაგ.: სახლი, სკოლა",
   "activeWhen": "როდის არის აქტიური",
   "always": "ყოველთვის",
   "daysOfWeek": "კვირის დღეები",
   "chooseAtLeastOneDay": "ამ განრიგისთვის აირჩიეთ მინიმუმ ერთი დღე.",
   "radius": "რადიუსი",
-  "locationMoveMap": "მდებარეობა (ცენტრის ასარჩევად გადაადგილეთ რუკა)",
-  "moveMapToSetCenter": "ზონის ცენტრის ასარჩევად გადაადგილეთ რუკა",
-  "createSafeZone": "უსაფრთხო ზონის შექმნა",
-  "updateSafeZone": "უსაფრთხო ზონის განახლება",
-  "pleaseEnterZoneName": "გთხოვთ, შეიყვანოთ ზონის სახელი",
+  "locationMoveMap": "მდებარეობა (ცენტრის დასაყენებლად გადააადგილეთ რუკა)",
+  "moveMapToSetCenter": "ადგილის ცენტრის დასაყენებლად გადააადგილეთ რუკა",
+  "createSafeZone": "ადგილის შექმნა",
+  "updateSafeZone": "ადგილის განახლება",
+  "pleaseEnterZoneName": "შეიყვანეთ ადგილის სახელი",
   "chooseAtLeastOneDayError": "აირჩიეთ მინიმუმ ერთი აქტიური დღე",
   "addChildToChat": "ჩატის დასაწყებად დაამატეთ ბავშვი",
   "noMessagesYet": "შეტყობინებები ჯერ არ არის. უთხარით გამარჯობა!",
@@ -140,7 +140,7 @@
   "pushNotifications": "Push შეტყობინებები",
   "locationAlerts": "მდებარეობის გაფრთხილებები",
   "batteryAlerts": "ბატარეის გაფრთხილებები",
-  "safeZoneAlerts": "უსაფრთხო ზონის გაფრთხილებები",
+  "safeZoneAlerts": "ადგილის შეტყობინებები",
   "notificationPermissionRequired": "გაფრთხილებების გასაგზავნად საჭიროა შეტყობინებების ნებართვა",
   "general": "ზოგადი",
   "language": "ენა",
@@ -213,5 +213,41 @@
   "childNavSettings": "პარამეტრები",
   "childProfile": "პროფილი",
   "childSettingsTitle": "პარამეტრები",
-  "childLogout": "გასვლა"
+  "childLogout": "გასვლა",
+  "placesOnMap": "ადგილები რუკაზე",
+  "placesAndChildren": "ადგილები და ბავშვები",
+  "placesCount": "ადგილები: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "დღეს აქტიურია: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "გამეორება",
+  "createPlaceHint": "შექმენით ადგილი, რომ მიიღოთ შეტყობინება, როცა ბავშვი მივა ან წავა.",
+  "untitledPlace": "უსახელო ადგილი",
+  "placeDeleted": "ადგილი წაიშალა.",
+  "editLabel": "რედაქტირება",
+  "disabledSchedule": "გამორთულია",
+  "noDaysSelected": "დღეები არჩეული არ არის",
+  "radiusSummary": "რადიუსი {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

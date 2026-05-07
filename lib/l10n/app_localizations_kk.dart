@@ -161,21 +161,21 @@ class SKk extends S {
   }
 
   @override
-  String get safeZones => 'Қауіпсіз аймақтар';
+  String get safeZones => 'Орындар';
 
   @override
   String get addNew => 'Жаңа қосу';
 
   @override
-  String get noSafeZonesYet => 'Қауіпсіз аймақтар әлі жоқ';
+  String get noSafeZonesYet => 'Әзірге орындар жоқ';
 
   @override
   String zone(String zoneName) {
-    return 'Аймақ: $zoneName';
+    return 'Орын: $zoneName';
   }
 
   @override
-  String get editZone => 'Аймақты өңдеу';
+  String get editZone => 'Орынды өңдеу';
 
   @override
   String get activeToday => 'БҮГІН БЕЛСЕНДІ';
@@ -204,17 +204,17 @@ class SKk extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Ағымдағы аймақ: $zoneName';
+    return 'Қазіргі орын: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Қауіпсіз аймақ қосу';
+  String get addSafeZone => 'Жаңа орын қосу';
 
   @override
-  String get editSafeZone => 'Қауіпсіз аймақты өңдеу';
+  String get editSafeZone => 'Орынды өңдеу';
 
   @override
-  String get deleteZoneTitle => 'Аймақты жою?';
+  String get deleteZoneTitle => 'Орын жойылсын ба?';
 
   @override
   String get deleteZoneMessage => 'Бұл әрекетті болдырмауға болмайды.';
@@ -226,10 +226,10 @@ class SKk extends S {
   String get delete => 'Жою';
 
   @override
-  String get zoneEnabled => 'АЙМАҚ БЕЛСЕНДІ';
+  String get zoneEnabled => 'ОРЫН БЕЛСЕНДІ';
 
   @override
-  String get zoneName => 'АЙМАҚ АТАУЫ';
+  String get zoneName => 'ОРЫН АТАУЫ';
 
   @override
   String get zoneNameHint => 'мысалы, Үй, Мектеп';
@@ -251,20 +251,20 @@ class SKk extends S {
 
   @override
   String get locationMoveMap =>
-      'ОРЫН (Белгішені ортасына қою үшін картаны жылжытыңыз)';
+      'ОРНАЛАСУ (Орталық нүктені қою үшін картаны жылжытыңыз)';
 
   @override
   String get moveMapToSetCenter =>
-      'Аймақ орталығын орнату үшін картаны жылжытыңыз';
+      'Орынның ортасын белгілеу үшін картаны жылжытыңыз';
 
   @override
-  String get createSafeZone => 'Қауіпсіз аймақ жасау';
+  String get createSafeZone => 'Орын жасау';
 
   @override
-  String get updateSafeZone => 'Қауіпсіз аймақты жаңарту';
+  String get updateSafeZone => 'Орынды жаңарту';
 
   @override
-  String get pleaseEnterZoneName => 'Аймақ атауын енгізіңіз';
+  String get pleaseEnterZoneName => 'Орын атауын енгізіңіз';
 
   @override
   String get chooseAtLeastOneDayError =>
@@ -482,7 +482,7 @@ class SKk extends S {
   String get batteryAlerts => 'Батарея туралы ескертулер';
 
   @override
-  String get safeZoneAlerts => 'Қауіпсіз аймақ ескертулері';
+  String get safeZoneAlerts => 'Орын хабарламалары';
 
   @override
   String get notificationPermissionRequired =>
@@ -804,4 +804,47 @@ class SKk extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Картадағы орындар';
+
+  @override
+  String get placesAndChildren => 'Орындар және балалар';
+
+  @override
+  String placesCount(int count) {
+    return 'Орындар: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Бүгін белсенді: $count';
+  }
+
+  @override
+  String get retry => 'Қайталау';
+
+  @override
+  String get createPlaceHint =>
+      'Балаңыз келгенде немесе кеткенде хабарлама алу үшін орын жасаңыз.';
+
+  @override
+  String get untitledPlace => 'Атаусыз орын';
+
+  @override
+  String get placeDeleted => 'Орын жойылды.';
+
+  @override
+  String get editLabel => 'Өңдеу';
+
+  @override
+  String get disabledSchedule => 'Өшірілген';
+
+  @override
+  String get noDaysSelected => 'Күндер таңдалмаған';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Радиус $radius • $schedule';
+  }
 }

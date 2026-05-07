@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as am;
@@ -7,11 +8,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gm;
 import 'package:http/http.dart' as http;
+import 'package:kid_security/l10n/app_localizations.dart';
 
 import '../../core/providers/session_providers.dart';
 import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
+import 'map_models.dart';
 import 'apple_map_web_stub.dart'
     if (dart.library.js_interop) 'apple_map_web.dart';
 
@@ -23,21 +26,40 @@ class AdaptiveMap extends StatefulWidget {
     required this.latitude,
     required this.longitude,
     this.children = const [],
+    this.parentLocation,
     this.selectedIndex,
     this.followTarget = true,
     this.onChildTapped,
     this.onCameraMove,
     this.onUserCameraMoveStarted,
+    this.path = const [],
+    this.pathColor,
+    this.pathWidth = 6,
+    this.ghostPath = const [],
+    this.circles = const [],
   });
 
   final double latitude;
   final double longitude;
   final List<ChildLocation> children;
+  final ParentMapLocation? parentLocation;
   final int? selectedIndex;
   final bool followTarget;
   final ValueChanged<int>? onChildTapped;
   final Function(double lat, double lng)? onCameraMove;
   final VoidCallback? onUserCameraMoveStarted;
+
+  /// Optional polyline drawn over the map (e.g. movement history). When
+  /// empty, no line is drawn.
+  final List<MapLatLng> path;
+  final Color? pathColor;
+  final int pathWidth;
+
+  /// Remaining (future) part of the path drawn faintly in the background.
+  final List<MapLatLng> ghostPath;
+
+  /// Optional circles drawn over the map (e.g. safe zones).
+  final List<MapCircle> circles;
 
   @override
   State<AdaptiveMap> createState() => _AdaptiveMapState();
@@ -48,6 +70,8 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
   gm.GoogleMapController? _googleCtrl;
   final Map<int, gm.BitmapDescriptor> _googleMarkers = {};
   final Map<int, am.BitmapDescriptor> _appleMarkers = {};
+  gm.BitmapDescriptor? _googleParentMarker;
+  am.BitmapDescriptor? _appleParentMarker;
   final Map<String, ui.Image> _avatarCache = {};
   bool _isProgrammaticCameraMove = false;
   String _markerSignature = '';
@@ -64,12 +88,14 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
 
   Future<void> _loadCustomMarkers() async {
     final signature = _buildMarkerSignature(widget.children);
-    if (widget.children.isEmpty) {
+    if (widget.children.isEmpty && widget.parentLocation == null) {
       if (!mounted) return;
       setState(() {
         _markerSignature = signature;
         _googleMarkers.clear();
         _appleMarkers.clear();
+        _googleParentMarker = null;
+        _appleParentMarker = null;
       });
       return;
     }
@@ -84,6 +110,14 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       nextAppleMarkers[key] = am.BitmapDescriptor.fromBytes(bytes);
     }
 
+    gm.BitmapDescriptor? nextGoogleParentMarker;
+    am.BitmapDescriptor? nextAppleParentMarker;
+    if (widget.parentLocation != null) {
+      final bytes = await _generateParentMarkerBytes(widget.parentLocation!);
+      nextGoogleParentMarker = gm.BitmapDescriptor.fromBytes(bytes);
+      nextAppleParentMarker = am.BitmapDescriptor.fromBytes(bytes);
+    }
+
     if (!mounted) return;
     setState(() {
       _markerSignature = signature;
@@ -93,11 +127,13 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       _appleMarkers
         ..clear()
         ..addAll(nextAppleMarkers);
+      _googleParentMarker = nextGoogleParentMarker;
+      _appleParentMarker = nextAppleParentMarker;
     });
   }
 
   String _buildMarkerSignature(List<ChildLocation> children) {
-    return children.asMap().entries.map((entry) {
+    final childSignature = children.asMap().entries.map((entry) {
       final index = entry.key;
       final child = entry.value;
       return [
@@ -108,6 +144,15 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
         child.lng.toStringAsFixed(5),
       ].join('|');
     }).join('||');
+    final parent = widget.parentLocation;
+    final parentSignature = parent == null
+        ? ''
+        : [
+            parent.latitude.toStringAsFixed(5),
+            parent.longitude.toStringAsFixed(5),
+            parent.label,
+          ].join('|');
+    return '$childSignature##$parentSignature';
   }
 
   bool _markersNeedReload(covariant AdaptiveMap old) {
@@ -157,47 +202,52 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     const double radius = size / 2;
     const double borderWidth = 5.0;
     const double labelHeight = 24.0;
-    const double totalHeight = size + labelHeight + 16; // marker + label + pin
+    const double totalHeight = size + labelHeight + 16;
 
-    // Try to load avatar image
     ui.Image? avatarImage;
     if (child.avatarUrl != null && child.avatarUrl!.isNotEmpty) {
       avatarImage = await _loadAvatarImage(child.avatarUrl!);
     }
 
-    // White border circle
     final borderPaint = Paint()..color = Colors.white;
     canvas.drawCircle(const Offset(radius, radius), radius, borderPaint);
 
-    // Shadow
     final shadowPaint = Paint()
       ..color = Colors.black.withOpacity(0.2)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawCircle(const Offset(radius, radius + 2), radius, shadowPaint);
-
-    // White border again on top of shadow
     canvas.drawCircle(const Offset(radius, radius), radius, borderPaint);
 
     if (avatarImage != null) {
-      // Clip to circle and draw avatar
       canvas.save();
       final clipPath = Path()
-        ..addOval(Rect.fromCircle(
+        ..addOval(
+          Rect.fromCircle(
             center: const Offset(radius, radius),
-            radius: radius - borderWidth));
+            radius: radius - borderWidth,
+          ),
+        );
       canvas.clipPath(clipPath);
 
       final srcRect = Rect.fromLTWH(
-          0, 0, avatarImage.width.toDouble(), avatarImage.height.toDouble());
+        0,
+        0,
+        avatarImage.width.toDouble(),
+        avatarImage.height.toDouble(),
+      );
       final dstRect = Rect.fromCircle(
-          center: const Offset(radius, radius), radius: radius - borderWidth);
+        center: const Offset(radius, radius),
+        radius: radius - borderWidth,
+      );
       canvas.drawImageRect(avatarImage, srcRect, dstRect, Paint());
       canvas.restore();
     } else {
-      // Draw colored circle with initials
       final bgPaint = Paint()..color = AppColors.primary;
       canvas.drawCircle(
-          const Offset(radius, radius), radius - borderWidth, bgPaint);
+        const Offset(radius, radius),
+        radius - borderWidth,
+        bgPaint,
+      );
 
       final textPainter = TextPainter(
         text: TextSpan(
@@ -217,7 +267,6 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       );
     }
 
-    // Draw name label below
     final namePainter = TextPainter(
       text: TextSpan(
         text: child.name.length > 8
@@ -237,7 +286,6 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
     );
     namePainter.layout();
 
-    // Label background
     const labelY = size + 4;
     final labelRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
@@ -258,6 +306,85 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size.toInt(), totalHeight.toInt());
+    final data = await img.toByteData(format: ui.ImageByteFormat.png);
+    return data!.buffer.asUint8List();
+  }
+
+  Future<Uint8List> _generateParentMarkerBytes(
+    ParentMapLocation parentLocation,
+  ) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    const double width = 164.0;
+    const double height = 104.0;
+    const double dotRadius = 16.0;
+    const double pinBottomY = 88.0;
+    const double labelHeight = 30.0;
+
+    final labelPainter = TextPainter(
+      text: TextSpan(
+        text: parentLocation.label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+      ellipsis: '...',
+    )..layout(maxWidth: width - 24);
+
+    final labelWidth =
+        (labelPainter.width + 24).clamp(72.0, width).toDouble();
+    final labelRect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: const Offset(width / 2, labelHeight / 2),
+        width: labelWidth,
+        height: labelHeight,
+      ),
+      const Radius.circular(15),
+    );
+    canvas.drawRRect(
+      labelRect,
+      Paint()..color = AppColors.success.withValues(alpha: 0.94),
+    );
+    labelPainter.paint(
+      canvas,
+      Offset((width - labelPainter.width) / 2, 7),
+    );
+
+    final linePaint = Paint()
+      ..color = AppColors.success.withValues(alpha: 0.9)
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      const Offset(width / 2, labelHeight),
+      const Offset(width / 2, pinBottomY - dotRadius),
+      linePaint,
+    );
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.16)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawCircle(
+      const Offset(width / 2, pinBottomY + 2),
+      dotRadius,
+      shadowPaint,
+    );
+    canvas.drawCircle(
+      const Offset(width / 2, pinBottomY),
+      dotRadius,
+      Paint()..color = Colors.white,
+    );
+    canvas.drawCircle(
+      const Offset(width / 2, pinBottomY),
+      dotRadius - 4,
+      Paint()..color = AppColors.success,
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(width.toInt(), height.toInt());
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     return data!.buffer.asUint8List();
   }
@@ -283,51 +410,104 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
 
   @override
   Widget build(BuildContext context) {
-    // На iOS (не web) используем Apple Maps
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
       return _buildAppleMap();
     }
 
-    // В Web используем Apple MapKit JS
     if (kIsWeb) {
       return AppleMapWeb(
         latitude: widget.latitude,
         longitude: widget.longitude,
         children: widget.children,
+        parentLocation: widget.parentLocation,
         onChildTapped: widget.onChildTapped,
       );
     }
 
-    // На Android используем Google Maps
     if (defaultTargetPlatform == TargetPlatform.android) {
       return _buildGoogleMap();
     }
 
-    // Fallback на рисованную карту для остальных платформ (macOS, Windows, etc.)
     return _PaintedMap(
       children: widget.children,
+      parentLocation: widget.parentLocation,
       selectedIndex: widget.selectedIndex,
       onChildTapped: widget.onChildTapped,
     );
   }
 
   Widget _buildAppleMap() {
+    final t = S.of(context);
     final pos = am.LatLng(widget.latitude, widget.longitude);
     final annotations = <am.Annotation>{};
     for (int i = 0; i < widget.children.length; i++) {
       final c = widget.children[i];
       final key = c.childId ?? i;
-      annotations.add(am.Annotation(
-        annotationId: am.AnnotationId('child_$key'),
-        position: am.LatLng(c.lat, c.lng),
-        icon: _appleMarkers[key] ?? am.BitmapDescriptor.defaultAnnotation,
-        infoWindow: am.InfoWindow(
-          title: c.name,
-          snippet: '${c.battery}% battery',
+      annotations.add(
+        am.Annotation(
+          annotationId: am.AnnotationId('child_$key'),
+          position: am.LatLng(c.lat, c.lng),
+          icon: _appleMarkers[key] ?? am.BitmapDescriptor.defaultAnnotation,
+          infoWindow: am.InfoWindow(
+            title: c.name,
+            snippet: t.batteryPercent(c.battery),
+          ),
+          onTap: () => widget.onChildTapped?.call(i),
         ),
-        onTap: () => widget.onChildTapped?.call(i),
-      ));
+      );
     }
+
+    final parentLocation = widget.parentLocation;
+    if (parentLocation != null) {
+      annotations.add(
+        am.Annotation(
+          annotationId: am.AnnotationId('parent_location'),
+          position: am.LatLng(parentLocation.latitude, parentLocation.longitude),
+          icon: _appleParentMarker ?? am.BitmapDescriptor.defaultAnnotation,
+          infoWindow: am.InfoWindow(title: parentLocation.label),
+        ),
+      );
+    }
+
+    final polylines = <am.Polyline>{};
+    if (widget.ghostPath.length >= 2) {
+      polylines.add(
+        am.Polyline(
+          polylineId: am.PolylineId('ghost_path'),
+          color: const Color(0x40888888),
+          width: widget.pathWidth,
+          points: [
+            for (final p in widget.ghostPath)
+              am.LatLng(p.latitude, p.longitude),
+          ],
+        ),
+      );
+    }
+    if (widget.path.length >= 2) {
+      polylines.add(
+        am.Polyline(
+          polylineId: am.PolylineId('history_path'),
+          color: widget.pathColor ?? AppColors.primary,
+          width: widget.pathWidth,
+          points: [
+            for (final p in widget.path) am.LatLng(p.latitude, p.longitude),
+          ],
+        ),
+      );
+    }
+
+    final appleCircles = <am.Circle>{
+      for (final c in widget.circles)
+        am.Circle(
+          circleId: am.CircleId(c.id),
+          center: am.LatLng(c.center.latitude, c.center.longitude),
+          radius: c.radiusMeters,
+          strokeColor: c.strokeColor,
+          fillColor: c.fillColor,
+          strokeWidth: c.strokeWidth,
+        ),
+    };
+
     return am.AppleMap(
       initialCameraPosition: am.CameraPosition(target: pos, zoom: 14),
       compassEnabled: false,
@@ -340,26 +520,97 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
           : null,
       onCameraIdle: _handleCameraIdle,
       annotations: annotations,
+      polylines: polylines,
+      circles: appleCircles,
     );
   }
 
   Widget _buildGoogleMap() {
+    final t = S.of(context);
     final pos = gm.LatLng(widget.latitude, widget.longitude);
     final markers = <gm.Marker>{};
     for (int i = 0; i < widget.children.length; i++) {
       final c = widget.children[i];
       final key = c.childId ?? i;
-      markers.add(gm.Marker(
-        markerId: gm.MarkerId('child_$key'),
-        position: gm.LatLng(c.lat, c.lng),
-        icon: _googleMarkers[key] ?? gm.BitmapDescriptor.defaultMarker,
-        infoWindow: gm.InfoWindow(
-          title: c.name,
-          snippet: '${c.battery}% battery',
+      markers.add(
+        gm.Marker(
+          markerId: gm.MarkerId('child_$key'),
+          position: gm.LatLng(c.lat, c.lng),
+          icon: _googleMarkers[key] ?? gm.BitmapDescriptor.defaultMarker,
+          infoWindow: gm.InfoWindow(
+            title: c.name,
+            snippet: t.batteryPercent(c.battery),
+          ),
+          onTap: () => widget.onChildTapped?.call(i),
         ),
-        onTap: () => widget.onChildTapped?.call(i),
-      ));
+      );
     }
+
+    final parentLocation = widget.parentLocation;
+    if (parentLocation != null) {
+      markers.add(
+        gm.Marker(
+          markerId: const gm.MarkerId('parent_location'),
+          position: gm.LatLng(
+            parentLocation.latitude,
+            parentLocation.longitude,
+          ),
+          icon: _googleParentMarker ??
+              gm.BitmapDescriptor.defaultMarkerWithHue(
+                gm.BitmapDescriptor.hueAzure,
+              ),
+          infoWindow: gm.InfoWindow(title: parentLocation.label),
+        ),
+      );
+    }
+
+    final polylines = <gm.Polyline>{};
+    if (widget.ghostPath.length >= 2) {
+      polylines.add(
+        gm.Polyline(
+          polylineId: const gm.PolylineId('ghost_path'),
+          color: const Color(0x40888888),
+          width: widget.pathWidth,
+          points: [
+            for (final p in widget.ghostPath)
+              gm.LatLng(p.latitude, p.longitude),
+          ],
+          jointType: gm.JointType.round,
+          startCap: gm.Cap.roundCap,
+          endCap: gm.Cap.roundCap,
+          geodesic: true,
+        ),
+      );
+    }
+    if (widget.path.length >= 2) {
+      polylines.add(
+        gm.Polyline(
+          polylineId: const gm.PolylineId('history_path'),
+          color: widget.pathColor ?? AppColors.primary,
+          width: widget.pathWidth,
+          points: [
+            for (final p in widget.path) gm.LatLng(p.latitude, p.longitude),
+          ],
+          jointType: gm.JointType.round,
+          startCap: gm.Cap.roundCap,
+          endCap: gm.Cap.roundCap,
+          geodesic: true,
+        ),
+      );
+    }
+
+    final googleCircles = <gm.Circle>{
+      for (final c in widget.circles)
+        gm.Circle(
+          circleId: gm.CircleId(c.id),
+          center: gm.LatLng(c.center.latitude, c.center.longitude),
+          radius: c.radiusMeters,
+          strokeColor: c.strokeColor,
+          fillColor: c.fillColor,
+          strokeWidth: c.strokeWidth,
+        ),
+    };
+
     return gm.GoogleMap(
       initialCameraPosition: gm.CameraPosition(target: pos, zoom: 14),
       onMapCreated: (c) => _googleCtrl = c,
@@ -371,6 +622,8 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
           : null,
       onCameraIdle: _handleCameraIdle,
       markers: markers,
+      polylines: polylines,
+      circles: googleCircles,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
       mapToolbarEnabled: false,
@@ -381,10 +634,13 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
 class _PaintedMap extends StatelessWidget {
   const _PaintedMap({
     required this.children,
+    this.parentLocation,
     this.selectedIndex,
     this.onChildTapped,
   });
+
   final List<ChildLocation> children;
+  final ParentMapLocation? parentLocation;
   final int? selectedIndex;
   final ValueChanged<int>? onChildTapped;
 
@@ -397,15 +653,24 @@ class _PaintedMap extends StatelessWidget {
           CustomPaint(painter: _GridPainter(), size: Size.infinite),
           if (children.isEmpty)
             Center(
-              child: _ChildMarker(
-                label: '?',
-                name: '',
-                isSelected: false,
-                onTap: null,
-              ),
+              child: parentLocation != null
+                  ? _ParentMarker(label: parentLocation!.label)
+                  : _ChildMarker(
+                      label: '?',
+                      name: '',
+                      isSelected: false,
+                      onTap: null,
+                    ),
             )
-          else
+          else ...[
+            if (parentLocation != null)
+              Positioned(
+                left: 24,
+                top: 28,
+                child: _ParentMarker(label: parentLocation!.label),
+              ),
             ..._positionedMarkers(context),
+          ],
         ],
       ),
     );
@@ -468,6 +733,7 @@ class _ChildMarker extends StatelessWidget {
     this.avatarUrl,
     this.onTap,
   });
+
   final String label;
   final String name;
   final bool isSelected;
@@ -542,6 +808,63 @@ class _ChildMarker extends StatelessWidget {
   }
 }
 
+class _ParentMarker extends StatelessWidget {
+  const _ParentMarker({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.success.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Container(
+          width: 4,
+          height: 18,
+          color: AppColors.success,
+        ),
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: AppColors.success,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 4),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -557,8 +880,11 @@ class _GridPainter extends CustomPainter {
     for (double x = 30; x < size.width; x += 70) {
       canvas.drawLine(Offset(x, 0), Offset(x - 8, size.height), thin);
     }
-    canvas.drawLine(Offset(0, size.height * 0.55),
-        Offset(size.width, size.height * 0.5), road);
+    canvas.drawLine(
+      Offset(0, size.height * 0.55),
+      Offset(size.width, size.height * 0.5),
+      road,
+    );
   }
 
   @override

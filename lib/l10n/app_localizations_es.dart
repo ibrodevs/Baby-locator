@@ -162,21 +162,21 @@ class SEs extends S {
   }
 
   @override
-  String get safeZones => 'Zonas seguras';
+  String get safeZones => 'Lugares';
 
   @override
   String get addNew => 'Añadir nueva';
 
   @override
-  String get noSafeZonesYet => 'Aún no hay zonas seguras';
+  String get noSafeZonesYet => 'Aún no hay lugares';
 
   @override
   String zone(String zoneName) {
-    return 'Zona: $zoneName';
+    return 'Lugar: $zoneName';
   }
 
   @override
-  String get editZone => 'Editar zona';
+  String get editZone => 'Editar lugar';
 
   @override
   String get activeToday => 'ACTIVO HOY';
@@ -205,17 +205,17 @@ class SEs extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'Zona actual: $zoneName';
+    return 'Lugar actual: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'Añadir zona segura';
+  String get addSafeZone => 'Añadir nuevo lugar';
 
   @override
-  String get editSafeZone => 'Editar zona segura';
+  String get editSafeZone => 'Editar lugar';
 
   @override
-  String get deleteZoneTitle => '¿Eliminar zona?';
+  String get deleteZoneTitle => '¿Eliminar lugar?';
 
   @override
   String get deleteZoneMessage => 'Esta acción no se puede deshacer.';
@@ -227,10 +227,10 @@ class SEs extends S {
   String get delete => 'Eliminar';
 
   @override
-  String get zoneEnabled => 'ZONA ACTIVADA';
+  String get zoneEnabled => 'LUGAR ACTIVO';
 
   @override
-  String get zoneName => 'NOMBRE DE LA ZONA';
+  String get zoneName => 'NOMBRE DEL LUGAR';
 
   @override
   String get zoneNameHint => 'p. ej. Casa, Escuela';
@@ -251,20 +251,21 @@ class SEs extends S {
   String get radius => 'RADIO';
 
   @override
-  String get locationMoveMap => 'UBICACIÓN (Mueve el mapa para centrar el pin)';
+  String get locationMoveMap =>
+      'UBICACIÓN (Mueve el mapa para fijar el centro)';
 
   @override
   String get moveMapToSetCenter =>
-      'Mueve el mapa para establecer el centro de la zona';
+      'Mueve el mapa para fijar el centro del lugar';
 
   @override
-  String get createSafeZone => 'Crear zona segura';
+  String get createSafeZone => 'Crear lugar';
 
   @override
-  String get updateSafeZone => 'Actualizar zona segura';
+  String get updateSafeZone => 'Actualizar lugar';
 
   @override
-  String get pleaseEnterZoneName => 'Por favor, introduce un nombre de zona';
+  String get pleaseEnterZoneName => 'Introduce un nombre para el lugar';
 
   @override
   String get chooseAtLeastOneDayError => 'Elige al menos un día activo';
@@ -481,7 +482,7 @@ class SEs extends S {
   String get batteryAlerts => 'Alertas de batería';
 
   @override
-  String get safeZoneAlerts => 'Alertas de zona segura';
+  String get safeZoneAlerts => 'Alertas de lugares';
 
   @override
   String get notificationPermissionRequired =>
@@ -804,4 +805,47 @@ class SEs extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'Lugares en el mapa';
+
+  @override
+  String get placesAndChildren => 'Lugares y niños';
+
+  @override
+  String placesCount(int count) {
+    return 'Lugares: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'Activos hoy: $count';
+  }
+
+  @override
+  String get retry => 'Reintentar';
+
+  @override
+  String get createPlaceHint =>
+      'Crea un lugar para recibir avisos cuando tu hijo llegue o se vaya.';
+
+  @override
+  String get untitledPlace => 'Lugar sin nombre';
+
+  @override
+  String get placeDeleted => 'Lugar eliminado.';
+
+  @override
+  String get editLabel => 'Editar';
+
+  @override
+  String get disabledSchedule => 'Desactivado';
+
+  @override
+  String get noDaysSelected => 'No hay días seleccionados';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'Radio $radius • $schedule';
+  }
 }

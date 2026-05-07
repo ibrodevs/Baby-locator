@@ -9,13 +9,11 @@
   "displayName": "Nombre visible",
   "username": "Usuario",
   "password": "Contraseña",
-
   "navMap": "Mapa",
   "navActivity": "Actividad",
   "navChat": "Chat",
   "navStats": "Estadísticas",
   "navHome": "Inicio",
-
   "waitingForLocation": "Esperando a que los niños compartan su ubicación...",
   "addChildToTrack": "Añade un niño para empezar a rastrear",
   "manageChildren": "Gestionar niños",
@@ -33,7 +31,6 @@
   "hoursAgo": "hace {hours}h",
   "active": "Activo",
   "inactive": "Inactivo",
-
   "addChildToSeeActivity": "Añade un niño para ver la actividad",
   "activity": "Actividad",
   "today": "Hoy",
@@ -48,11 +45,11 @@
   "batteryStatus": "Estado de batería",
   "batteryAt": "Batería al {battery}%",
   "noActivityYet": "Sin actividad aún. Los eventos aparecerán cuando {childName} comparta su ubicación.",
-  "safeZones": "Zonas seguras",
+  "safeZones": "Lugares",
   "addNew": "Añadir nueva",
-  "noSafeZonesYet": "Aún no hay zonas seguras",
-  "zone": "Zona: {zoneName}",
-  "editZone": "Editar zona",
+  "noSafeZonesYet": "Aún no hay lugares",
+  "zone": "Lugar: {zoneName}",
+  "editZone": "Editar lugar",
   "activeToday": "ACTIVO HOY",
   "inactiveToday": "INACTIVO HOY",
   "disabled": "DESACTIVADO",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Sin actualizaciones de ubicación hoy",
   "safetyScoreDetails": "{inZoneUpdates} de {totalUpdates} actualizaciones estuvieron dentro de zonas seguras hoy",
   "coverage": "Cobertura: {percent}%",
-  "currentZone": "Zona actual: {zoneName}",
-
-  "addSafeZone": "Añadir zona segura",
-  "editSafeZone": "Editar zona segura",
-  "deleteZoneTitle": "¿Eliminar zona?",
+  "currentZone": "Lugar actual: {zoneName}",
+  "addSafeZone": "Añadir nuevo lugar",
+  "editSafeZone": "Editar lugar",
+  "deleteZoneTitle": "¿Eliminar lugar?",
   "deleteZoneMessage": "Esta acción no se puede deshacer.",
   "cancel": "Cancelar",
   "delete": "Eliminar",
-  "zoneEnabled": "ZONA ACTIVADA",
-  "zoneName": "NOMBRE DE LA ZONA",
+  "zoneEnabled": "LUGAR ACTIVO",
+  "zoneName": "NOMBRE DEL LUGAR",
   "zoneNameHint": "p. ej. Casa, Escuela",
   "activeWhen": "ACTIVO CUANDO",
   "always": "Siempre",
   "daysOfWeek": "Días de la semana",
   "chooseAtLeastOneDay": "Elige al menos un día para este horario.",
   "radius": "RADIO",
-  "locationMoveMap": "UBICACIÓN (Mueve el mapa para centrar el pin)",
-  "moveMapToSetCenter": "Mueve el mapa para establecer el centro de la zona",
-  "createSafeZone": "Crear zona segura",
-  "updateSafeZone": "Actualizar zona segura",
-  "pleaseEnterZoneName": "Por favor, introduce un nombre de zona",
+  "locationMoveMap": "UBICACIÓN (Mueve el mapa para fijar el centro)",
+  "moveMapToSetCenter": "Mueve el mapa para fijar el centro del lugar",
+  "createSafeZone": "Crear lugar",
+  "updateSafeZone": "Actualizar lugar",
+  "pleaseEnterZoneName": "Introduce un nombre para el lugar",
   "chooseAtLeastOneDayError": "Elige al menos un día activo",
-
   "addChildToChat": "Añade un niño para empezar a chatear",
   "noMessagesYet": "Aún no hay mensajes. ¡Di hola!",
   "sendMessage": "Escribe un mensaje...",
   "failedToSend": "Error al enviar: {error}",
-
   "helloUser": "¡Hola, {name}!",
   "kidMode": "Modo niño",
   "myLocation": "Mi ubicación",
   "waitingForGps": "Esperando GPS...",
-  "sharedWithParent": "Compartido con el padre \u00b7 {time}",
+  "sharedWithParent": "Compartido con el padre · {time}",
   "notSharedYet": "Aún no compartido",
   "imSafe": "Estoy bien",
   "sos": "SOS",
   "sentImSafe": "Enviado \"Estoy bien\" a tu padre",
   "sosMessage": "¡SOS! ¡Necesito ayuda!",
   "sosLocation": " Ubicación: {address}",
-  "sosSent": "SOS enviado \u2014 el padre será notificado",
+  "sosSent": "SOS enviado — el padre será notificado",
   "allowUsageAccess": "Permitir acceso al uso de apps",
   "usageAccessDescription": "Esto permite que el panel de control del padre muestre datos reales de tiempo de pantalla y límites de apps desde este teléfono.",
   "openUsageAccess": "Abrir acceso de uso",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Permite la ubicación para compartir",
   "grantLocationPermission": "Concede permiso para que tu padre pueda ver dónde estás.",
   "allowLocation": "Permitir ubicación",
-
   "myChildren": "Mis hijos",
   "addChild": "Añadir hijo",
   "noChildrenYet": "Aún no hay hijos. Toca \"Añadir hijo\" para crear uno.",
@@ -136,7 +129,6 @@
   "deleteChild": "Eliminar hijo",
   "track": "Rastrear",
   "edit": "Editar",
-
   "settings": "Ajustes",
   "parent": "PADRE",
   "child": "HIJO",
@@ -148,7 +140,7 @@
   "pushNotifications": "Notificaciones push",
   "locationAlerts": "Alertas de ubicación",
   "batteryAlerts": "Alertas de batería",
-  "safeZoneAlerts": "Alertas de zona segura",
+  "safeZoneAlerts": "Alertas de lugares",
   "notificationPermissionRequired": "Se requiere permiso de notificaciones para enviar alertas",
   "general": "General",
   "language": "Idioma",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "El nombre de usuario no puede estar vacío",
   "profileUpdated": "Perfil actualizado",
   "failedToUploadAvatar": "Error al subir el avatar: {error}",
-
   "parentProfile": "Perfil del padre",
   "addChildForStats": "Añade una cuenta de hijo primero para ver estadísticas en vivo.",
   "insights": "ESTADÍSTICAS",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} usado el {date}",
   "limitMinutes": "Límite {time}",
   "noLimit": "Sin límite",
-  "usageTodayOverLimit": "{time} hoy \u00b7 por encima del límite",
+  "usageTodayOverLimit": "{time} hoy · por encima del límite",
   "usageToday": "{time} hoy",
   "limitSavedFor": "Límite guardado para {appName}",
   "limitDisabledFor": "Límite desactivado para {appName}",
@@ -222,5 +213,41 @@
   "childNavSettings": "Ajustes",
   "childProfile": "Perfil",
   "childSettingsTitle": "Ajustes",
-  "childLogout": "Cerrar sesión"
+  "childLogout": "Cerrar sesión",
+  "placesOnMap": "Lugares en el mapa",
+  "placesAndChildren": "Lugares y niños",
+  "placesCount": "Lugares: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Activos hoy: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Reintentar",
+  "createPlaceHint": "Crea un lugar para recibir avisos cuando tu hijo llegue o se vaya.",
+  "untitledPlace": "Lugar sin nombre",
+  "placeDeleted": "Lugar eliminado.",
+  "editLabel": "Editar",
+  "disabledSchedule": "Desactivado",
+  "noDaysSelected": "No hay días seleccionados",
+  "radiusSummary": "Radio {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

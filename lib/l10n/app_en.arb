@@ -9,13 +9,11 @@
   "displayName": "Display name",
   "username": "Username",
   "password": "Password",
-
   "navMap": "Map",
   "navActivity": "Activity",
   "navChat": "Chat",
   "navStats": "Stats",
   "navHome": "Home",
-
   "waitingForLocation": "Waiting for children to share location...",
   "addChildToTrack": "Add a child to start tracking",
   "manageChildren": "Manage children",
@@ -23,21 +21,44 @@
   "around": "AROUND",
   "currentLocation": "CURRENT LOCATION",
   "messageChild": "Message {childName}",
-  "@messageChild": { "placeholders": { "childName": { "type": "String" } } },
+  "@messageChild": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
   "history": "History",
   "lastUpdated": "Last updated: {time}",
-  "@lastUpdated": { "placeholders": { "time": { "type": "String" } } },
+  "@lastUpdated": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "statusActive": "ACTIVE",
   "statusPaused": "PAUSED",
   "statusOffline": "OFFLINE",
   "justNow": "Just now",
   "minutesAgo": "{minutes}m ago",
-  "@minutesAgo": { "placeholders": { "minutes": { "type": "int" } } },
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "hoursAgo": "{hours}h ago",
-  "@hoursAgo": { "placeholders": { "hours": { "type": "int" } } },
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
   "active": "Active",
   "inactive": "Inactive",
-
   "addChildToSeeActivity": "Add a child to see activity",
   "activity": "Activity",
   "today": "Today",
@@ -45,43 +66,93 @@
   "arrivedAtLocation": "Arrived at location",
   "phoneCharging": "Phone Charging",
   "batteryReached": "Battery reached {battery}%",
-  "@batteryReached": { "placeholders": { "battery": { "type": "int" } } },
+  "@batteryReached": {
+    "placeholders": {
+      "battery": {
+        "type": "int"
+      }
+    }
+  },
   "batteryLow": "Battery Low",
   "batteryDropped": "Battery dropped to {battery}%",
-  "@batteryDropped": { "placeholders": { "battery": { "type": "int" } } },
+  "@batteryDropped": {
+    "placeholders": {
+      "battery": {
+        "type": "int"
+      }
+    }
+  },
   "currentLocationTitle": "Current Location",
   "locationShared": "Location shared",
   "batteryStatus": "Battery Status",
   "batteryAt": "Battery at {battery}%",
-  "@batteryAt": { "placeholders": { "battery": { "type": "int" } } },
+  "@batteryAt": {
+    "placeholders": {
+      "battery": {
+        "type": "int"
+      }
+    }
+  },
   "noActivityYet": "No activity yet. Events will appear once {childName} shares their location.",
-  "@noActivityYet": { "placeholders": { "childName": { "type": "String" } } },
-  "safeZones": "Safe Zones",
+  "@noActivityYet": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
+  "safeZones": "Places",
   "addNew": "Add New",
-  "noSafeZonesYet": "No safe zones yet",
-  "zone": "Zone: {zoneName}",
-  "@zone": { "placeholders": { "zoneName": { "type": "String" } } },
-  "editZone": "Edit Zone",
+  "noSafeZonesYet": "No places yet",
+  "zone": "Place: {zoneName}",
+  "@zone": {
+    "placeholders": {
+      "zoneName": {
+        "type": "String"
+      }
+    }
+  },
+  "editZone": "Edit place",
   "activeToday": "ACTIVE TODAY",
   "inactiveToday": "INACTIVE TODAY",
   "disabled": "DISABLED",
   "dailySafetyScore": "Daily Safety Score",
   "noLocationUpdatesYet": "No location updates yet today",
   "safetyScoreDetails": "{inZoneUpdates} of {totalUpdates} updates were inside safe zones today",
-  "@safetyScoreDetails": { "placeholders": { "inZoneUpdates": { "type": "int" }, "totalUpdates": { "type": "int" } } },
+  "@safetyScoreDetails": {
+    "placeholders": {
+      "inZoneUpdates": {
+        "type": "int"
+      },
+      "totalUpdates": {
+        "type": "int"
+      }
+    }
+  },
   "coverage": "Coverage: {percent}%",
-  "@coverage": { "placeholders": { "percent": { "type": "int" } } },
-  "currentZone": "Current zone: {zoneName}",
-  "@currentZone": { "placeholders": { "zoneName": { "type": "String" } } },
-
-  "addSafeZone": "Add Safe Zone",
-  "editSafeZone": "Edit Safe Zone",
-  "deleteZoneTitle": "Delete Zone?",
+  "@coverage": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "currentZone": "Current place: {zoneName}",
+  "@currentZone": {
+    "placeholders": {
+      "zoneName": {
+        "type": "String"
+      }
+    }
+  },
+  "addSafeZone": "Add New Place",
+  "editSafeZone": "Edit Place",
+  "deleteZoneTitle": "Delete place?",
   "deleteZoneMessage": "This action cannot be undone.",
   "cancel": "Cancel",
   "delete": "Delete",
-  "zoneEnabled": "ZONE ENABLED",
-  "zoneName": "ZONE NAME",
+  "zoneEnabled": "PLACE ENABLED",
+  "zoneName": "PLACE NAME",
   "zoneNameHint": "e.g. Home, School",
   "activeWhen": "ACTIVE WHEN",
   "always": "Always",
@@ -89,38 +160,66 @@
   "chooseAtLeastOneDay": "Choose at least one day for this schedule.",
   "radius": "RADIUS",
   "locationMoveMap": "LOCATION (Move map to center pin)",
-  "moveMapToSetCenter": "Move the map to set zone center",
-  "createSafeZone": "Create Safe Zone",
-  "updateSafeZone": "Update Safe Zone",
-  "pleaseEnterZoneName": "Please enter a zone name",
+  "moveMapToSetCenter": "Move the map to set the place center",
+  "createSafeZone": "Create Place",
+  "updateSafeZone": "Update Place",
+  "pleaseEnterZoneName": "Please enter a place name",
   "chooseAtLeastOneDayError": "Choose at least one active day",
-
   "addChildToChat": "Add a child to start chatting",
   "noMessagesYet": "No messages yet. Say hello!",
   "sendMessage": "Send a message...",
   "failedToSend": "Failed to send: {error}",
-  "@failedToSend": { "placeholders": { "error": { "type": "String" } } },
-
+  "@failedToSend": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "helloUser": "Hello, {name}!",
-  "@helloUser": { "placeholders": { "name": { "type": "String" } } },
+  "@helloUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "kidMode": "Kid mode",
   "myLocation": "My Location",
   "waitingForGps": "Waiting for GPS...",
-  "sharedWithParent": "Shared with parent \u00b7 {time}",
-  "@sharedWithParent": { "placeholders": { "time": { "type": "String" } } },
+  "sharedWithParent": "Shared with parent · {time}",
+  "@sharedWithParent": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "notSharedYet": "Not shared yet",
   "imSafe": "I'm Safe",
   "sos": "SOS",
   "sentImSafe": "Sent \"I'm safe\" to your parent",
   "sosMessage": "SOS! I need help!",
   "sosLocation": " Location: {address}",
-  "@sosLocation": { "placeholders": { "address": { "type": "String" } } },
-  "sosSent": "SOS sent \u2014 parent will be notified",
+  "@sosLocation": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "sosSent": "SOS sent — parent will be notified",
   "allowUsageAccess": "Allow app usage access",
   "usageAccessDescription": "This lets the parent dashboard show real screen-time data and app limits from this phone.",
   "openUsageAccess": "Open Usage Access",
   "syncError": "Sync error: {error}",
-  "@syncError": { "placeholders": { "error": { "type": "String" } } },
+  "@syncError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "iphoneLimitation": "iPhone limitation",
   "iphoneUsageDescription": "On iPhone there is no Android-style Usage Access screen. Real per-app screen time and direct app blocking need Apple Screen Time APIs and special entitlements, so this button cannot work on iOS.",
   "turnOnLocation": "Turn on Location Services",
@@ -132,7 +231,6 @@
   "allowLocationToShare": "Allow location to share",
   "grantLocationPermission": "Grant permission so your parent can see where you are.",
   "allowLocation": "Allow Location",
-
   "myChildren": "My Children",
   "addChild": "Add Child",
   "noChildrenYet": "No children yet. Tap \"Add Child\" to create one.",
@@ -140,14 +238,38 @@
   "changePhoto": "Change photo",
   "deleteChildTitle": "Delete child?",
   "deleteChildMessage": "Delete {childName} and all linked activity history?",
-  "@deleteChildMessage": { "placeholders": { "childName": { "type": "String" } } },
+  "@deleteChildMessage": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
   "childDeleted": "{childName} deleted",
-  "@childDeleted": { "placeholders": { "childName": { "type": "String" } } },
+  "@childDeleted": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
   "failedToDeleteChild": "Failed to delete child: {error}",
-  "@failedToDeleteChild": { "placeholders": { "error": { "type": "String" } } },
+  "@failedToDeleteChild": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "avatarUpdated": "Avatar updated",
   "failedGeneric": "Failed: {error}",
-  "@failedGeneric": { "placeholders": { "error": { "type": "String" } } },
+  "@failedGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "createChildAccount": "Create Child Account",
   "childSignInHint": "Your child will sign in with these credentials on their device.",
   "displayNameHint": "Display name (e.g. Alex)",
@@ -157,7 +279,6 @@
   "deleteChild": "Delete Child",
   "track": "Track",
   "edit": "Edit",
-
   "settings": "Settings",
   "parent": "PARENT",
   "child": "CHILD",
@@ -169,7 +290,7 @@
   "pushNotifications": "Push Notifications",
   "locationAlerts": "Location Alerts",
   "batteryAlerts": "Battery Alerts",
-  "safeZoneAlerts": "Safe Zone Alerts",
+  "safeZoneAlerts": "Place Alerts",
   "notificationPermissionRequired": "Notification permission is required to send alerts",
   "general": "General",
   "language": "Language",
@@ -185,19 +306,42 @@
   "usernameCannotBeEmpty": "Username cannot be empty",
   "profileUpdated": "Profile updated",
   "failedToUploadAvatar": "Failed to upload avatar: {error}",
-  "@failedToUploadAvatar": { "placeholders": { "error": { "type": "String" } } },
-
+  "@failedToUploadAvatar": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "parentProfile": "Parent Profile",
   "addChildForStats": "Add a child account first to see live stats.",
   "insights": "INSIGHTS",
   "childStats": "{childName}'s Stats",
-  "@childStats": { "placeholders": { "childName": { "type": "String" } } },
+  "@childStats": {
+    "placeholders": {
+      "childName": {
+        "type": "String"
+      }
+    }
+  },
   "deviceStatus": "Device Status",
   "batteryPercent": "{battery}% battery",
-  "@batteryPercent": { "placeholders": { "battery": { "type": "int" } } },
+  "@batteryPercent": {
+    "placeholders": {
+      "battery": {
+        "type": "int"
+      }
+    }
+  },
   "batteryUnknown": "Battery unknown",
   "synced": "Synced {time}",
-  "@synced": { "placeholders": { "time": { "type": "String" } } },
+  "@synced": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "noDeviceSyncYet": "No device sync yet",
   "usageAccessGranted": "Usage access granted",
   "usageAccessNeeded": "Usage access needed",
@@ -205,12 +349,36 @@
   "androidUsageAccessNote": "Open the child app on the phone and allow usage access. After that, screen time, app limits, and the calendar will sync automatically.",
   "dailyUsage": "Daily Usage",
   "usageOfLimit": "{total} of {limit} used",
-  "@usageOfLimit": { "placeholders": { "total": { "type": "String" }, "limit": { "type": "String" } } },
+  "@usageOfLimit": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
   "usageOnDate": "{total} used on {date}",
-  "@usageOnDate": { "placeholders": { "total": { "type": "String" }, "date": { "type": "String" } } },
+  "@usageOnDate": {
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "allLimitsInRange": "All enabled limits are within range",
   "appLimitExceeded": "{count} app limit exceeded today",
-  "@appLimitExceeded": { "placeholders": { "count": { "type": "int" } } },
+  "@appLimitExceeded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "setAppLimitsHint": "Set app limits below to turn this into a real goal.",
   "weeklyUsage": "Weekly Usage",
   "usageCalendar": "Usage Calendar",
@@ -222,20 +390,65 @@
   "saveLimit": "Save limit",
   "manageAppLimits": "Manage App Limits",
   "appUsedOnDate": "{appName} used on {date}",
-  "@appUsedOnDate": { "placeholders": { "appName": { "type": "String" }, "date": { "type": "String" } } },
+  "@appUsedOnDate": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "limitMinutes": "Limit {time}",
-  "@limitMinutes": { "placeholders": { "time": { "type": "String" } } },
+  "@limitMinutes": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "noLimit": "No limit",
-  "usageTodayOverLimit": "{time} today \u00b7 over limit",
-  "@usageTodayOverLimit": { "placeholders": { "time": { "type": "String" } } },
+  "usageTodayOverLimit": "{time} today · over limit",
+  "@usageTodayOverLimit": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "usageToday": "{time} today",
-  "@usageToday": { "placeholders": { "time": { "type": "String" } } },
+  "@usageToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "limitSavedFor": "Limit saved for {appName}",
-  "@limitSavedFor": { "placeholders": { "appName": { "type": "String" } } },
+  "@limitSavedFor": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "limitDisabledFor": "Limit disabled for {appName}",
-  "@limitDisabledFor": { "placeholders": { "appName": { "type": "String" } } },
+  "@limitDisabledFor": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "couldNotSaveLimit": "Could not save limit: {error}",
-  "@couldNotSaveLimit": { "placeholders": { "error": { "type": "String" } } },
+  "@couldNotSaveLimit": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "mon": "MON",
   "tue": "TUE",
   "wed": "WED",
@@ -244,7 +457,6 @@
   "sat": "SAT",
   "sun": "SUN",
   "over": "OVER",
-
   "onboardingTitle": "Welcome!",
   "onboardingSubtitle": "Who are you?",
   "iAmParent": "I'm a Parent",
@@ -259,7 +471,6 @@
   "childProfile": "Profile",
   "childSettingsTitle": "Settings",
   "childLogout": "Log Out",
-
   "inviteChild": "Invite Child",
   "inviteTitle": "Invite children and other family members to your circle",
   "inviteSubtitle": "Your family members need to install the app and join the circle using the code",
@@ -269,10 +480,21 @@
   "generateCode": "Generate Code",
   "codeCopied": "Code copied to clipboard",
   "inviteShareText": "Join my family circle in Family security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}",
-  "@inviteShareText": { "placeholders": { "code": { "type": "String" } } },
+  "@inviteShareText": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
   "failedToGenerateCode": "Failed to generate code: {error}",
-  "@failedToGenerateCode": { "placeholders": { "error": { "type": "String" } } },
-
+  "@failedToGenerateCode": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "childRegisterTitle": "Join Family",
   "childRegisterSubtitle": "Enter the invite code from your parent",
   "inviteCode": "Invite code",
@@ -282,5 +504,41 @@
   "register": "Register",
   "invalidInviteCode": "Invalid or expired invite code",
   "alreadyHaveAccount": "Already have an account? Sign in",
-  "dontHaveCode": "Have an invite code? Register"
+  "dontHaveCode": "Have an invite code? Register",
+  "placesOnMap": "Places on the map",
+  "placesAndChildren": "Places and children",
+  "placesCount": "Places: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Active today: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Retry",
+  "createPlaceHint": "Create a place to receive notifications when your child arrives or leaves.",
+  "untitledPlace": "Untitled place",
+  "placeDeleted": "Place deleted.",
+  "editLabel": "Edit",
+  "disabledSchedule": "Disabled",
+  "noDaysSelected": "No days selected",
+  "radiusSummary": "Radius {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -262,7 +262,7 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Family security',
+                            t.appName,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,

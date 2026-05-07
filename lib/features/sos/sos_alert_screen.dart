@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 /// Full-screen red SOS alert shown on the parent's device when a child
 /// triggers SOS. Plays a loud alarm sound and pulses the screen.
@@ -109,6 +111,7 @@ class _SosAlertScreenState extends State<SosAlertScreen>
 
   @override
   Widget build(BuildContext context) {
+    final t = S.of(context);
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -148,8 +151,8 @@ class _SosAlertScreenState extends State<SosAlertScreen>
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
-                      'SOS!',
+                    Text(
+                      t.sos,
                       style: TextStyle(
                         fontSize: 56,
                         fontWeight: FontWeight.w900,
@@ -171,7 +174,7 @@ class _SosAlertScreenState extends State<SosAlertScreen>
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Text(
-                        widget.message ?? 'needs help!',
+                        widget.message ?? t.sosNeedsHelpFallback,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
@@ -196,8 +199,8 @@ class _SosAlertScreenState extends State<SosAlertScreen>
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'OK',
+                          child: Text(
+                            t.okAction,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w900,

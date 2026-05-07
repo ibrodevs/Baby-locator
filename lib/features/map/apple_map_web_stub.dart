@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/providers/session_providers.dart';
+import 'map_models.dart';
 
 class AppleMapWeb extends StatelessWidget {
   const AppleMapWeb({
@@ -8,12 +9,14 @@ class AppleMapWeb extends StatelessWidget {
     required this.latitude,
     required this.longitude,
     this.children = const [],
+    this.parentLocation,
     this.onChildTapped,
   });
 
   final double latitude;
   final double longitude;
   final List<ChildLocation> children;
+  final ParentMapLocation? parentLocation;
   final ValueChanged<int>? onChildTapped;
 
   @override

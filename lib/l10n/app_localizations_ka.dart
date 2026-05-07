@@ -162,21 +162,21 @@ class SKa extends S {
   }
 
   @override
-  String get safeZones => 'უსაფრთხო ზონები';
+  String get safeZones => 'ადგილები';
 
   @override
   String get addNew => 'დამატება';
 
   @override
-  String get noSafeZonesYet => 'უსაფრთხო ზონები ჯერ არ არის';
+  String get noSafeZonesYet => 'ჯერ ადგილები არ არის';
 
   @override
   String zone(String zoneName) {
-    return 'ზონა: $zoneName';
+    return 'ადგილი: $zoneName';
   }
 
   @override
-  String get editZone => 'ზონის რედაქტირება';
+  String get editZone => 'ადგილის რედაქტირება';
 
   @override
   String get activeToday => 'დღეს აქტიურია';
@@ -205,17 +205,17 @@ class SKa extends S {
 
   @override
   String currentZone(String zoneName) {
-    return 'მიმდინარე ზონა: $zoneName';
+    return 'მიმდინარე ადგილი: $zoneName';
   }
 
   @override
-  String get addSafeZone => 'უსაფრთხო ზონის დამატება';
+  String get addSafeZone => 'ახალი ადგილის დამატება';
 
   @override
-  String get editSafeZone => 'უსაფრთხო ზონის რედაქტირება';
+  String get editSafeZone => 'ადგილის რედაქტირება';
 
   @override
-  String get deleteZoneTitle => 'წავშალოთ ზონა?';
+  String get deleteZoneTitle => 'წავშალოთ ადგილი?';
 
   @override
   String get deleteZoneMessage => 'ეს მოქმედება ვეღარ გაუქმდება.';
@@ -227,10 +227,10 @@ class SKa extends S {
   String get delete => 'წაშლა';
 
   @override
-  String get zoneEnabled => 'ზონა ჩართულია';
+  String get zoneEnabled => 'ადგილი აქტიურია';
 
   @override
-  String get zoneName => 'ზონის სახელი';
+  String get zoneName => 'ადგილის სახელი';
 
   @override
   String get zoneNameHint => 'მაგ.: სახლი, სკოლა';
@@ -252,19 +252,20 @@ class SKa extends S {
 
   @override
   String get locationMoveMap =>
-      'მდებარეობა (ცენტრის ასარჩევად გადაადგილეთ რუკა)';
+      'მდებარეობა (ცენტრის დასაყენებლად გადააადგილეთ რუკა)';
 
   @override
-  String get moveMapToSetCenter => 'ზონის ცენტრის ასარჩევად გადაადგილეთ რუკა';
+  String get moveMapToSetCenter =>
+      'ადგილის ცენტრის დასაყენებლად გადააადგილეთ რუკა';
 
   @override
-  String get createSafeZone => 'უსაფრთხო ზონის შექმნა';
+  String get createSafeZone => 'ადგილის შექმნა';
 
   @override
-  String get updateSafeZone => 'უსაფრთხო ზონის განახლება';
+  String get updateSafeZone => 'ადგილის განახლება';
 
   @override
-  String get pleaseEnterZoneName => 'გთხოვთ, შეიყვანოთ ზონის სახელი';
+  String get pleaseEnterZoneName => 'შეიყვანეთ ადგილის სახელი';
 
   @override
   String get chooseAtLeastOneDayError => 'აირჩიეთ მინიმუმ ერთი აქტიური დღე';
@@ -481,7 +482,7 @@ class SKa extends S {
   String get batteryAlerts => 'ბატარეის გაფრთხილებები';
 
   @override
-  String get safeZoneAlerts => 'უსაფრთხო ზონის გაფრთხილებები';
+  String get safeZoneAlerts => 'ადგილის შეტყობინებები';
 
   @override
   String get notificationPermissionRequired =>
@@ -804,4 +805,47 @@ class SKa extends S {
 
   @override
   String get dontHaveCode => 'Have an invite code? Register';
+
+  @override
+  String get placesOnMap => 'ადგილები რუკაზე';
+
+  @override
+  String get placesAndChildren => 'ადგილები და ბავშვები';
+
+  @override
+  String placesCount(int count) {
+    return 'ადგილები: $count';
+  }
+
+  @override
+  String activeTodayCount(int count) {
+    return 'დღეს აქტიურია: $count';
+  }
+
+  @override
+  String get retry => 'გამეორება';
+
+  @override
+  String get createPlaceHint =>
+      'შექმენით ადგილი, რომ მიიღოთ შეტყობინება, როცა ბავშვი მივა ან წავა.';
+
+  @override
+  String get untitledPlace => 'უსახელო ადგილი';
+
+  @override
+  String get placeDeleted => 'ადგილი წაიშალა.';
+
+  @override
+  String get editLabel => 'რედაქტირება';
+
+  @override
+  String get disabledSchedule => 'გამორთულია';
+
+  @override
+  String get noDaysSelected => 'დღეები არჩეული არ არის';
+
+  @override
+  String radiusSummary(String radius, String schedule) {
+    return 'რადიუსი $radius • $schedule';
+  }
 }

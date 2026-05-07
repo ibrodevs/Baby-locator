@@ -9,13 +9,11 @@
   "displayName": "Номи намоишӣ",
   "username": "Номи корбар",
   "password": "Рамз",
-
   "navMap": "Харита",
   "navActivity": "Фаъолият",
   "navChat": "Гуфтугӯ",
   "navStats": "Омор",
   "navHome": "Хона",
-
   "waitingForLocation": "Дар интизори мубодилаи мавқеъ аз ҷониби кӯдакон...",
   "addChildToTrack": "Кӯдакро илова кунед то пайгирӣ оғоз шавад",
   "manageChildren": "Идоракунии кӯдакон",
@@ -33,7 +31,6 @@
   "hoursAgo": "{hours} соат пеш",
   "active": "Фаъол",
   "inactive": "Ғайрифаъол",
-
   "addChildToSeeActivity": "Кӯдакро илова кунед то фаъолиятро бубинед",
   "activity": "Фаъолият",
   "today": "Имрӯз",
@@ -48,11 +45,11 @@
   "batteryStatus": "Ҳолати батарея",
   "batteryAt": "Батарея дар {battery}%",
   "noActivityYet": "Ҳоло фаъолияте нест. Ҳодисаҳо пас аз он, ки {childName} мавқеашро мубодила кунад, намоён мешаванд.",
-  "safeZones": "Минтақаҳои бехатар",
+  "safeZones": "Ҷойҳо",
   "addNew": "Илова кардан",
-  "noSafeZonesYet": "Ҳоло минтақаи бехатаре нест",
-  "zone": "Минтақа: {zoneName}",
-  "editZone": "Таҳрири минтақа",
+  "noSafeZonesYet": "Ҳоло ҷойҳо нестанд",
+  "zone": "Ҷой: {zoneName}",
+  "editZone": "Таҳрири ҷой",
   "activeToday": "ИМРӮЗ ФАЪОЛ",
   "inactiveToday": "ИМРӮЗ ҒАЙРИФАЪОЛ",
   "disabled": "ХОМӮШ",
@@ -60,46 +57,43 @@
   "noLocationUpdatesYet": "Имрӯз навсозии мавқеъ вуҷуд надорад",
   "safetyScoreDetails": "{inZoneUpdates} аз {totalUpdates} навсозӣ имрӯз дар минтақаҳои бехатар буданд",
   "coverage": "Фарогирӣ: {percent}%",
-  "currentZone": "Минтақаи ҳозира: {zoneName}",
-
-  "addSafeZone": "Илова кардани минтақаи бехатар",
-  "editSafeZone": "Таҳрири минтақаи бехатар",
-  "deleteZoneTitle": "Минтақа нест карда шавад?",
+  "currentZone": "Ҷойи ҷорӣ: {zoneName}",
+  "addSafeZone": "Илова кардани ҷойи нав",
+  "editSafeZone": "Таҳрири ҷой",
+  "deleteZoneTitle": "Ҷой тоза шавад?",
   "deleteZoneMessage": "Ин амалро бозгардонидан мумкин нест.",
   "cancel": "Бекор кардан",
   "delete": "Нест кардан",
-  "zoneEnabled": "МИНТАҚА ФАЪОЛ АСТ",
-  "zoneName": "НОМИ МИНТАҚА",
+  "zoneEnabled": "ҶОЙ ФАЪОЛ АСТ",
+  "zoneName": "НОМИ ҶОЙ",
   "zoneNameHint": "Масалан: Хона, Мактаб",
   "activeWhen": "ВАҚТИ ФАЪОЛБУДАН",
   "always": "Ҳамеша",
   "daysOfWeek": "Рӯзҳои ҳафта",
   "chooseAtLeastOneDay": "Барои ин ҷадвал ҳадди аққал як рӯзро интихоб кунед.",
   "radius": "РАДИУС",
-  "locationMoveMap": "МАВҚЕЪ (Харитаро ба маркази нишонгузор ҳаракат диҳед)",
-  "moveMapToSetCenter": "Харитаро ҳаракат диҳед то маркази минтақа муайян шавад",
-  "createSafeZone": "Сохтани минтақаи бехатар",
-  "updateSafeZone": "Навсозии минтақаи бехатар",
-  "pleaseEnterZoneName": "Лутфан номи минтақаро ворид кунед",
+  "locationMoveMap": "ҶОЙГИРШАВӢ (Барои гузоштани нуқтаи марказӣ харитаро ҳаракат диҳед)",
+  "moveMapToSetCenter": "Барои гузоштани маркази ҷой харитаро ҳаракат диҳед",
+  "createSafeZone": "Сохтани ҷой",
+  "updateSafeZone": "Навсозии ҷой",
+  "pleaseEnterZoneName": "Лутфан номи ҷойро ворид кунед",
   "chooseAtLeastOneDayError": "Ҳадди аққал як рӯзи фаъолро интихоб кунед",
-
   "addChildToChat": "Кӯдакро илова кунед то гуфтугӯ оғоз шавад",
   "noMessagesYet": "Ҳоло паёме нест. Салом гӯед!",
   "sendMessage": "Паём нависед...",
   "failedToSend": "Фиристодан нашуд: {error}",
-
   "helloUser": "Салом, {name}!",
   "kidMode": "Ҳолати кӯдак",
   "myLocation": "Мавқеи ман",
   "waitingForGps": "Дар интизори GPS...",
-  "sharedWithParent": "Бо волидайн мубодила шуд \u00b7 {time}",
+  "sharedWithParent": "Бо волидайн мубодила шуд · {time}",
   "notSharedYet": "Ҳоло мубодила нашудааст",
   "imSafe": "Ман бехатарам",
   "sos": "SOS",
   "sentImSafe": "\"Ман бехатарам\" ба волидайнат фиристода шуд",
   "sosMessage": "SOS! Ба ман кӯмак лозим аст!",
   "sosLocation": " Мавқеъ: {address}",
-  "sosSent": "SOS фиристода шуд \u2014 волидайн огоҳ мешаванд",
+  "sosSent": "SOS фиристода шуд — волидайн огоҳ мешаванд",
   "allowUsageAccess": "Иҷозати дастрасӣ ба истифодаи барнома",
   "usageAccessDescription": "Ин ба панели волидайн имкон медиҳад маълумоти воқеии вақти экран ва маҳдудиятҳои барномаро аз ин телефон нишон диҳад.",
   "openUsageAccess": "Кушодани дастрасии истифода",
@@ -115,7 +109,6 @@
   "allowLocationToShare": "Иҷозати мавқеъро барои мубодила диҳед",
   "grantLocationPermission": "Иҷозат диҳед то волидайнатон бидонанд шумо куҷоед.",
   "allowLocation": "Иҷозати мавқеъ",
-
   "myChildren": "Кӯдакони ман",
   "addChild": "Илова кардани кӯдак",
   "noChildrenYet": "Ҳоло кӯдаке нест. \"Илова кардани кӯдак\"-ро пахш кунед.",
@@ -136,7 +129,6 @@
   "deleteChild": "Нест кардани кӯдак",
   "track": "Пайгирӣ",
   "edit": "Таҳрир",
-
   "settings": "Танзимот",
   "parent": "ВОЛИДАЙН",
   "child": "КӮДАК",
@@ -148,7 +140,7 @@
   "pushNotifications": "Огоҳиномаҳои push",
   "locationAlerts": "Огоҳиномаҳои мавқеъ",
   "batteryAlerts": "Огоҳиномаҳои батарея",
-  "safeZoneAlerts": "Огоҳиномаҳои минтақаи бехатар",
+  "safeZoneAlerts": "Огоҳиномаҳои ҷой",
   "notificationPermissionRequired": "Барои фиристодани огоҳиномаҳо иҷозат лозим аст",
   "general": "Умумӣ",
   "language": "Забон",
@@ -164,7 +156,6 @@
   "usernameCannotBeEmpty": "Номи корбар холӣ буда наметавонад",
   "profileUpdated": "Профил навсозӣ шуд",
   "failedToUploadAvatar": "Боркунии аватар нашуд: {error}",
-
   "parentProfile": "Профили волидайн",
   "addChildForStats": "Барои дидани омори зинда аввал ҳисоби кӯдак илова кунед.",
   "insights": "ТАҲЛИЛ",
@@ -196,7 +187,7 @@
   "appUsedOnDate": "{appName} дар {date} истифода шуд",
   "limitMinutes": "Маҳдудият {time}",
   "noLimit": "Маҳдудият нест",
-  "usageTodayOverLimit": "{time} имрӯз \u00b7 аз маҳдудият зиёд",
+  "usageTodayOverLimit": "{time} имрӯз · аз маҳдудият зиёд",
   "usageToday": "{time} имрӯз",
   "limitSavedFor": "Маҳдудият барои {appName} нигоҳ дошта шуд",
   "limitDisabledFor": "Маҳдудият барои {appName} хомӯш карда шуд",
@@ -222,5 +213,41 @@
   "childNavSettings": "Танзимот",
   "childProfile": "Профил",
   "childSettingsTitle": "Танзимот",
-  "childLogout": "Баромадан"
+  "childLogout": "Баромадан",
+  "placesOnMap": "Ҷойҳо дар харита",
+  "placesAndChildren": "Ҷойҳо ва кӯдакон",
+  "placesCount": "Ҷойҳо: {count}",
+  "@placesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "activeTodayCount": "Имрӯз фаъол: {count}",
+  "@activeTodayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "retry": "Такрор",
+  "createPlaceHint": "Ҷой созед, то ҳангоми омадан ё рафтани кӯдак огоҳинома гиред.",
+  "untitledPlace": "Ҷойи беном",
+  "placeDeleted": "Ҷой тоза шуд.",
+  "editLabel": "Таҳрир",
+  "disabledSchedule": "Хомӯш",
+  "noDaysSelected": "Рӯзҳо интихоб нашудаанд",
+  "radiusSummary": "Радиус {radius} • {schedule}",
+  "@radiusSummary": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      },
+      "schedule": {
+        "type": "String"
+      }
+    }
+  }
 }

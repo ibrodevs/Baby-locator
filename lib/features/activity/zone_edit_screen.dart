@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:kid_security/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kid_security/l10n/app_localizations.dart';
+
 import '../../core/providers/session_providers.dart';
 import '../../core/providers/zone_providers.dart';
 import '../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../map/adaptive_map.dart';
 
 class ZoneEditScreen extends ConsumerStatefulWidget {
   const ZoneEditScreen({super.key, this.zone});
+
   final SafeZone? zone;
 
   @override
@@ -35,26 +37,9 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
     _scheduleType = widget.zone?.scheduleType ?? SafeZone.scheduleAlways;
     _selectedDays = {...?widget.zone?.activeDays};
 
-    // Initial position: zone's pos or first child's pos or default
-    _lat = widget.zone?.lat ?? 0;
-    _lng = widget.zone?.lng ?? 0;
-
-    if (_lat == 0) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final children = ref.read(allChildrenLocationsProvider);
-        if (children.isNotEmpty) {
-          setState(() {
-            _lat = children.first.lat;
-            _lng = children.first.lng;
-          });
-        } else {
-          setState(() {
-            _lat = 55.7558; // Moscow default
-            _lng = 37.6173;
-          });
-        }
-      });
-    }
+    final children = ref.read(allChildrenLocationsProvider);
+    _lat = widget.zone?.lat ?? (children.isNotEmpty ? children.first.lat : 55.7558);
+    _lng = widget.zone?.lng ?? (children.isNotEmpty ? children.first.lng : 37.6173);
   }
 
   @override
@@ -108,15 +93,123 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
       }
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        showAppSnackBar(
-          context,
-          t.failedGeneric(e.toString()),
-          type: AppFeedbackType.error,
-        );
-        setState(() => _loading = false);
-      }
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        t.failedGeneric(e.toString()),
+        type: AppFeedbackType.error,
+      );
+      setState(() => _loading = false);
     }
+  }
+
+  Widget _buildMapSelector(S t) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          t.locationMoveMap,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textMuted,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 320,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white, width: 4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              AdaptiveMap(
+                latitude: _lat,
+                longitude: _lng,
+                onCameraMove: (lat, lng) {
+                  _lat = lat;
+                  _lng = lng;
+                },
+              ),
+              IgnorePointer(
+                child: Center(
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 40),
+                    child: const Icon(
+                      Icons.location_on,
+                      size: 48,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+              IgnorePointer(
+                child: Center(
+                  child: Container(
+                    width: _radius * 0.4,
+                    height: _radius * 0.4,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                      border: Border.all(color: AppColors.primary, width: 2),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: IgnorePointer(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 10),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            t.moveMapToSetCenter,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -162,6 +255,8 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildMapSelector(t),
+                  const SizedBox(height: 16),
                   AppCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,12 +283,15 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        Text(t.zoneName,
-                            style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textMuted,
-                                letterSpacing: 0.5)),
+                        Text(
+                          t.zoneName,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textMuted,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                         TextField(
                           controller: _nameController,
                           decoration: InputDecoration(
@@ -204,7 +302,35 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                                 const EdgeInsets.symmetric(vertical: 8),
                           ),
                           style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w800),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.radius,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textMuted,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Slider(
+                          value: _radius,
+                          min: 100,
+                          max: 1000,
+                          divisions: 18,
+                          activeColor: AppColors.primary,
+                          inactiveColor: AppColors.primarySoft,
+                          onChanged: (v) => setState(() => _radius = v),
                         ),
                       ],
                     ),
@@ -318,129 +444,6 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(t.radius,
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textMuted,
-                                    letterSpacing: 0.5)),
-                          ],
-                        ),
-                        Slider(
-                          value: _radius,
-                          min: 100,
-                          max: 1000,
-                          divisions: 18,
-                          activeColor: AppColors.primary,
-                          inactiveColor: AppColors.primarySoft,
-                          onChanged: (v) => setState(() => _radius = v),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(t.locationMoveMap,
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textMuted,
-                          letterSpacing: 0.5)),
-                  const SizedBox(height: 8),
-                  Container(
-                    height: 320,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
-                            blurRadius: 20,
-                            offset: const Offset(0, 4)),
-                      ],
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: [
-                        if (_lat != 0)
-                          AdaptiveMap(
-                            latitude: _lat,
-                            longitude: _lng,
-                            onCameraMove: (lat, lng) {
-                              _lat = lat;
-                              _lng = lng;
-                            },
-                          ),
-                        // Center Pin
-                        IgnorePointer(
-                          child: Center(
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 40),
-                              child: const Icon(Icons.location_on,
-                                  size: 48, color: AppColors.primary),
-                            ),
-                          ),
-                        ),
-                        // Radius Preview (Simplified)
-                        IgnorePointer(
-                          child: Center(
-                            child: Container(
-                              width: _radius * 0.4, // Visual estimation
-                              height: _radius * 0.4,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.15),
-                                border: Border.all(
-                                    color: AppColors.primary, width: 2),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 16,
-                          left: 16,
-                          right: 16,
-                          child: IgnorePointer(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.95),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: const [
-                                  BoxShadow(
-                                      color: Colors.black12, blurRadius: 10)
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.info_outline,
-                                      size: 16, color: AppColors.primary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      t.moveMapToSetCenter,
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
@@ -452,14 +455,18 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18)),
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
                       child: Text(
-                          widget.zone == null
-                              ? t.createSafeZone
-                              : t.updateSafeZone,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w900)),
+                        widget.zone == null
+                            ? t.createSafeZone
+                            : t.updateSafeZone,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 40),
