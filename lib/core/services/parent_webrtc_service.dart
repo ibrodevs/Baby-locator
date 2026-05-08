@@ -321,6 +321,16 @@ class ParentWebRTCService {
               'en': 'Connection established',
               'ru': 'Соединение установлено',
             }));
+            // The WebRTC engine commits its audio output-device choice at this
+            // exact moment, often switching to earpiece ("режим звонка").
+            // Re-assert speakerphone-only here; setSpeakerphoneOn is safe to
+            // call mid-connection — it does NOT reinitialise the audio session
+            // or touch the peer connection.
+            unawaited(_forceSpeakerphone());
+            Future<void>.delayed(
+              const Duration(milliseconds: 400), _forceSpeakerphone);
+            Future<void>.delayed(
+              const Duration(milliseconds: 1200), _forceSpeakerphone);
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
             // Transient — every cell handoff or short congestion spike

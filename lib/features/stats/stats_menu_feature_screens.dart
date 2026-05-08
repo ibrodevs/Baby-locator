@@ -390,6 +390,17 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
       );
   }
 
+  List<Map<String, dynamic>> get _allKnownApps {
+    final existingPackages = _apps
+        .map((app) => (app['package_name'] as String? ?? '').trim())
+        .where((pkg) => pkg.isNotEmpty)
+        .toSet();
+    return _dedupeApps(_asList(_stats?['all_known_apps']))
+        .where((app) => !existingPackages
+            .contains((app['package_name'] as String? ?? '').trim()))
+        .toList(growable: false);
+  }
+
   bool get _usageAccessGranted => (_stats?['device'] is Map &&
       (((_stats!['device'] as Map)['usage_access_granted'] as bool?) ?? false));
 
@@ -613,6 +624,159 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     }
   }
 
+  Future<void> _showAddAppSheet() async {
+    final t = S.of(context);
+    final knownApps = _allKnownApps;
+    if (knownApps.isEmpty) {
+      showAppSnackBar(
+        context,
+        t.noAdditionalAppsToAdd,
+        type: AppFeedbackType.info,
+      );
+      return;
+    }
+
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        var query = '';
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filtered = query.isEmpty
+                ? knownApps
+                : knownApps
+                    .where((a) =>
+                        (a['app_name'] as String? ?? '')
+                            .toLowerCase()
+                            .contains(query.toLowerCase()) ||
+                        (a['package_name'] as String? ?? '')
+                            .toLowerCase()
+                            .contains(query.toLowerCase()))
+                    .toList();
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
+              ),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                20,
+                20,
+                MediaQuery.of(context).padding.bottom + 20,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.addApp,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    onChanged: (v) => setSheetState(() => query = v),
+                    decoration: InputDecoration(
+                      hintText: t.searchPlaceholder,
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide:
+                            const BorderSide(color: AppColors.dividerLight),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: filtered.length,
+                      itemBuilder: (context, i) {
+                        final app = filtered[i];
+                        final name = app['app_name'] as String? ?? '';
+                        final pkg = app['package_name'] as String? ?? '';
+                        return ListTile(
+                          leading: AppIconAvatar(
+                            iconB64: app['icon_b64'] as String?,
+                            appName: name,
+                            accent: _colorForApp(pkg),
+                            size: 38,
+                            borderRadius: 10,
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          onTap: () => Navigator.of(context).pop(app),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (selected == null) return;
+    final previousStats = _cloneStats();
+    setState(() {
+      _saving = true;
+      _applyLimitLocally(
+        packageName: selected['package_name'] as String? ?? '',
+        appName: selected['app_name'] as String? ?? t.appLabel,
+        iconB64: selected['icon_b64'] as String?,
+        enabled: true,
+        minutes: 60,
+      );
+    });
+    try {
+      await ApiClient.instance.setChildAppLimit(
+        childId: widget.childId,
+        packageName: selected['package_name'] as String? ?? '',
+        appName: selected['app_name'] as String? ?? t.appLabel,
+        dailyLimitMinutes: 60,
+        enabled: true,
+      );
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        t.limitAddedForApp(selected['app_name'] as String? ?? t.appLabel),
+        type: AppFeedbackType.success,
+      );
+      unawaited(_refreshSilently());
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _stats = previousStats;
+      });
+      showAppSnackBar(
+        context,
+        e.toString(),
+        type: AppFeedbackType.error,
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   Future<void> _toggleBlock(Map<String, dynamic> app) async {
     if (_saving) return;
     final pkg = app['package_name'] as String? ?? '';
@@ -737,6 +901,25 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
                   ),
                 ],
                 const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : _showAddAppSheet,
+                    icon: const Icon(Icons.add_rounded),
+                    label: Text(t.addApp),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: AppColors.primarySoft,
+                      disabledForegroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
                 if (_apps.isEmpty)
                   AppCard(
                     child: Text(
@@ -892,6 +1075,29 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
         .whereType<Map>()
         .map((item) => Map<String, dynamic>.from(item))
         .toList(growable: false);
+  }
+
+  List<Map<String, dynamic>> _dedupeApps(List<Map<String, dynamic>> apps) {
+    final byPackage = <String, Map<String, dynamic>>{};
+    for (final app in apps) {
+      final pkg = (app['package_name'] as String? ?? '').trim();
+      if (pkg.isEmpty) continue;
+      final existing = byPackage[pkg];
+      final nextUsage = (app['usage_minutes'] as int?) ?? 0;
+      final existingUsage = (existing?['usage_minutes'] as int?) ?? 0;
+      if (existing == null || nextUsage >= existingUsage) {
+        byPackage[pkg] = Map<String, dynamic>.from(app);
+      }
+    }
+    final values = byPackage.values.toList(growable: false);
+    return values;
+  }
+
+  Color _colorForApp(String packageName) {
+    if (_blockedPackages.contains(packageName)) {
+      return AppColors.danger;
+    }
+    return AppColors.primary;
   }
 
   Map<String, dynamic>? _cloneStats() {

@@ -34,6 +34,7 @@ InterruptionLevel _iosInterruptionLevelForNotificationType(
   switch (notificationType) {
     case 'sos':
     case 'battery_low':
+    case 'safe_zone_enter':
     case 'safe_zone_exit':
     case 'location_update':
       return InterruptionLevel.timeSensitive;

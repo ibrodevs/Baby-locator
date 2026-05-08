@@ -17,6 +17,7 @@ InterruptionLevel _deviceIosInterruptionLevelForNotificationType(
   switch (notificationType) {
     case 'sos':
     case 'battery_low':
+    case 'safe_zone_enter':
     case 'safe_zone_exit':
     case 'location_update':
       return InterruptionLevel.timeSensitive;
@@ -318,7 +319,9 @@ class DeviceNotificationService {
     }
     if (alertType == 'location_update') return _settings.locationAlerts;
     if (alertType == 'battery_low') return _settings.batteryAlerts;
-    if (alertType == 'safe_zone_exit') return _settings.safeZoneAlerts;
+    if (alertType == 'safe_zone_enter' || alertType == 'safe_zone_exit') {
+      return _settings.safeZoneAlerts;
+    }
     return _settings.locationAlerts;
   }
 
