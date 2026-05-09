@@ -9,11 +9,13 @@ import '../../core/providers/session_providers.dart';
 import '../../core/providers/zone_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/local_avatar_store.dart';
+import '../../core/subscriptions/subscription_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
 import '../auth/parent_setup_flow_screen.dart';
 import '../map/adaptive_map.dart';
+import '../subscription/premium_guard.dart';
 import 'zone_edit_screen.dart';
 
 class ActivityScreen extends ConsumerStatefulWidget {
@@ -150,6 +152,12 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   }
 
   Future<void> _openAddChildFlow() async {
+    final allowed = await requirePremiumForAdditionalChild(
+      context,
+      currentChildrenCount: ref.read(parentChildrenProvider).length,
+    );
+    if (!allowed || !mounted) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -330,6 +338,11 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SubscriptionState>(subscriptionServiceProvider,
+        (previous, next) {
+      if (previous?.isPremium == true || !next.isPremium) return;
+      unawaited(_loadData());
+    });
     ref.listen<List<Map<String, dynamic>>>(parentChildrenProvider,
         (previous, next) {
       unawaited(_syncChildren(next));
@@ -342,6 +355,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     });
     final t = S.of(context);
     final session = ref.watch(sessionProvider);
+    final subscription = ref.watch(subscriptionServiceProvider);
     final visibleEvents =
         _showAllEvents ? _events : _events.take(_activityPreviewLimit).toList();
     final hasMoreEvents = _events.length > _activityPreviewLimit;
@@ -366,215 +380,297 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               onSelected: _setSelectedChild,
             ),
             Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _children.isEmpty
-                      ? _AddChildEmptyState(
-                          subtitle: t.addChildToSeeActivity,
-                          onAddChild: _openAddChildFlow,
-                          addLabel: t.addChild,
-                        )
-                      : RefreshIndicator(
-                          onRefresh: _loadData,
-                          child: ListView(
-                            physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                            children: [
-                              // Title row
-                              Row(
+              child: session.user?.role == UserRole.parent &&
+                      !subscription.isPremium
+                  ? _LockedActivityState(
+                      onUpgrade: () => requirePremium(
+                        context,
+                        feature: PremiumFeature.movementHistory,
+                      ),
+                    )
+                  : _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _children.isEmpty
+                          ? _AddChildEmptyState(
+                              subtitle: t.addChildToSeeActivity,
+                              onAddChild: _openAddChildFlow,
+                              addLabel: t.addChild,
+                            )
+                          : RefreshIndicator(
+                              onRefresh: _loadData,
+                              child: ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 4, 16, 24),
                                 children: [
-                                  Text(
-                                    t.activity,
-                                    style: const TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.textPrimaryLight),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primarySoft,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      t.today,
-                                      style: const TextStyle(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 13,
+                                  // Title row
+                                  Row(
+                                    children: [
+                                      Text(
+                                        t.activity,
+                                        style: const TextStyle(
+                                            fontSize: 26,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.textPrimaryLight),
                                       ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Activity events card
-                              if (_events.isEmpty)
-                                AppCard(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(20),
-                                    child: Column(
-                                      children: [
-                                        const Icon(Icons.history,
-                                            size: 48,
-                                            color:
-                                                AppColors.textSecondaryLight),
-                                        const SizedBox(height: 12),
-                                        Text(
-                                          t.noActivityYet(_childName),
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                              color:
-                                                  AppColors.textSecondaryLight),
+                                      const SizedBox(width: 10),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primarySoft,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              else
-                                AppCard(
-                                  padding: EdgeInsets.zero,
-                                  child: Column(
-                                    children: visibleEvents
-                                        .asMap()
-                                        .entries
-                                        .expand((entry) => [
-                                              _ActivityRow(
-                                                event: entry.value,
-                                              ),
-                                              if (entry.key <
-                                                  visibleEvents.length - 1)
-                                                const Divider(
-                                                  height: 1,
-                                                  indent: 20,
-                                                  endIndent: 20,
-                                                  color: AppColors.dividerLight,
-                                                ),
-                                            ])
-                                        .toList(),
-                                  ),
-                                ),
-                              if (hasMoreEvents && !_showAllEvents)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12),
-                                  child: Center(
-                                    child: TextButton(
-                                      onPressed: () {
-                                        setState(() => _showAllEvents = true);
-                                      },
-                                      child: Text(t.more),
-                                    ),
-                                  ),
-                                ),
-
-                              const SizedBox(height: 22),
-
-                              // Safe Zones header
-                              Row(
-                                children: [
-                                  Text(
-                                    t.safeZones,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textPrimaryLight,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  InkWell(
-                                    onTap: () => Navigator.of(context)
-                                        .push(
-                                          MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ZoneEditScreen()),
-                                        )
-                                        .then((_) => ref
-                                            .read(safeZonesProvider.notifier)
-                                            .load()),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.add,
-                                            color: AppColors.primary, size: 18),
-                                        const SizedBox(width: 4),
-                                        Text(t.addNew,
-                                            style: const TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w700)),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Safe zones list
-                              ref.watch(safeZonesProvider).when(
-                                    data: (zones) => zones.isEmpty
-                                        ? Center(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 20),
-                                              child: Text(t.noSafeZonesYet,
-                                                  style: const TextStyle(
-                                                      color:
-                                                          AppColors.textMuted)),
-                                            ),
-                                          )
-                                        : Column(
-                                            children: zones
-                                                .map((zone) => Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              bottom: 12),
-                                                      child: _SafeZoneCard(
-                                                        zone: zone,
-                                                        onEdit: () => Navigator
-                                                                .of(context)
-                                                            .push(
-                                                              MaterialPageRoute(
-                                                                  builder: (_) =>
-                                                                      ZoneEditScreen(
-                                                                          zone:
-                                                                              zone)),
-                                                            )
-                                                            .then((_) => ref
-                                                                .read(safeZonesProvider
-                                                                    .notifier)
-                                                                .load()),
-                                                      ),
-                                                    ))
-                                                .toList(),
+                                        child: Text(
+                                          t.today,
+                                          style: const TextStyle(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13,
                                           ),
-                                    loading: () => const Center(
-                                        child: CircularProgressIndicator()),
-                                    error: (e, _) => Center(
-                                      child: Text(
-                                        t.failedGeneric(e.toString()),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Activity events card
+                                  if (_events.isEmpty)
+                                    AppCard(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          children: [
+                                            const Icon(Icons.history,
+                                                size: 48,
+                                                color: AppColors
+                                                    .textSecondaryLight),
+                                            const SizedBox(height: 12),
+                                            Text(
+                                              t.noActivityYet(_childName),
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                  color: AppColors
+                                                      .textSecondaryLight),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    AppCard(
+                                      padding: EdgeInsets.zero,
+                                      child: Column(
+                                        children: visibleEvents
+                                            .asMap()
+                                            .entries
+                                            .expand((entry) => [
+                                                  _ActivityRow(
+                                                    event: entry.value,
+                                                  ),
+                                                  if (entry.key <
+                                                      visibleEvents.length - 1)
+                                                    const Divider(
+                                                      height: 1,
+                                                      indent: 20,
+                                                      endIndent: 20,
+                                                      color: AppColors
+                                                          .dividerLight,
+                                                    ),
+                                                ])
+                                            .toList(),
                                       ),
                                     ),
+                                  if (hasMoreEvents && !_showAllEvents)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12),
+                                      child: Center(
+                                        child: TextButton(
+                                          onPressed: () {
+                                            setState(
+                                                () => _showAllEvents = true);
+                                          },
+                                          child: Text(t.more),
+                                        ),
+                                      ),
+                                    ),
+
+                                  const SizedBox(height: 22),
+
+                                  // Safe Zones header
+                                  Row(
+                                    children: [
+                                      Text(
+                                        t.safeZones,
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textPrimaryLight,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      InkWell(
+                                        onTap: () => Navigator.of(context)
+                                            .push(
+                                              MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const ZoneEditScreen()),
+                                            )
+                                            .then((_) => ref
+                                                .read(
+                                                    safeZonesProvider.notifier)
+                                                .load()),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.add,
+                                                color: AppColors.primary,
+                                                size: 18),
+                                            const SizedBox(width: 4),
+                                            Text(t.addNew,
+                                                style: const TextStyle(
+                                                    color: AppColors.primary,
+                                                    fontWeight:
+                                                        FontWeight.w700)),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+
+                                  // Safe zones list
+                                  ref.watch(safeZonesProvider).when(
+                                        data: (zones) => zones.isEmpty
+                                            ? Center(
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 20),
+                                                  child: Text(t.noSafeZonesYet,
+                                                      style: const TextStyle(
+                                                          color: AppColors
+                                                              .textMuted)),
+                                                ),
+                                              )
+                                            : Column(
+                                                children: zones
+                                                    .map((zone) => Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(
+                                                                  bottom: 12),
+                                                          child: _SafeZoneCard(
+                                                            zone: zone,
+                                                            onEdit: () => Navigator
+                                                                    .of(context)
+                                                                .push(
+                                                                  MaterialPageRoute(
+                                                                      builder: (_) =>
+                                                                          ZoneEditScreen(
+                                                                              zone: zone)),
+                                                                )
+                                                                .then((_) => ref
+                                                                    .read(safeZonesProvider
+                                                                        .notifier)
+                                                                    .load()),
+                                                          ),
+                                                        ))
+                                                    .toList(),
+                                              ),
+                                        loading: () => const Center(
+                                            child: CircularProgressIndicator()),
+                                        error: (e, _) => Center(
+                                          child: Text(
+                                            t.failedGeneric(e.toString()),
+                                          ),
+                                        ),
+                                      ),
+
+                                  const SizedBox(height: 16),
+
+                                  // Daily Safety Score card
+                                  _SafetyScoreCard(
+                                    score: _safetyScore,
+                                    inZonePct: _inZonePct,
+                                    totalUpdates: _totalUpdates,
+                                    inZoneUpdates: _inZoneUpdates,
+                                    currentZoneName: _currentZoneName,
                                   ),
 
-                              const SizedBox(height: 16),
-
-                              // Daily Safety Score card
-                              _SafetyScoreCard(
-                                score: _safetyScore,
-                                inZonePct: _inZonePct,
-                                totalUpdates: _totalUpdates,
-                                inZoneUpdates: _inZoneUpdates,
-                                currentZoneName: _currentZoneName,
+                                  const SizedBox(height: 16),
+                                ],
                               ),
-
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ),
+                            ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LockedActivityState extends StatelessWidget {
+  const _LockedActivityState({required this.onUpgrade});
+
+  final VoidCallback onUpgrade;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = S.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: AppCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.insights_rounded,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                t.premiumTitleMovementHistory,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                t.premiumSubtitleMovementHistory,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondaryLight,
+                  fontWeight: FontWeight.w600,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onUpgrade,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  t.seePlans,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -978,7 +1074,8 @@ class _AddChildEmptyState extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -986,7 +1083,8 @@ class _AddChildEmptyState extends StatelessWidget {
               icon: const Icon(Icons.add_rounded, size: 20),
               label: Text(
                 addLabel,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),
           ],

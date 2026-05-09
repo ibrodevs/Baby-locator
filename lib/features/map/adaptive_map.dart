@@ -335,8 +335,7 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       ellipsis: '...',
     )..layout(maxWidth: width - 24);
 
-    final labelWidth =
-        (labelPainter.width + 24).clamp(72.0, width).toDouble();
+    final labelWidth = (labelPainter.width + 24).clamp(72.0, width).toDouble();
     final labelRect = RRect.fromRectAndRadius(
       Rect.fromCenter(
         center: const Offset(width / 2, labelHeight / 2),
@@ -462,7 +461,8 @@ class _AdaptiveMapState extends State<AdaptiveMap> {
       annotations.add(
         am.Annotation(
           annotationId: am.AnnotationId('parent_location'),
-          position: am.LatLng(parentLocation.latitude, parentLocation.longitude),
+          position:
+              am.LatLng(parentLocation.latitude, parentLocation.longitude),
           icon: _appleParentMarker ?? am.BitmapDescriptor.defaultAnnotation,
           infoWindow: am.InfoWindow(title: parentLocation.label),
         ),

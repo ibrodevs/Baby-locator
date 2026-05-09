@@ -744,70 +744,72 @@ class SUz extends S {
   String get childLogout => 'Chiqish';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'Bolani taklif qilish';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'Bolalaringiz va boshqa oila a\'zolarini doirangizga taklif qiling';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'Oila a\'zolaringiz ilovani o\'rnatib, kod yordamida doiraga qo\'shilishlari kerak';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'Kod 3 kun amal qiladi';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'Kodni ulashish';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'Yordam olish';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'Kod yaratish';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'Kod buferga nusxalandi';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security da oilaviy davramga qo\'shiling! Taklif kodidan foydalaning: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'Kod yaratib bo\'lmadi: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'Oilaga qo\'shilish';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle =>
+      'Ota-onangizdan kelgan taklif kodini kiriting';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'Taklif kodi';
 
   @override
-  String get next => 'Next';
+  String get next => 'Keyingi';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'Profilingizni sozlang';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'Ko\'rsatma nomingizni kiriting';
 
   @override
-  String get register => 'Register';
+  String get register => 'Ro\'yxatdan o\'tish';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode =>
+      'Noto\'g\'ri yoki muddati o\'tgan taklif kodi';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => 'Allaqachon hisobingiz bormi? Kirish';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => 'Taklif kodingiz bormi? Ro\'yxatdan o\'ting';
 
   @override
   String get placesOnMap => 'Xaritadagi joylar';
@@ -851,4 +853,190 @@ class SUz extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Radius $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro faol';
+
+  @override
+  String get freePlan => 'Bepul reja';
+
+  @override
+  String get manageSubscription => 'Obunani boshqarish';
+
+  @override
+  String get restorePurchases => 'Xaridlarni tiklash';
+
+  @override
+  String get skip => 'O\'tkazib yuborish';
+
+  @override
+  String get getPremium => 'Premium olish';
+
+  @override
+  String get monthly => 'Oylik';
+
+  @override
+  String get yearly => 'Yillik';
+
+  @override
+  String get bestValue => 'Eng yaxshi narx';
+
+  @override
+  String get perMonth => 'oyda';
+
+  @override
+  String get perYearSave58 => 'yilda · 58% tejash';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Yangilash';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Eng yaxshi narx · $percent% tejash';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Bitta oilaviy hisobga bir nechta bola qo\'shing';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Audio monitoring, jonli xarita, tarix, statistika va signal vositalarini oching';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Bepul rejaning cheklovlarisiz butun ota-ona panelini saqlang';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Bola qurilmasi yaqinidagi jonli atrofdagi tovush';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Ilova cheklovlari, foydalanish tahlili va harakat tarixi';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Baland signal, yutuqlar va ilg\'or ota-ona nazorati';
+
+  @override
+  String get paywallIncludedWithPro => 'Pro-ga kiritilgan';
+
+  @override
+  String get paywallPlansTitle => 'Mavjud rejalar';
+
+  @override
+  String get paywallRecommended => 'Tavsiya etiladi';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price oylik ekvivalenti';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Rejangizni tanlang';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Oilangizga eng mos keladigan oylik yoki yillik Family Security Pro rejasini tanlang.';
+
+  @override
+  String get paywallLoadingPlans => 'Obuna rejalari yuklanmoqda...';
+
+  @override
+  String get paywallNoOffering => 'Hozirda hech qanday taklif mavjud emas.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'To\'siq sahifalari bu to\'plamda faqat iOS va Android-da mavjud.';
+
+  @override
+  String get subscriptionRestored => 'Obunangiz tiklandi.';
+
+  @override
+  String get noSubscriptionFound => 'Tiklash uchun faol obuna topilmadi.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro endi faol.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Xarid tugadi, lekin obuna hali faol emas.';
+
+  @override
+  String get premiumTitleAdditionalChildren =>
+      'Ko\'proq bola profillarini ochish';
+
+  @override
+  String get premiumTitleLiveMap => 'Jonli oila xaritasini ochish';
+
+  @override
+  String get premiumTitleMovementHistory => 'Harakat tarixini ochish';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Jonli atrofdagi tovushni ochish';
+
+  @override
+  String get premiumTitleScreenTime => 'Ekran vaqtini boshqarishni ochish';
+
+  @override
+  String get premiumTitleAppStats => 'Ilovalar foydalanish tahlilini ochish';
+
+  @override
+  String get premiumTitleAchievements => 'Yutuqlar va mukofotlarni ochish';
+
+  @override
+  String get premiumTitleLoudAlarm => 'Masofaviy baland signalni ochish';
+
+  @override
+  String get premiumTitleFullMenu => 'Ota-ona to\'liq menyusini ochish';
+
+  @override
+  String get premiumTitleGeneric => 'Family Security Pro-ni ochish';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Bepul hisoblar faqat bitta bolani boshqara oladi. Butun oilani qo\'shish uchun yangilang.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Bitta xaritadan bolalar joylashuvi, holati va masofaviy amallarni ko\'ring.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Tarixiy marshrutlarni ko\'rib chiqing, harakatni qayta ijro eting va joylashuv o\'zgarishlarini tekshiring.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Darhol kontekst kerak bo\'lganda bola yaqinidagi atrofdagi tovushlarni tinglang.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Kunlik ilova cheklovlarini o\'rnating, ilovalarni bloklab, sog\'lom qurilma odatlarini shakllantiring.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Foydalanish statistikasi, tendensiyalar va ilova darajasidagi xatti-harakatlar tahlilini ko\'ring.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Bolangizda ijobiy odatlarni shakllantirish uchun vazifalar, yulduzlar va mukofotlardan foydalaning.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Bola qurilmasini tezda topish uchun masofadan baland signalni yoqing.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'Kengaytirilgan ota-ona menyusi, boshqaruvlar va monitoring vositalari Pro-ning bir qismi.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Kengaytirilgan ota-ona nazorati va monitoring vositalarini ochish uchun Family Security Pro-ga yangilang.';
+
+  @override
+  String get seePlans => 'Rejalarni ko\'rish';
 }

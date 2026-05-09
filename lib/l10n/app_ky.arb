@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro активдүү",
+  "freePlan": "Акысыз план",
+  "manageSubscription": "Жазылымды башкаруу",
+  "restorePurchases": "Сатып алууларды калыбына келтирүү",
+  "skip": "Өткөрүп жибер",
+  "getPremium": "Premium алуу",
+  "monthly": "Айлык",
+  "yearly": "Жылдык",
+  "bestValue": "Эң жакшы баа",
+  "perMonth": "айына",
+  "perYearSave58": "жылына · 58% үнөмдөө",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Жаңылоо",
+  "paywallBestValueSave": "Эң жакшы баа · {percent}% үнөмдөө",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Бир үй-бүлөлүк аккаунтка бир нече бала кошуу",
+  "paywallBenefitUnlockTools": "Аудио мониторинг, түздөн-түз карта, тарых, статистика жана чабуул куралдарын ачыңыз",
+  "paywallBenefitFullDashboard": "Бекер пландын чектөөсүз бүт ата-эне панелин колдоңуз",
+  "paywallBenefitAudio": "Баланын түзмөгүнүн жанындагы түздөн-түз айлана-чөйрөнүн үнү",
+  "paywallBenefitAppLimits": "Колдонмо чектөөлөрү, колдонуу аналитикасы жана кыймыл тарыхы",
+  "paywallBenefitAlarm": "Катуу сигнал, жетишкендиктер жана өркүндөтүлгөн ата-эне башкаруусу",
+  "paywallIncludedWithPro": "Pro-го кирген",
+  "paywallPlansTitle": "Жеткиликтүү пландар",
+  "paywallRecommended": "Сунушталган",
+  "paywallPerMonthEquivalent": "{price} ай сайын эквиваленти",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Планыңызды тандаңыз",
+  "paywallChoosePlanDescription": "Үй-бүлөңүзгө ылайыктуу ай сайын же жылдык Family Security Pro планын тандаңыз.",
+  "paywallLoadingPlans": "Жазылым пландары жүктөлүүдө...",
+  "paywallNoOffering": "Учурда эч кандай сунуш жок.",
+  "paywallPlatformOnly": "Төлөм дубалдары бул билде iOS жана Android боюнча гана жеткиликтүү.",
+  "subscriptionRestored": "Сиздин жазылымыңыз калыбына келтирилди.",
+  "noSubscriptionFound": "Калыбына келтирүү үчүн активдүү жазылым табылган жок.",
+  "subscriptionNowActive": "Family Security Pro эми активдүү.",
+  "purchaseEntitlementPending": "Сатып алуу аяктады, бирок жазылым азыр активдүү эмес.",
+  "premiumTitleAdditionalChildren": "Кошумча бала профилдерин ачуу",
+  "premiumTitleLiveMap": "Түздөн-түз үй-бүлөлүк картаны ачуу",
+  "premiumTitleMovementHistory": "Кыймыл тарыхын ачуу",
+  "premiumTitleAudioMonitoring": "Түздөн-түз айлана-чөйрө үнүн ачуу",
+  "premiumTitleScreenTime": "Экран убактысын башкарууну ачуу",
+  "premiumTitleAppStats": "Колдонмо колдонуу аналитикасын ачуу",
+  "premiumTitleAchievements": "Жетишкендиктерди жана сыйлыктарды ачуу",
+  "premiumTitleLoudAlarm": "Алыстан катуу сигналды ачуу",
+  "premiumTitleFullMenu": "Ата-энелердин толук менюсун ачуу",
+  "premiumTitleGeneric": "Family Security Pro ачуу",
+  "premiumSubtitleAdditionalChildren": "Акысыз каттоо эсептери бир гана баланы башкара алат. Бүт үй-бүлөнү кошуу үчүн жаңылаңыз.",
+  "premiumSubtitleLiveMap": "Бир картадан балалардын реалдуу убакыттагы жайгашуусун, статусун жана алыстан иш-аракеттерди көрүңүз.",
+  "premiumSubtitleMovementHistory": "Тарыхый маршруттарды карап чыгыңыз, кыймылды ойнотуңуз жана жерди өзгөртүүлөрдү иликтеңиз.",
+  "premiumSubtitleAudioMonitoring": "Дароо контекст керек болгондо баланын жанындагы айлана-чөйрөнүн үндөрүн угуңуз.",
+  "premiumSubtitleScreenTime": "Күнүмдүк колдонмо чектөөлөрүн орнотуңуз, колдонмолорду бөгөттөңүз жана ден-соолукка пайдалуу адаттарды калыптандырыңыз.",
+  "premiumSubtitleAppStats": "Колдонуу статистикасын, тенденцияларды жана колдонмо деңгейиндеги жүрүм-туруму инсайтын көрүңүз.",
+  "premiumSubtitleAchievements": "Балаңыз үчүн оң адаттарды калыптандыруу үчүн тапшырмаларды, жылдыздарды жана сыйлыктарды колдонуңуз.",
+  "premiumSubtitleLoudAlarm": "Баланын түзмөгүн тез табуу үчүн алыстан катуу сигналды иштетиңиз.",
+  "premiumSubtitleFullMenu": "Өркүндөтүлгөн ата-эне менюсу, башкаруулар жана мониторинг куралдары Pro-нун бир бөлүгү.",
+  "premiumSubtitleGeneric": "Өркүндөтүлгөн ата-эне контролу жана мониторинг куралдарын ачуу үчүн Family Security Pro-го жаңылаңыз.",
+  "alreadyHaveAccount": "Аккаунт барбы? Кирүү",
+  "childRegisterSubtitle": "Ата-эненизден алган чакыруу кодун киргизиңиз",
+  "childRegisterTitle": "Үй-бүлөгө кошулуу",
+  "codeCopied": "Код алмашуу буферине көчүрүлдү",
+  "dontHaveCode": "Чакыруу коду барбы? Катталуу",
+  "enterYourDetails": "Көрсөтүлүүчү атыңызды киргизиңиз",
+  "failedToGenerateCode": "Код түзүлгөн жок: {error}",
+  "generateCode": "Код түзүү",
+  "getHelp": "Жардам алуу",
+  "invalidInviteCode": "Жараксыз же мөөнөтү өткөн чакыруу коду",
+  "inviteChild": "Баланы чакыруу",
+  "inviteCode": "Чакыруу коду",
+  "inviteCodeLabel": "Код 3 күн жарактуу",
+  "inviteShareText": "Family security боюнча үй-бүлөлүк чөйрөмө кошулуңуз! Чакыруу кодун колдонуңуз: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Үй-бүлөңүздүн мүчөлөрү тиркемени орнотуп, код аркылуу чөйрөгө кошулушу керек",
+  "inviteTitle": "Балаларыңызды жана үй-бүлөнүн башка мүчөлөрүн чөйрөңүзгө чакырыңыз",
+  "next": "Кийинки",
+  "register": "Катталуу",
+  "setupYourProfile": "Профилиңизди орнотуңуз",
+  "shareCode": "Кодду бөлүшүү",
+  "seePlans": "Пландарды көрүү"
 }

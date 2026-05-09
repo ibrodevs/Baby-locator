@@ -741,70 +741,71 @@ class SEs extends S {
   String get childLogout => 'Cerrar sesión';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'Invitar al hijo';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'Invita a tus hijos y otros familiares a tu círculo';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'Los miembros de tu familia deben instalar la app y unirse al círculo con el código';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'Código válido por 3 días';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'Compartir código';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'Obtener ayuda';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'Generar código';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'Código copiado al portapapeles';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return '¡Únete a mi círculo familiar en Family security! Usa el código de invitación: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'Error al generar código: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'Unirse a la familia';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle =>
+      'Introduce el código de invitación de tu padre/madre';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'Código de invitación';
 
   @override
-  String get next => 'Next';
+  String get next => 'Siguiente';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'Configurar tu perfil';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'Introduce tu nombre para mostrar';
 
   @override
-  String get register => 'Register';
+  String get register => 'Registrarse';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode => 'Código de invitación inválido o expirado';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => '¿Ya tienes cuenta? Iniciar sesión';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => '¿Tienes un código de invitación? Regístrate';
 
   @override
   String get placesOnMap => 'Lugares en el mapa';
@@ -848,4 +849,196 @@ class SEs extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Radio $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro activo';
+
+  @override
+  String get freePlan => 'Plan gratuito';
+
+  @override
+  String get manageSubscription => 'Gestionar suscripción';
+
+  @override
+  String get restorePurchases => 'Restaurar compras';
+
+  @override
+  String get skip => 'Saltar';
+
+  @override
+  String get getPremium => 'Obtener Premium';
+
+  @override
+  String get monthly => 'Mensual';
+
+  @override
+  String get yearly => 'Anual';
+
+  @override
+  String get bestValue => 'Mejor valor';
+
+  @override
+  String get perMonth => 'por mes';
+
+  @override
+  String get perYearSave58 => 'por año · Ahorra 58%';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Actualizar';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Mejor valor · Ahorra $percent%';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Añade varios hijos a una cuenta familiar';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Desbloquea monitoreo de audio, mapa en vivo, historial, estadísticas y alarmas';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Mantén disponible todo el panel de padres sin límites del plan gratuito';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Audio del entorno en tiempo real cerca del dispositivo del hijo';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Límites de apps, análisis de uso e historial de movimiento';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Alarma sonora, logros y controles parentales avanzados';
+
+  @override
+  String get paywallIncludedWithPro => 'Incluido con Pro';
+
+  @override
+  String get paywallPlansTitle => 'Planes disponibles';
+
+  @override
+  String get paywallRecommended => 'Recomendado';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price equivalente mensual';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Elige tu plan';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Elige el plan mensual o anual de Family Security Pro que mejor se adapte a tu familia.';
+
+  @override
+  String get paywallLoadingPlans => 'Cargando planes de suscripción...';
+
+  @override
+  String get paywallNoOffering =>
+      'No hay ninguna oferta disponible actualmente.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Los muros de pago están disponibles solo en iOS y Android en esta versión.';
+
+  @override
+  String get subscriptionRestored => 'Tu suscripción ha sido restaurada.';
+
+  @override
+  String get noSubscriptionFound =>
+      'No se encontró ninguna suscripción activa para restaurar.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro está ahora activo.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Compra finalizada, pero la suscripción aún no está activa.';
+
+  @override
+  String get premiumTitleAdditionalChildren =>
+      'Desbloquear más perfiles de hijos';
+
+  @override
+  String get premiumTitleLiveMap => 'Desbloquear mapa familiar en tiempo real';
+
+  @override
+  String get premiumTitleMovementHistory =>
+      'Desbloquear historial de movimiento';
+
+  @override
+  String get premiumTitleAudioMonitoring =>
+      'Desbloquear sonido ambiente en tiempo real';
+
+  @override
+  String get premiumTitleScreenTime =>
+      'Desbloquear controles de tiempo de pantalla';
+
+  @override
+  String get premiumTitleAppStats => 'Desbloquear análisis de uso de apps';
+
+  @override
+  String get premiumTitleAchievements => 'Desbloquear logros y recompensas';
+
+  @override
+  String get premiumTitleLoudAlarm =>
+      'Desbloquear alarma remota de alto volumen';
+
+  @override
+  String get premiumTitleFullMenu => 'Desbloquear el menú completo de padres';
+
+  @override
+  String get premiumTitleGeneric => 'Desbloquear Family Security Pro';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Las cuentas gratuitas solo pueden gestionar un hijo. Actualiza para añadir a toda la familia.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Ve la ubicación en tiempo real, el estado y las acciones remotas de tus hijos desde un mapa.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Revisa rutas históricas, reproduce movimientos e investiga cambios de ubicación.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Escucha los sonidos del entorno cerca del hijo cuando necesitas contexto inmediato.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Establece límites diarios de apps, bloquea apps y fomenta hábitos más saludables.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Ve desglose de uso, tendencias e insights de comportamiento a nivel de app.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Usa tareas, estrellas y recompensas para desarrollar hábitos positivos en tu hijo.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Activa una alarma sonora de forma remota para localizar rápidamente el dispositivo del hijo.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'El menú avanzado de padres, los controles y las herramientas de monitoreo son parte de Pro.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Actualiza a Family Security Pro para desbloquear herramientas avanzadas de control parental.';
+
+  @override
+  String get seePlans => 'Ver planes';
 }

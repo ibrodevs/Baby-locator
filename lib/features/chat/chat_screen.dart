@@ -12,12 +12,14 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/chat_visibility_service.dart';
 import '../../core/services/local_avatar_store.dart';
+import '../../core/subscriptions/subscription_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../../core/widgets/child_selector_chips.dart';
 import '../auth/parent_setup_flow_screen.dart';
+import '../subscription/premium_guard.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({
@@ -47,6 +49,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   // ignore: unused_field
   int _starBalance = 0;
   bool _loading = true;
+  bool _premiumFeaturesAvailable = true;
   bool _didInitialScrollToBottom = false;
   Timer? _poll;
   bool _conversationLoading = false;
@@ -107,6 +110,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         _rewards = const [];
         _totalStars = 0;
         _starBalance = 0;
+        _premiumFeaturesAvailable = true;
         _loading = false;
         _didInitialScrollToBottom = false;
       });
@@ -173,6 +177,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
       _rewards = [];
       _totalStars = 0;
       _starBalance = 0;
+      _premiumFeaturesAvailable = true;
       _loading = true;
       _didInitialScrollToBottom = false;
     });
@@ -205,6 +210,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   Future<void> _openAddChildFlow() async {
+    final allowed = await requirePremiumForAdditionalChild(
+      context,
+      currentChildrenCount: ref.read(parentChildrenProvider).length,
+    );
+    if (!allowed || !mounted) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -221,20 +232,42 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   Future<void> _loadAll() async {
     if (_selectedChildId == null) return;
     try {
-      final results = await Future.wait([
-        ApiClient.instance.getMessages(_selectedChildId!),
-        ApiClient.instance.getTasks(_selectedChildId!),
-        ApiClient.instance.getStars(_selectedChildId!),
-        ApiClient.instance.getRewards(_selectedChildId!),
-      ]);
+      final messages = (await ApiClient.instance.getMessages(_selectedChildId!))
+          .cast<Map<String, dynamic>>();
+      var tasks = <Map<String, dynamic>>[];
+      var rewards = <Map<String, dynamic>>[];
+      var totalStars = 0;
+      var starBalance = 0;
+      var premiumAvailable = true;
+
+      try {
+        final premiumResults = await Future.wait([
+          ApiClient.instance.getTasks(_selectedChildId!),
+          ApiClient.instance.getStars(_selectedChildId!),
+          ApiClient.instance.getRewards(_selectedChildId!),
+        ]);
+        tasks =
+            (premiumResults[0] as List<dynamic>).cast<Map<String, dynamic>>();
+        final stars = premiumResults[1] as Map<String, dynamic>;
+        totalStars = (stars['total_earned'] as int?) ?? 0;
+        starBalance = (stars['balance'] as int?) ?? 0;
+        rewards =
+            (premiumResults[2] as List<dynamic>).cast<Map<String, dynamic>>();
+      } catch (error) {
+        if (!isPremiumRequiredError(error)) {
+          rethrow;
+        }
+        premiumAvailable = false;
+      }
+
       if (!mounted) return;
       setState(() {
-        _messages = (results[0] as List<dynamic>).cast<Map<String, dynamic>>();
-        _tasks = (results[1] as List<dynamic>).cast<Map<String, dynamic>>();
-        final stars = results[2] as Map<String, dynamic>;
-        _totalStars = (stars['total_earned'] as int?) ?? 0;
-        _starBalance = (stars['balance'] as int?) ?? 0;
-        _rewards = (results[3] as List<dynamic>).cast<Map<String, dynamic>>();
+        _messages = messages;
+        _tasks = tasks;
+        _totalStars = totalStars;
+        _starBalance = starBalance;
+        _rewards = rewards;
+        _premiumFeaturesAvailable = premiumAvailable;
         _loading = false;
       });
       _syncScrollAfterConversationUpdate();
@@ -248,22 +281,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
     if (_selectedChildId == null || _conversationLoading) return;
     _conversationLoading = true;
     try {
-      final results = await Future.wait([
-        ApiClient.instance.getMessages(_selectedChildId!),
-        ApiClient.instance.getTasks(_selectedChildId!),
-      ]);
+      final messages = (await ApiClient.instance.getMessages(_selectedChildId!))
+          .cast<Map<String, dynamic>>();
+      var tasks = <Map<String, dynamic>>[];
+      var premiumAvailable = true;
+
+      try {
+        tasks = (await ApiClient.instance.getTasks(_selectedChildId!))
+            .cast<Map<String, dynamic>>();
+      } catch (error) {
+        if (!isPremiumRequiredError(error)) {
+          rethrow;
+        }
+        premiumAvailable = false;
+      }
+
       if (!mounted) return;
       final wasAtBottom = _isNearBottom;
-      final messages = List<Map<String, dynamic>>.from(results[0]);
-      final tasks = List<Map<String, dynamic>>.from(results[1]);
       final hadChanges =
           !_sameIds(_messages, messages) || !_sameIds(_tasks, tasks);
-      if (!hadChanges && !_loading) {
+      if (!hadChanges &&
+          _premiumFeaturesAvailable == premiumAvailable &&
+          !_loading) {
         return;
       }
       setState(() {
         _messages = messages;
         _tasks = tasks;
+        _premiumFeaturesAvailable = premiumAvailable;
         _loading = false;
       });
       _syncScrollAfterConversationUpdate(wasAtBottom: wasAtBottom);
@@ -552,6 +597,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   Future<void> _handleAddTask() async {
+    if (!_premiumFeaturesAvailable) {
+      await requirePremium(
+        context,
+        feature: PremiumFeature.achievements,
+      );
+      return;
+    }
     final hasReward = _rewards.any((reward) => reward['claimed'] != true);
     if (hasReward) {
       _showAddTaskDialog();
@@ -695,6 +747,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   void _showAddRewardDialog() {
+    if (!_premiumFeaturesAvailable) {
+      unawaited(
+        requirePremium(
+          context,
+          feature: PremiumFeature.achievements,
+        ),
+      );
+      return;
+    }
     final t = S.of(context);
     final titleCtrl = TextEditingController();
     final starsCtrl = TextEditingController(text: '500');
@@ -933,11 +994,48 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               ),
 
             // Weekly Rewards Banner
-            if (!_loading && _selectedChildId != null)
+            if (!_loading &&
+                _selectedChildId != null &&
+                _premiumFeaturesAvailable)
               _WeeklyRewardsBanner(
                 totalStars: _totalStars,
                 nextReward: nextReward,
                 palette: childPalette,
+              ),
+            if (!_loading && isParent && !_premiumFeaturesAvailable)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: AppCard(
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Tasks, stars, and rewards are part of Family Security Pro.',
+                          style: TextStyle(
+                            color: AppColors.textSecondaryLight,
+                            fontWeight: FontWeight.w600,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () => requirePremium(
+                          context,
+                          feature: PremiumFeature.achievements,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text(
+                          'Upgrade',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
 
             // Main content
@@ -961,6 +1059,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
               controller: _controller,
               onSend: _send,
               isParent: isParent,
+              showRewardActions: _premiumFeaturesAvailable,
               onAddTask: _handleAddTask,
               onAddReward: _showAddRewardDialog,
               sendingCount: _pendingMessages.length,
@@ -2044,6 +2143,7 @@ class _ChatComposer extends StatelessWidget {
     required this.controller,
     required this.onSend,
     required this.isParent,
+    required this.showRewardActions,
     required this.onAddTask,
     required this.onAddReward,
     required this.sendingCount,
@@ -2051,6 +2151,7 @@ class _ChatComposer extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
   final bool isParent;
+  final bool showRewardActions;
   final VoidCallback onAddTask;
   final VoidCallback onAddReward;
   final int sendingCount;
@@ -2103,7 +2204,7 @@ class _ChatComposer extends StatelessWidget {
           ),
           Row(
             children: [
-              if (isParent)
+              if (isParent && showRewardActions)
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.add_circle_outline,
                       color: AppColors.textSecondaryLight, size: 26),
@@ -2197,7 +2298,8 @@ class _AddChildEmptyState extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -2205,7 +2307,8 @@ class _AddChildEmptyState extends StatelessWidget {
               icon: const Icon(Icons.add_rounded, size: 20),
               label: Text(
                 addLabel,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
             ),
           ],

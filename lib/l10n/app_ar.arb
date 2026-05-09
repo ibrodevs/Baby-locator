@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "برو نشط",
+  "freePlan": "الخطة المجانية",
+  "manageSubscription": "إدارة الاشتراك",
+  "restorePurchases": "استعادة المشتريات",
+  "skip": "تخطي",
+  "getPremium": "الحصول على الباقة المميزة",
+  "monthly": "شهري",
+  "yearly": "سنوي",
+  "bestValue": "أفضل قيمة",
+  "perMonth": "في الشهر",
+  "perYearSave58": "سنويًا · وفّر 58%",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "ترقية",
+  "paywallBestValueSave": "أفضل قيمة · وفّر {percent}%",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "أضف أطفالاً متعددين إلى حساب عائلي واحد",
+  "paywallBenefitUnlockTools": "افتح مراقبة الصوت والخريطة المباشرة والسجل والإحصائيات وأدوات الإنذار",
+  "paywallBenefitFullDashboard": "احتفظ بلوحة تحكم الوالدين كاملة دون قيود الخطة المجانية",
+  "paywallBenefitAudio": "تسجيل الصوت المحيطي بالقرب من جهاز الطفل",
+  "paywallBenefitAppLimits": "حدود التطبيقات وتحليلات الاستخدام وسجل الحركة",
+  "paywallBenefitAlarm": "صفارة إنذار صوتية وإنجازات وضوابط متقدمة للوالدين",
+  "paywallIncludedWithPro": "مضمّن مع Pro",
+  "paywallPlansTitle": "الخطط المتاحة",
+  "paywallRecommended": "موصى به",
+  "paywallPerMonthEquivalent": "{price} ما يعادل شهريًا",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "اختر خطتك",
+  "paywallChoosePlanDescription": "اختر خطة Family Security Pro الشهرية أو السنوية التي تناسب عائلتك.",
+  "paywallLoadingPlans": "جارٍ تحميل خطط الاشتراك...",
+  "paywallNoOffering": "لا يوجد عرض متاح حاليًا.",
+  "paywallPlatformOnly": "جدران الدفع متاحة فقط على iOS وAndroid في هذا الإصدار.",
+  "subscriptionRestored": "تمت استعادة اشتراكك.",
+  "noSubscriptionFound": "لم يتم العثور على اشتراك نشط لاستعادته.",
+  "subscriptionNowActive": "Family Security Pro نشط الآن.",
+  "purchaseEntitlementPending": "اكتمل الشراء، لكن الاشتراك لم يصبح نشطًا بعد.",
+  "premiumTitleAdditionalChildren": "فتح المزيد من ملفات الأطفال",
+  "premiumTitleLiveMap": "فتح خريطة الأسرة المباشرة",
+  "premiumTitleMovementHistory": "فتح سجل الحركة",
+  "premiumTitleAudioMonitoring": "فتح الصوت المحيطي المباشر",
+  "premiumTitleScreenTime": "فتح ضوابط وقت الشاشة",
+  "premiumTitleAppStats": "فتح تحليلات استخدام التطبيقات",
+  "premiumTitleAchievements": "فتح الإنجازات والمكافآت",
+  "premiumTitleLoudAlarm": "فتح صفارة الإنذار الصوتية عن بُعد",
+  "premiumTitleFullMenu": "فتح قائمة الوالدين الكاملة",
+  "premiumTitleGeneric": "فتح Family Security Pro",
+  "premiumSubtitleAdditionalChildren": "يمكن للحسابات المجانية إدارة طفل واحد فقط. قم بالترقية لإضافة العائلة بأكملها.",
+  "premiumSubtitleLiveMap": "اطّلع على مواقع الأطفال الفورية وحالتهم والإجراءات عن بُعد من خريطة واحدة.",
+  "premiumSubtitleMovementHistory": "راجع المسارات التاريخية وتشغيل الحركة والتحقيق في تغييرات الموقع.",
+  "premiumSubtitleAudioMonitoring": "استمع إلى الأصوات المحيطة بالقرب من الطفل عند الحاجة إلى السياق الفوري.",
+  "premiumSubtitleScreenTime": "حدد حدودًا يومية للتطبيقات وحجب التطبيقات وفرض عادات أكثر صحة.",
+  "premiumSubtitleAppStats": "اطلع على تحليلات الاستخدام والاتجاهات ورؤى السلوك على مستوى التطبيق.",
+  "premiumSubtitleAchievements": "استخدم المهام والنجوم والمكافآت لبناء عادات إيجابية لطفلك.",
+  "premiumSubtitleLoudAlarm": "قم بتشغيل صفارة إنذار عالية عن بُعد للمساعدة في تحديد موقع جهاز الطفل بسرعة.",
+  "premiumSubtitleFullMenu": "قائمة الوالدين المتقدمة وعناصر التحكم وأدوات المراقبة هي جزء من Pro.",
+  "premiumSubtitleGeneric": "قم بالترقية إلى Family Security Pro لفتح أدوات الرقابة الأبوية المتقدمة.",
+  "alreadyHaveAccount": "هل لديك حساب بالفعل؟ تسجيل الدخول",
+  "childRegisterSubtitle": "أدخل رمز الدعوة من أحد والديك",
+  "childRegisterTitle": "انضم إلى الأسرة",
+  "codeCopied": "تم نسخ الرمز إلى الحافظة",
+  "dontHaveCode": "لديك رمز دعوة؟ سجّل",
+  "enterYourDetails": "أدخل اسمك المعروض",
+  "failedToGenerateCode": "فشل في إنشاء الرمز: {error}",
+  "generateCode": "توليد الرمز",
+  "getHelp": "الحصول على المساعدة",
+  "invalidInviteCode": "رمز الدعوة غير صالح أو منتهي الصلاحية",
+  "inviteChild": "دعوة طفل",
+  "inviteCode": "رمز الدعوة",
+  "inviteCodeLabel": "الرمز صالح لمدة 3 أيام",
+  "inviteShareText": "انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "يحتاج أفراد عائلتك إلى تثبيت التطبيق والانضمام إلى الدائرة باستخدام الرمز",
+  "inviteTitle": "ادعُ الأطفال وأفراد الأسرة الآخرين إلى دائرتك",
+  "next": "التالي",
+  "register": "التسجيل",
+  "setupYourProfile": "إعداد ملفك الشخصي",
+  "shareCode": "مشاركة الرمز",
+  "seePlans": "عرض الخطط"
 }

@@ -1602,6 +1602,330 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Radius {radius} • {schedule}'**
   String radiusSummary(String radius, String schedule);
+
+  /// No description provided for @proActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Pro active'**
+  String get proActive;
+
+  /// No description provided for @freePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Free plan'**
+  String get freePlan;
+
+  /// No description provided for @manageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscription;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @getPremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium'**
+  String get getPremium;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthly;
+
+  /// No description provided for @yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get yearly;
+
+  /// No description provided for @bestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Best value'**
+  String get bestValue;
+
+  /// No description provided for @perMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'per month'**
+  String get perMonth;
+
+  /// No description provided for @perYearSave58.
+  ///
+  /// In en, this message translates to:
+  /// **'per year · Save 58%'**
+  String get perYearSave58;
+
+  /// No description provided for @paywallProductName.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Security Pro'**
+  String get paywallProductName;
+
+  /// No description provided for @paywallUpgrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade'**
+  String get paywallUpgrade;
+
+  /// No description provided for @paywallBestValueSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Best value · Save {percent}%'**
+  String paywallBestValueSave(int percent);
+
+  /// No description provided for @paywallBenefitAddChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Add multiple children to one family account'**
+  String get paywallBenefitAddChildren;
+
+  /// No description provided for @paywallBenefitUnlockTools.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock audio monitoring, live map, history, stats, and alarm tools'**
+  String get paywallBenefitUnlockTools;
+
+  /// No description provided for @paywallBenefitFullDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the entire parent dashboard available without free-plan limits'**
+  String get paywallBenefitFullDashboard;
+
+  /// No description provided for @paywallBenefitAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Live surrounding audio near the child device'**
+  String get paywallBenefitAudio;
+
+  /// No description provided for @paywallBenefitAppLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'App limits, usage analytics, and movement history'**
+  String get paywallBenefitAppLimits;
+
+  /// No description provided for @paywallBenefitAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Loud alarm, achievements, and advanced parent controls'**
+  String get paywallBenefitAlarm;
+
+  /// No description provided for @paywallIncludedWithPro.
+  ///
+  /// In en, this message translates to:
+  /// **'Included with Pro'**
+  String get paywallIncludedWithPro;
+
+  /// No description provided for @paywallPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans in this paywall'**
+  String get paywallPlansTitle;
+
+  /// No description provided for @paywallRecommended.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended'**
+  String get paywallRecommended;
+
+  /// No description provided for @paywallPerMonthEquivalent.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} per month equivalent'**
+  String paywallPerMonthEquivalent(String price);
+
+  /// No description provided for @paywallChooseYourPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your plan'**
+  String get paywallChooseYourPlan;
+
+  /// No description provided for @paywallChoosePlanDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the monthly or yearly Family Security Pro plan that fits your family best.'**
+  String get paywallChoosePlanDescription;
+
+  /// No description provided for @paywallLoadingPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading subscription plans...'**
+  String get paywallLoadingPlans;
+
+  /// No description provided for @paywallNoOffering.
+  ///
+  /// In en, this message translates to:
+  /// **'No offering is currently available.'**
+  String get paywallNoOffering;
+
+  /// No description provided for @paywallPlatformOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Paywalls are available only on iOS and Android in this build.'**
+  String get paywallPlatformOnly;
+
+  /// No description provided for @subscriptionRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription has been restored.'**
+  String get subscriptionRestored;
+
+  /// No description provided for @noSubscriptionFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No active subscription was found to restore.'**
+  String get noSubscriptionFound;
+
+  /// No description provided for @subscriptionNowActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Security Pro is now active.'**
+  String get subscriptionNowActive;
+
+  /// No description provided for @purchaseEntitlementPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase finished, but the subscription is not active yet.'**
+  String get purchaseEntitlementPending;
+
+  /// No description provided for @premiumTitleAdditionalChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock more child profiles'**
+  String get premiumTitleAdditionalChildren;
+
+  /// No description provided for @premiumTitleLiveMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock live family map'**
+  String get premiumTitleLiveMap;
+
+  /// No description provided for @premiumTitleMovementHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock movement history'**
+  String get premiumTitleMovementHistory;
+
+  /// No description provided for @premiumTitleAudioMonitoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock live surrounding sound'**
+  String get premiumTitleAudioMonitoring;
+
+  /// No description provided for @premiumTitleScreenTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock screen time controls'**
+  String get premiumTitleScreenTime;
+
+  /// No description provided for @premiumTitleAppStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock app usage analytics'**
+  String get premiumTitleAppStats;
+
+  /// No description provided for @premiumTitleAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock achievements and rewards'**
+  String get premiumTitleAchievements;
+
+  /// No description provided for @premiumTitleLoudAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock remote loud alarm'**
+  String get premiumTitleLoudAlarm;
+
+  /// No description provided for @premiumTitleFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock the full parent menu'**
+  String get premiumTitleFullMenu;
+
+  /// No description provided for @premiumTitleGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Family Security Pro'**
+  String get premiumTitleGeneric;
+
+  /// No description provided for @premiumSubtitleAdditionalChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Free accounts can manage only one child. Upgrade to add the whole family.'**
+  String get premiumSubtitleAdditionalChildren;
+
+  /// No description provided for @premiumSubtitleLiveMap.
+  ///
+  /// In en, this message translates to:
+  /// **'See real-time child locations, status, and remote actions from one map.'**
+  String get premiumSubtitleLiveMap;
+
+  /// No description provided for @premiumSubtitleMovementHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Review historical routes, playback movement, and investigate location changes.'**
+  String get premiumSubtitleMovementHistory;
+
+  /// No description provided for @premiumSubtitleAudioMonitoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to surrounding sound near the child when you need immediate context.'**
+  String get premiumSubtitleAudioMonitoring;
+
+  /// No description provided for @premiumSubtitleScreenTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set daily app limits, block apps, and enforce healthier device habits.'**
+  String get premiumSubtitleScreenTime;
+
+  /// No description provided for @premiumSubtitleAppStats.
+  ///
+  /// In en, this message translates to:
+  /// **'See usage breakdowns, trends, and app-level behavior insights.'**
+  String get premiumSubtitleAppStats;
+
+  /// No description provided for @premiumSubtitleAchievements.
+  ///
+  /// In en, this message translates to:
+  /// **'Use tasks, stars, and rewards to build positive habits for your child.'**
+  String get premiumSubtitleAchievements;
+
+  /// No description provided for @premiumSubtitleLoudAlarm.
+  ///
+  /// In en, this message translates to:
+  /// **'Trigger a loud alarm remotely to help locate the child device quickly.'**
+  String get premiumSubtitleLoudAlarm;
+
+  /// No description provided for @premiumSubtitleFullMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'The advanced parent menu, controls, and monitoring tools are part of Pro.'**
+  String get premiumSubtitleFullMenu;
+
+  /// No description provided for @premiumSubtitleGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Family Security Pro to unlock advanced parental control and monitoring tools.'**
+  String get premiumSubtitleGeneric;
+
+  /// No description provided for @seePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'See plans'**
+  String get seePlans;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -12,6 +12,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../auth/parent_setup_flow_screen.dart';
+import '../subscription/premium_guard.dart';
 
 class ChildrenListScreen extends ConsumerStatefulWidget {
   const ChildrenListScreen({super.key});
@@ -75,6 +76,12 @@ class _ChildrenListScreenState extends ConsumerState<ChildrenListScreen> {
   }
 
   Future<void> _inviteChild() async {
+    final allowed = await requirePremiumForAdditionalChild(
+      context,
+      currentChildrenCount: ref.read(parentChildrenProvider).length,
+    );
+    if (!allowed || !mounted) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -445,8 +452,8 @@ class _EditChildSheetState extends State<_EditChildSheet> {
                     child: CircularProgressIndicator(
                         color: Colors.white, strokeWidth: 2))
                 : Text(t.save,
-                    style:
-                        const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w800)),
           ),
           const SizedBox(height: 10),
           TextButton(

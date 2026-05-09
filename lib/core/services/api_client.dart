@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiConfig {
   static const String _defineBase =
       String.fromEnvironment('API_BASE', defaultValue: '');
-  static const String _defaultBase = 'http://89.108.81.151';
+  static const String _defaultBase = 'https://baby-locator.online';
 
   static String get baseUrl {
     if (_defineBase.isNotEmpty) return _defineBase;
@@ -153,7 +153,13 @@ class ApiClient {
     String msg = r.body;
     try {
       final decoded = jsonDecode(r.body);
-      msg = decoded is Map ? decoded.values.first.toString() : msg;
+      if (decoded is Map) {
+        if (decoded['detail'] != null) {
+          msg = decoded['detail'].toString();
+        } else if (decoded.values.isNotEmpty) {
+          msg = decoded.values.first.toString();
+        }
+      }
     } catch (_) {}
     throw ApiException(r.statusCode, msg);
   }

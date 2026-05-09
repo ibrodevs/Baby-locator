@@ -38,8 +38,10 @@ class _ZoneEditScreenState extends ConsumerState<ZoneEditScreen> {
     _selectedDays = {...?widget.zone?.activeDays};
 
     final children = ref.read(allChildrenLocationsProvider);
-    _lat = widget.zone?.lat ?? (children.isNotEmpty ? children.first.lat : 55.7558);
-    _lng = widget.zone?.lng ?? (children.isNotEmpty ? children.first.lng : 37.6173);
+    _lat = widget.zone?.lat ??
+        (children.isNotEmpty ? children.first.lat : 55.7558);
+    _lng = widget.zone?.lng ??
+        (children.isNotEmpty ? children.first.lng : 37.6173);
   }
 
   @override

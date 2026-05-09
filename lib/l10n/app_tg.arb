@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro фаъол",
+  "freePlan": "Нақшаи ройгон",
+  "manageSubscription": "Идоракунии обуна",
+  "restorePurchases": "Харидҳоро барқарор кунед",
+  "skip": "Гузаштан",
+  "getPremium": "Premium гирифтан",
+  "monthly": "Моҳона",
+  "yearly": "Солона",
+  "bestValue": "Беҳтарин арзиш",
+  "perMonth": "дар як моҳ",
+  "perYearSave58": "дар як сол · 58% сарфа",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Навсозӣ",
+  "paywallBestValueSave": "Беҳтарин арзиш · {percent}% сарфа",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Якчанд кӯдакро ба як ҳисоби оилавӣ илова кунед",
+  "paywallBenefitUnlockTools": "Мониторинги аудио, харитаи зинда, таърих, омор ва абзорҳои огоҳиро кушоед",
+  "paywallBenefitFullDashboard": "Тамоми панели волидайнро бидуни маҳдудиятҳои нақшаи ройгон нигоҳ доред",
+  "paywallBenefitAudio": "Садои иҳотаи зинда дар наздикии дастгоҳи кӯдак",
+  "paywallBenefitAppLimits": "Маҳдудиятҳои замима, аналитикаи истифода ва таърихи ҳаракат",
+  "paywallBenefitAlarm": "Огоҳии баланд, дастовардҳо ва назорати пешрафтаи волидайн",
+  "paywallIncludedWithPro": "Дар Pro дохил аст",
+  "paywallPlansTitle": "Нақшаҳои дастрас",
+  "paywallRecommended": "Тавсия карда мешавад",
+  "paywallPerMonthEquivalent": "{price} арзиши моҳона",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Нақшаатонро интихоб кунед",
+  "paywallChoosePlanDescription": "Нақшаи моҳона ё солонаи Family Security Pro-ро интихоб кунед, ки барои оилаи шумо мувофиқтарин аст.",
+  "paywallLoadingPlans": "Нақшаҳои обуна бор мешаванд...",
+  "paywallNoOffering": "Дар айни замон пешниҳоде вуҷуд надорад.",
+  "paywallPlatformOnly": "Деворҳои пардохт танҳо дар iOS ва Android дар ин нусха дастрасанд.",
+  "subscriptionRestored": "Обунаи шумо барқарор карда шуд.",
+  "noSubscriptionFound": "Барои барқарор кардан ягон обунаи фаъол ёфт нашуд.",
+  "subscriptionNowActive": "Family Security Pro ҳоло фаъол аст.",
+  "purchaseEntitlementPending": "Харид ба итмом расид, аммо обуна ҳанӯз фаъол нест.",
+  "premiumTitleAdditionalChildren": "Кушодани профилҳои бештари кӯдакон",
+  "premiumTitleLiveMap": "Кушодани харитаи оилаи зинда",
+  "premiumTitleMovementHistory": "Кушодани таърихи ҳаракат",
+  "premiumTitleAudioMonitoring": "Кушодани садои иҳотаи зинда",
+  "premiumTitleScreenTime": "Кушодани назорати вақти экран",
+  "premiumTitleAppStats": "Кушодани аналитикаи истифодаи замима",
+  "premiumTitleAchievements": "Кушодани дастовардҳо ва мукофотҳо",
+  "premiumTitleLoudAlarm": "Кушодани огоҳии баланди дурдаст",
+  "premiumTitleFullMenu": "Кушодани менюи пурраи волидайн",
+  "premiumTitleGeneric": "Кушодани Family Security Pro",
+  "premiumSubtitleAdditionalChildren": "Ҳисобҳои ройгон танҳо як кӯдакро идора мекунанд. Барои илова кардани тамоми оила навсозӣ кунед.",
+  "premiumSubtitleLiveMap": "Аз як харита ҷойгиршавии кӯдакон, ҳолат ва амалиётҳои дурдастро бинед.",
+  "premiumSubtitleMovementHistory": "Масирҳои таърихиро баррасӣ кунед, ҳаракатро бозпахш кунед ва тағйиротҳои ҷойгиршавиро тафтиш кунед.",
+  "premiumSubtitleAudioMonitoring": "Вақте ки контексти фаврӣ лозим аст, садоҳои атрофи кӯдакро гӯш кунед.",
+  "premiumSubtitleScreenTime": "Маҳдудиятҳои рӯзонаи замима танзим кунед, замимаҳоро банд кунед ва одатҳои солимтари дастгоҳро татбиқ намоед.",
+  "premiumSubtitleAppStats": "Омори истифода, тамоилҳо ва таҳлили рафтори замимаро бинед.",
+  "premiumSubtitleAchievements": "Барои ташаккули одатҳои мусбат барои кӯдакатон аз вазифаҳо, ситораҳо ва мукофотҳо истифода баред.",
+  "premiumSubtitleLoudAlarm": "Барои ёфтани дастгоҳи кӯдак зуд, огоҳии баландро аз дур фаъол созед.",
+  "premiumSubtitleFullMenu": "Менюи пешрафтаи волидайн, назоратҳо ва абзорҳои мониторинг қисми Pro мебошанд.",
+  "premiumSubtitleGeneric": "Барои кушодани абзорҳои пешрафтаи назорати волидайн ба Family Security Pro навсозӣ кунед.",
+  "alreadyHaveAccount": "Аллакай ҳисоб доред? Ворид шавед",
+  "childRegisterSubtitle": "Рамзи даъватномаи волидайнатонро ворид кунед",
+  "childRegisterTitle": "Ба оила ҳамроҳ шавед",
+  "codeCopied": "Рамз ба буфер нусхабардорӣ шуд",
+  "dontHaveCode": "Рамзи даъватнома доред? Бақайдгирӣ",
+  "enterYourDetails": "Номи намоишии худро ворид кунед",
+  "failedToGenerateCode": "Тавлиди рамз нашуд: {error}",
+  "generateCode": "Тавлиди рамз",
+  "getHelp": "Кӯмак гиред",
+  "invalidInviteCode": "Рамзи даъватномаи нодуруст ё мӯҳлаташ гузашта",
+  "inviteChild": "Даъвати кӯдак",
+  "inviteCode": "Рамзи даъватнома",
+  "inviteCodeLabel": "Рамз барои 3 рӯз эътибор дорад",
+  "inviteShareText": "Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Аъзоёни оилаи шумо бояд барномаро насб кунанд ва бо истифода аз рамз ба доира ҳамроҳ шаванд",
+  "inviteTitle": "Кӯдакон ва дигар аъзоёни оиларо ба доираи худ даъват кунед",
+  "next": "Баъдӣ",
+  "register": "Бақайдгирӣ",
+  "setupYourProfile": "Профили худро танзим кунед",
+  "shareCode": "Мубодилаи рамз",
+  "seePlans": "Дидани нақшаҳо"
 }

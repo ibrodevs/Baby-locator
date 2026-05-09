@@ -496,9 +496,9 @@ class AllChildrenLocationsNotifier extends StateNotifier<List<ChildLocation>> {
             DateTime.now(),
         active: (locData['active'] as bool?) ?? true,
         childId: childData['id'] as int,
-        avatarUrl: LocalAvatarStore.instance
-                .childAvatar(childData['id'] as int?) ??
-            childData['avatar_url'] as String?,
+        avatarUrl:
+            LocalAvatarStore.instance.childAvatar(childData['id'] as int?) ??
+                childData['avatar_url'] as String?,
       ));
     }
     state = list;

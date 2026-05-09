@@ -17,7 +17,6 @@ import AVFoundation
   ) -> Bool {
     FirebaseApp.configure()
     configureAudioSession()
-    application.registerForRemoteNotifications()
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

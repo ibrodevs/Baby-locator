@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro ակտիվ",
+  "freePlan": "Անվճար պլան",
+  "manageSubscription": "Կառավարել բաժանորդագրությունը",
+  "restorePurchases": "Վերականգնել գնումները",
+  "skip": "Բաց թողնել",
+  "getPremium": "Ստանալ Premium",
+  "monthly": "Ամսական",
+  "yearly": "Տարեկան",
+  "bestValue": "Լավագույն արժեք",
+  "perMonth": "ամսական",
+  "perYearSave58": "տարեկան · Խնայողություն 58%",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Թարմացնել",
+  "paywallBestValueSave": "Լավագույն արժեք · Խնայողություն {percent}%",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Ավելացրեք մի քանի երեխա մեկ ընտանեկան հաշվի",
+  "paywallBenefitUnlockTools": "Ապակողպել ձայնային մոնիտորինգ, ուղիղ քարտեզ, պատմություն, վիճակագրություն և ազդանշաններ",
+  "paywallBenefitFullDashboard": "Ամբողջ ծնողական վահանակը հասանելի պահեք առանց անվճար պլանի սահմանափակումների",
+  "paywallBenefitAudio": "Ուղիղ շրջապատի ձայն երեխայի սարքի մոտ",
+  "paywallBenefitAppLimits": "Հավելվածի սահմանափակումներ, օգտագործման վերլուծություն և շարժման պատմություն",
+  "paywallBenefitAlarm": "Բարձր ազդանշան, ձեռքբերումներ և ընդլայնված ծնողական վերահսկողություն",
+  "paywallIncludedWithPro": "Ներառված Pro-ում",
+  "paywallPlansTitle": "Հասանելի պլաններ",
+  "paywallRecommended": "Առաջարկվում է",
+  "paywallPerMonthEquivalent": "{price} ամսական համարժեք",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Ընտրեք ձեր պլանը",
+  "paywallChoosePlanDescription": "Ընտրեք ամսական կամ տարեկան Family Security Pro պլանը, որն ամենահամապատասխանն է ձեր ընտանիքի համար:",
+  "paywallLoadingPlans": "Բաժանորդագրության պլանները բեռնվում են...",
+  "paywallNoOffering": "Ներկայումս առաջարկ չկա:",
+  "paywallPlatformOnly": "Վճարային պատերը հասանելի են միայն iOS-ում և Android-ում այս հավաքաձևով:",
+  "subscriptionRestored": "Ձեր բաժանորդագրությունը վերականգնվեց:",
+  "noSubscriptionFound": "Վերականգնելու համար ակտիվ բաժանորդագրություն չի գտնվել:",
+  "subscriptionNowActive": "Family Security Pro-ն այժմ ակտիվ է:",
+  "purchaseEntitlementPending": "Գնումն ավարտվեց, բայց բաժանորդագրությունը դեռ ակտիվ չէ:",
+  "premiumTitleAdditionalChildren": "Ապակողպել ավելի շատ երեխայի պրոֆիլ",
+  "premiumTitleLiveMap": "Ապակողպել ընտանիքի ուղիղ քարտեզ",
+  "premiumTitleMovementHistory": "Ապակողպել շարժման պատմությունը",
+  "premiumTitleAudioMonitoring": "Ապակողպել ուղիղ շրջապատի ձայն",
+  "premiumTitleScreenTime": "Ապակողպել էկրանի ժամանակի վերահսկողությունը",
+  "premiumTitleAppStats": "Ապակողպել հավելվածի օգտագործման վերլուծությունը",
+  "premiumTitleAchievements": "Ապակողպել ձեռքբերումները և պարգևները",
+  "premiumTitleLoudAlarm": "Ապակողպել հեռակառավարվող բարձր ազդանշանը",
+  "premiumTitleFullMenu": "Ապակողպել ծնողի ամբողջական ընտրացանկը",
+  "premiumTitleGeneric": "Ապակողպել Family Security Pro-ն",
+  "premiumSubtitleAdditionalChildren": "Անվճար հաշիվները կարող են կառավարել միայն մեկ երեխա: Թարմացրեք՝ ամբողջ ընտանիքն ավելացնելու համար:",
+  "premiumSubtitleLiveMap": "Մեկ քարտեզից տեսեք երեխաների դիրքը, կարգավիճակը և հեռավոր գործողությունները:",
+  "premiumSubtitleMovementHistory": "Վերանայեք պատմական երթուղիները, վերարտադրեք շարժումը և ուսումնասիրեք տեղության փոփոխությունները:",
+  "premiumSubtitleAudioMonitoring": "Լսեք երեխայի մոտ գտնվող շրջապատի ձայնը, երբ անհրաժեշտ է անմիջական կոնտեքստ:",
+  "premiumSubtitleScreenTime": "Սահմանեք ամենօրյա հավելվածների սահմանափակումներ, արգելափակեք հավելվածները և կիրառեք ավելի առողջ սովորություններ:",
+  "premiumSubtitleAppStats": "Տեսեք օգտագործման մանրամասներ, միտումներ և հավելվածի մակարդակի վարքի վերլուծություն:",
+  "premiumSubtitleAchievements": "Օգտագործեք առաջադրանքներ, աստղեր և պարգևներ ձեր երեխայի դրական սովորություններ ձևավորելու համար:",
+  "premiumSubtitleLoudAlarm": "Հեռակա կարգով ակտիվացրեք բարձրաձայն ազդանշան՝ երեխայի սարքը արագ գտնելու համար:",
+  "premiumSubtitleFullMenu": "Ծնողական ընդլայնված ընտրացանկը, կառավարումը և մոնիտորինգի գործիքները Pro-ի մաս են:",
+  "premiumSubtitleGeneric": "Բարձրացրեք Family Security Pro-ին՝ ծնողական ընդլայնված վերահսկողության գործիքների ապակողպման համար:",
+  "alreadyHaveAccount": "Արդեն հաշիվ ունե՞ք: Մուտք գործել",
+  "childRegisterSubtitle": "Մուտք գրեք ծնողից ստացած հրավերի կոդը",
+  "childRegisterTitle": "Միանալ ընտանիքին",
+  "codeCopied": "Կոդն արտատված է clipboard-ում",
+  "dontHaveCode": "Հրավերի կոդ ունե՞ք: Գրանցվել",
+  "enterYourDetails": "Մուտք գրեք ձեր ցուցադրման անունը",
+  "failedToGenerateCode": "Կոդ ստեղծելու ձախողում: {error}",
+  "generateCode": "Ստեղծել կոդ",
+  "getHelp": "Ստանալ օգնություն",
+  "invalidInviteCode": "Անվավեր կամ ժամկետանց հրավերի կոդ",
+  "inviteChild": "Հրավիրել երեխա",
+  "inviteCode": "Հրավերի կոդ",
+  "inviteCodeLabel": "Կոդն ուժի մեջ է 3 օր",
+  "inviteShareText": "Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Ձեր ընտանիքի անդամները պետք է տեղադրեն հավելվածն ու կոդի միջոցով անդամակցեն շրջանին",
+  "inviteTitle": "Հրավիրե՛ք երեխաներին ու ընտանիքի այլ անդամներին ձեր շրջան",
+  "next": "Հաջորդ",
+  "register": "Գրանցվել",
+  "setupYourProfile": "Կարգաբերեք ձեր պրոֆիլը",
+  "shareCode": "Կիսվել կոդով",
+  "seePlans": "Տեսնել պլանները"
 }

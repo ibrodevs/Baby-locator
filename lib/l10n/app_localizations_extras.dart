@@ -668,8 +668,7 @@ extension SUiMoreExtras on S {
   String get achievementsScreenTitle =>
       childAchievementsMenuTitle.replaceAll('\n', ' ');
 
-  String get loudSignalScreenTitle =>
-      loudSignalMenuTitle.replaceAll('\n', ' ');
+  String get loudSignalScreenTitle => loudSignalMenuTitle.replaceAll('\n', ' ');
 
   String get signInAsParentCta => signInAsParent;
 

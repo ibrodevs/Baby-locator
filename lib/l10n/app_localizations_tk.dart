@@ -738,70 +738,70 @@ class STk extends S {
   String get childLogout => 'Çykmak';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'Çaga çagyr';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'Çagalaryňyzy we beýleki maşgala agzalaryňyzy halkanyňyza çagyryň';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'Maşgala agzaňyz programma gurnamalydyr we kody ulanyp topara goşulmalydyr';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'Kod 3 gün geçerlidir';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'Kody paýlaşyň';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'Kömek alyň';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'Kod dör et';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'Kod panele göçürildi';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'Kod döredilmedi: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'Maşgala goşulyň';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle => 'Ene-ataňyzyň çakylyk kodyny giriziň';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'Çakylyk kody';
 
   @override
-  String get next => 'Next';
+  String get next => 'Indiki';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'Profilinizi guruň';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'Görkezme adyňyzy giriziň';
 
   @override
-  String get register => 'Register';
+  String get register => 'Hasaba durmak';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode => 'Nädogry ýa-da möhleti geçen çakylyk kody';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => 'Hasabyňyz barmy? Giriň';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => 'Çakylyk kodyňyz barmy? Hasaba duruň';
 
   @override
   String get placesOnMap => 'Kartadaky ýerler';
@@ -845,4 +845,189 @@ class STk extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Radius $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro işjeň';
+
+  @override
+  String get freePlan => 'Mugt meýilnama';
+
+  @override
+  String get manageSubscription => 'Ýazylmagy dolandyrmak';
+
+  @override
+  String get restorePurchases => 'Satyn alyşlary dikelt';
+
+  @override
+  String get skip => 'Geç';
+
+  @override
+  String get getPremium => 'Premium al';
+
+  @override
+  String get monthly => 'Aýlyk';
+
+  @override
+  String get yearly => 'Ýyllyk';
+
+  @override
+  String get bestValue => 'Iň gowy baha';
+
+  @override
+  String get perMonth => 'aýda';
+
+  @override
+  String get perYearSave58 => 'ýylda · 58% tygşytla';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Täzele';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Iň gowy baha · $percent% tygşytla';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Bir maşgala hasabyna birnäçe çaga goşuň';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Audio gözegçilik, janly karta, taryh, statistika we duýduryş gurallary açyň';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Mugt meýilnamanyň çäklendirmesiz doly ene-ata dolandyryş panelini ulanyň';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Çaga enjamynyň ýanyndaky janly daş-töwerek sesi';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Programma çäkleri, ulanma analitikasy we hereket taryhy';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Güýçli signal, üstünlikler we öňdebaryjy ene-ata dolandyryjylary';
+
+  @override
+  String get paywallIncludedWithPro => 'Pro-da bar';
+
+  @override
+  String get paywallPlansTitle => 'Elýeterli meýilnamalar';
+
+  @override
+  String get paywallRecommended => 'Maslahat berilýär';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price aýlyk deňwert';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Meýilnamaňyzy saýlaň';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Maşgalaňyza iň laýyk aýlyk ýa-da ýyllyk Family Security Pro meýilnamasyny saýlaň.';
+
+  @override
+  String get paywallLoadingPlans => 'Ýazylma meýilnamalary ýüklenýär...';
+
+  @override
+  String get paywallNoOffering => 'Häzirki wagtda teklip ýok.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Töleg diwarlary bu gurmada diňe iOS we Android-de elýeterlidir.';
+
+  @override
+  String get subscriptionRestored => 'Seniň ýazylmaň dikeldildi.';
+
+  @override
+  String get noSubscriptionFound => 'Dikeltmek üçin işjeň ýazylma tapylmady.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro indi işjeň.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Satyn alyş tamamlandy, ýöne ýazylma heniz işjeň däl.';
+
+  @override
+  String get premiumTitleAdditionalChildren => 'Has köp çaga profilini açyň';
+
+  @override
+  String get premiumTitleLiveMap => 'Janly maşgala kartasyny açyň';
+
+  @override
+  String get premiumTitleMovementHistory => 'Hereket taryhyny açyň';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Janly daş-töwerek sesini açyň';
+
+  @override
+  String get premiumTitleScreenTime => 'Ekran wagtyny dolandyrmagy açyň';
+
+  @override
+  String get premiumTitleAppStats => 'Programma ulanma analitikasyny açyň';
+
+  @override
+  String get premiumTitleAchievements => 'Üstünlikleri we sylaglary açyň';
+
+  @override
+  String get premiumTitleLoudAlarm => 'Uzakdan güýçli signaly açyň';
+
+  @override
+  String get premiumTitleFullMenu => 'Doly ene-ata menýusyny açyň';
+
+  @override
+  String get premiumTitleGeneric => 'Family Security Pro-ny açyň';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Mugt hasaplar diňe bir çagany dolandyryp bilýär. Tutuş maşgalany goşmak üçin täzele.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Bir kartadan çagalaryň hakyky wagtdaky ýerini, ýagdaýyny we uzakdan hereketlerini görüň.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Taryhy ugurlary gözden geçiriň, hereketi gaýtalaň we ýer üýtgemelerini derňäň.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Derrew kontekst gerek bolanda çaganyň golaýyndaky daş-töwerek seslerini diňläň.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Gündelik programma çäklerini belläň, programmalary petikläň we saglykly endikleri ösdüriň.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Ulanma statistikasyny, tendensiýalary we programma derejesindäki hereketleri görüň.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Çagaňyz üçin oňyn endikleri kemala getirmek üçin wezipeleri, ýyldyzlary we sylaglary ulanyň.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Çaga enjamyny çalt tapmak üçin uzakdan güýçli signaly işjeňleşdiriň.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'Öňdebaryjy ene-ata menýusy, dolandyryşlar we gözegçilik gurallary Pro-nyň bir bölegidir.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Öňdebaryjy ene-ata gözegçilik we gözegçilik gurallaryny açmak üçin Family Security Pro-a täzele.';
+
+  @override
+  String get seePlans => 'Meýilnamalary gör';
 }

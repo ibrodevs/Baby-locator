@@ -283,5 +283,73 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro активен",
+  "freePlan": "Бесплатный план",
+  "manageSubscription": "Управление подпиской",
+  "restorePurchases": "Восстановить покупки",
+  "skip": "Пропустить",
+  "getPremium": "Получить Premium",
+  "monthly": "Ежемесячно",
+  "yearly": "Ежегодно",
+  "bestValue": "Лучшее предложение",
+  "perMonth": "в месяц",
+  "perYearSave58": "в год · Экономия 58%",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Улучшить",
+  "paywallBestValueSave": "Выгодно · Экономия {percent}%",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Добавьте нескольких детей в один семейный аккаунт",
+  "paywallBenefitUnlockTools": "Разблокируйте аудиомониторинг, карту, историю, статистику и инструменты тревоги",
+  "paywallBenefitFullDashboard": "Используйте всю панель управления без ограничений бесплатного плана",
+  "paywallBenefitAudio": "Прослушивание окружения рядом с устройством ребёнка",
+  "paywallBenefitAppLimits": "Лимиты приложений, аналитика использования и история движения",
+  "paywallBenefitAlarm": "Громкий сигнал тревоги, достижения и расширенный контроль",
+  "paywallIncludedWithPro": "Включено в Pro",
+  "paywallPlansTitle": "Доступные планы",
+  "paywallRecommended": "Рекомендуется",
+  "paywallPerMonthEquivalent": "{price} в месяц (эквивалент)",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Выберите план",
+  "paywallChoosePlanDescription": "Выберите ежемесячный или ежегодный план Family Security Pro, подходящий для вашей семьи.",
+  "paywallLoadingPlans": "Загрузка планов подписки...",
+  "paywallNoOffering": "Нет доступных предложений.",
+  "paywallPlatformOnly": "Страницы оплаты доступны только на iOS и Android в этой сборке.",
+  "subscriptionRestored": "Ваша подписка восстановлена.",
+  "noSubscriptionFound": "Активная подписка для восстановления не найдена.",
+  "subscriptionNowActive": "Family Security Pro теперь активен.",
+  "purchaseEntitlementPending": "Покупка завершена, но подписка ещё не активирована.",
+  "premiumTitleAdditionalChildren": "Разблокировать профили детей",
+  "premiumTitleLiveMap": "Разблокировать карту семьи",
+  "premiumTitleMovementHistory": "Разблокировать историю движения",
+  "premiumTitleAudioMonitoring": "Разблокировать прослушивание",
+  "premiumTitleScreenTime": "Разблокировать контроль экранного времени",
+  "premiumTitleAppStats": "Разблокировать аналитику использования",
+  "premiumTitleAchievements": "Разблокировать достижения и награды",
+  "premiumTitleLoudAlarm": "Разблокировать громкий сигнал тревоги",
+  "premiumTitleFullMenu": "Разблокировать полное меню родителя",
+  "premiumTitleGeneric": "Разблокировать Family Security Pro",
+  "premiumSubtitleAdditionalChildren": "Бесплатные аккаунты управляют только одним ребёнком. Обновитесь, чтобы добавить всю семью.",
+  "premiumSubtitleLiveMap": "Просматривайте местоположение детей, статус и удалённые действия с одной карты.",
+  "premiumSubtitleMovementHistory": "Просматривайте маршруты, воспроизводите движение и изучайте изменения местоположения.",
+  "premiumSubtitleAudioMonitoring": "Слушайте звуки вокруг ребёнка, когда вам нужен немедленный контекст.",
+  "premiumSubtitleScreenTime": "Устанавливайте ежедневные лимиты, блокируйте приложения и формируйте здоровые привычки.",
+  "premiumSubtitleAppStats": "Просматривайте статистику использования, тенденции и поведенческие данные.",
+  "premiumSubtitleAchievements": "Используйте задания, звёзды и награды для формирования позитивных привычек ребёнка.",
+  "premiumSubtitleLoudAlarm": "Активируйте громкий сигнал дистанционно, чтобы быстро найти устройство ребёнка.",
+  "premiumSubtitleFullMenu": "Расширенное меню, инструменты контроля и мониторинга — часть Pro.",
+  "premiumSubtitleGeneric": "Обновитесь до Family Security Pro, чтобы разблокировать расширенный родительский контроль.",
+  "seePlans": "Смотреть планы"
 }

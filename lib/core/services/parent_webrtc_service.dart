@@ -31,8 +31,8 @@ final AndroidAudioConfiguration _parentAndroidAudio = AndroidAudioConfiguration(
 /// (SDP offer from the child, ICE candidates) and establishes a
 /// WebRTC P2P audio connection.  Audio plays through the device speaker.
 class ParentWebRTCService {
-  String _tr(Map<String, String> values) =>
-      pickLocalizedExtra(ui.PlatformDispatcher.instance.locale.toLanguageTag(), values);
+  String _tr(Map<String, String> values) => pickLocalizedExtra(
+      ui.PlatformDispatcher.instance.locale.toLanguageTag(), values);
 
   RTCPeerConnection? _peerConnection;
   Timer? _pollTimer;
@@ -328,9 +328,9 @@ class ParentWebRTCService {
             // or touch the peer connection.
             unawaited(_forceSpeakerphone());
             Future<void>.delayed(
-              const Duration(milliseconds: 400), _forceSpeakerphone);
+                const Duration(milliseconds: 400), _forceSpeakerphone);
             Future<void>.delayed(
-              const Duration(milliseconds: 1200), _forceSpeakerphone);
+                const Duration(milliseconds: 1200), _forceSpeakerphone);
             break;
           case RTCPeerConnectionState.RTCPeerConnectionStateDisconnected:
             // Transient — every cell handoff or short congestion spike

@@ -85,7 +85,8 @@ class LocationService {
     if (!Platform.isAndroid && !Platform.isIOS) return true;
 
     final fg = await Geolocator.checkPermission();
-    if (fg == LocationPermission.denied || fg == LocationPermission.deniedForever) {
+    if (fg == LocationPermission.denied ||
+        fg == LocationPermission.deniedForever) {
       final requested = await Geolocator.requestPermission();
       if (requested == LocationPermission.denied ||
           requested == LocationPermission.deniedForever) {

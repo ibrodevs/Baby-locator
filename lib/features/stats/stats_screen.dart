@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/local_avatar_store.dart';
+import '../../core/subscriptions/subscription_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
@@ -20,6 +21,7 @@ import '../map/map_places_screen.dart';
 import '../map/movement_history_screen.dart';
 import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
+import '../subscription/premium_guard.dart';
 import 'stats_menu_feature_screens.dart';
 
 class StatsScreen extends ConsumerStatefulWidget {
@@ -714,6 +716,13 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SubscriptionState>(subscriptionServiceProvider,
+        (previous, next) {
+      if (previous?.isPremium == true || !next.isPremium || widget.showMenu) {
+        return;
+      }
+      unawaited(_fetchChildData(showLoader: true));
+    });
     ref.listen<List<Map<String, dynamic>>>(parentChildrenProvider,
         (previous, next) {
       unawaited(_syncChildren(next));
@@ -726,6 +735,7 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     });
     final t = S.of(context);
     final session = ref.watch(sessionProvider);
+    final subscription = ref.watch(subscriptionServiceProvider);
     final selectedDateLabel =
         _formatDate(context, 'MMM d, yyyy', _selectedDate);
 
@@ -774,7 +784,14 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
             onSelected: _setSelectedChild,
           ),
           Expanded(
-            child: _buildBody(selectedDateLabel),
+            child: !subscription.isPremium
+                ? _LockedStatsState(
+                    onUpgrade: () => requirePremium(
+                      context,
+                      feature: PremiumFeature.appStats,
+                    ),
+                  )
+                : _buildBody(selectedDateLabel),
           ),
         ],
       ),
@@ -1180,6 +1197,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   }
 
   Future<void> _openMapScreen() async {
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.liveMap,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(const MapPlacesScreen());
   }
 
@@ -1194,6 +1216,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openHistory() async {
     final child = _selectedMenuChildOrWarn();
     if (child == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.movementHistory,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(
       MovementHistoryScreen(
         childId: child['id'] as int,
@@ -1206,6 +1233,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openAchievements() async {
     final child = _selectedMenuChildOrWarn();
     if (child == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.achievements,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(
       MenuAchievementsScreen(
         childId: child['id'] as int,
@@ -1218,6 +1250,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openStatsDetails() async {
     final childId = _selectedMenuChildIdOrWarn();
     if (childId == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.appStats,
+    );
+    if (!allowed) return;
     await _openEmbeddedScreen(
       StatsScreen(
         showMenu: false,
@@ -1229,6 +1266,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openGameLimits() async {
     final child = _selectedMenuChildOrWarn();
     if (child == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.screenTime,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(
       MenuGameLimitsScreen(
         childId: child['id'] as int,
@@ -1241,6 +1283,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openLoudSignal() async {
     final child = _selectedMenuChildOrWarn();
     if (child == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.loudAlarm,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(
       MenuLoudSignalScreen(
         childId: child['id'] as int,
@@ -1253,6 +1300,11 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
   Future<void> _openAroundForSelectedChild() async {
     final child = _selectedMenuChildOrWarn();
     if (child == null) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.audioMonitoring,
+    );
+    if (!allowed) return;
     await _openStandaloneScreen(
       MenuAroundSoundScreen(
         childId: child['id'] as int,
@@ -2049,6 +2101,73 @@ class _StatsScreenState extends ConsumerState<StatsScreen> {
     if (level > 50) return AppColors.success;
     if (level > 20) return AppColors.warning;
     return AppColors.danger;
+  }
+}
+
+class _LockedStatsState extends StatelessWidget {
+  const _LockedStatsState({required this.onUpgrade});
+
+  final VoidCallback onUpgrade;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: AppCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Usage analytics are part of Family Security Pro.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Upgrade to unlock app statistics, daily limits, and advanced device insights.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSecondaryLight,
+                  fontWeight: FontWeight.w600,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: onUpgrade,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text(
+                  'See plans',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

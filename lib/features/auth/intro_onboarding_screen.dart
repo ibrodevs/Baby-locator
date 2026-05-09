@@ -354,8 +354,7 @@ class _AnimatedPhoneStage extends StatelessWidget {
                   height: size * (0.74 + 0.04 * t),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.primary
-                        .withValues(alpha: 0.07 + 0.06 * t),
+                    color: AppColors.primary.withValues(alpha: 0.07 + 0.06 * t),
                   ),
                 );
               },
@@ -408,12 +407,12 @@ class _MenuMockup extends StatelessWidget {
           extras.mapPlacesMenuTitle, Icons.map_outlined, AppColors.warning),
       _MockTile(
           extras.movementHistoryMenuTitle, Icons.route_rounded, AppColors.navy),
-      _MockTile(extras.appStatsMenuTitle, Icons.bar_chart_rounded,
-          AppColors.primary),
+      _MockTile(
+          extras.appStatsMenuTitle, Icons.bar_chart_rounded, AppColors.primary),
       _MockTile(extras.childAchievementsMenuTitle, Icons.emoji_events_outlined,
           AppColors.warning),
-      _MockTile(extras.loudSignalMenuTitle,
-          Icons.notifications_active_outlined, AppColors.danger),
+      _MockTile(extras.loudSignalMenuTitle, Icons.notifications_active_outlined,
+          AppColors.danger),
     ];
 
     return LayoutBuilder(
@@ -469,16 +468,14 @@ class _MenuMockup extends StatelessWidget {
                       child: _MockChildCard(
                         s: s,
                         childName: _sampleChildName,
-                        parentLabel:
-                            extras.parentPanelLabel(_sampleParentName),
+                        parentLabel: extras.parentPanelLabel(_sampleParentName),
                         selectedLabel: extras.selectedLabel,
                       ),
                     ),
                     SizedBox(height: 22 * s),
                     Expanded(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                            20 * s, 0, 20 * s, 16 * s),
+                        padding: EdgeInsets.fromLTRB(20 * s, 0, 20 * s, 16 * s),
                         child: GridView.builder(
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: tiles.length,
@@ -536,8 +533,7 @@ class _MockStatusBar extends StatelessWidget {
               Icon(Icons.signal_cellular_alt,
                   size: 13 * s, color: AppColors.textPrimaryLight),
               SizedBox(width: 5 * s),
-              Icon(Icons.wifi,
-                  size: 13 * s, color: AppColors.textPrimaryLight),
+              Icon(Icons.wifi, size: 13 * s, color: AppColors.textPrimaryLight),
               SizedBox(width: 5 * s),
               Icon(Icons.battery_full,
                   size: 15 * s, color: AppColors.textPrimaryLight),
@@ -663,8 +659,7 @@ class _MockChildCard extends StatelessWidget {
             ),
           ),
           Container(
-            padding:
-                EdgeInsets.symmetric(horizontal: 9 * s, vertical: 6 * s),
+            padding: EdgeInsets.symmetric(horizontal: 9 * s, vertical: 6 * s),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(999),
@@ -707,8 +702,7 @@ class _MockMenuTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(22 * s),
-              border:
-                  Border.all(color: Colors.white.withValues(alpha: 0.8)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.06),
@@ -725,8 +719,7 @@ class _MockMenuTile extends StatelessWidget {
                   color: data.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14 * s),
                 ),
-                child: Icon(data.icon,
-                    size: 22 * s, color: data.accent),
+                child: Icon(data.icon, size: 22 * s, color: data.accent),
               ),
             ),
           ),

@@ -63,7 +63,10 @@ class WhatsAppDetailScreen extends StatelessWidget {
                         vertical: 20, horizontal: 16),
                     child: Column(
                       children: [
-                        _Ring(value: 0.92, label: '92', sub: _safetyScoreUpper(context)),
+                        _Ring(
+                            value: 0.92,
+                            label: '92',
+                            sub: _safetyScoreUpper(context)),
                         const SizedBox(height: 14),
                         Text(_conversationAnalysis(context),
                             style: TextStyle(
@@ -298,8 +301,7 @@ String _whatsAppTitle(BuildContext context) => _pick(context, {
       'ru': 'WhatsApp: Лео и Алекс',
     });
 
-String _monitoringActive(BuildContext context, String time) =>
-    _pick(context, {
+String _monitoringActive(BuildContext context, String time) => _pick(context, {
       'ar': 'المراقبة نشطة · آخر مزامنة منذ $time',
       'az': 'Monitorinq aktivdir · Son sinxronizasiya $time əvvəl',
       'de': 'Überwachung aktiv · Zuletzt vor $time synchronisiert',
@@ -356,8 +358,7 @@ String _todayAtTime(BuildContext context, String time) => _pick(context, {
       'ru': 'СЕГОДНЯ, $time',
     });
 
-String _keywordLogged(BuildContext context, String keyword) =>
-    _pick(context, {
+String _keywordLogged(BuildContext context, String keyword) => _pick(context, {
       'en': 'KEYWORD LOGGED: $keyword',
       'ru': 'ЗАФИКСИРОВАНО КЛЮЧЕВОЕ СЛОВО: $keyword',
     });

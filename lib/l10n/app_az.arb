@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro aktivdir",
+  "freePlan": "Pulsuz plan",
+  "manageSubscription": "Abunəliyi idarə et",
+  "restorePurchases": "Alışları bərpa et",
+  "skip": "Keç",
+  "getPremium": "Premium əldə et",
+  "monthly": "Aylıq",
+  "yearly": "İllik",
+  "bestValue": "Ən yaxşı dəyər",
+  "perMonth": "aylıq",
+  "perYearSave58": "illik · 58% qənaət",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Yüksəlt",
+  "paywallBestValueSave": "Ən yaxşı dəyər · {percent}% qənaət",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Bir ailə hesabına bir neçə uşaq əlavə edin",
+  "paywallBenefitUnlockTools": "Audio izləmə, canlı xəritə, tarixçə, statistika və həyəcan vasitələrini açın",
+  "paywallBenefitFullDashboard": "Pulsuz plan məhdudiyyəti olmadan bütün valideyn idarə panelindən istifadə edin",
+  "paywallBenefitAudio": "Uşaq cihazının yaxınlığında canlı ətraf audio",
+  "paywallBenefitAppLimits": "Tətbiq limitləri, istifadə analitikası və hərəkət tarixçəsi",
+  "paywallBenefitAlarm": "Yüksək həyəcan siqnalı, nailiyyətlər və inkişaf etmiş valideyn nəzarəti",
+  "paywallIncludedWithPro": "Pro-ya daxildir",
+  "paywallPlansTitle": "Mövcud planlar",
+  "paywallRecommended": "Tövsiyə edilir",
+  "paywallPerMonthEquivalent": "{price} aylıq ekvivalent",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Planınızı seçin",
+  "paywallChoosePlanDescription": "Ailənizdə ən uyğun aylıq və ya illik Family Security Pro planını seçin.",
+  "paywallLoadingPlans": "Abunəlik planları yüklənir...",
+  "paywallNoOffering": "Hazırda heç bir təklif mövcud deyil.",
+  "paywallPlatformOnly": "Ödəniş divarları bu versiyada yalnız iOS və Android-də mövcuddur.",
+  "subscriptionRestored": "Abunəliyiniz bərpa edildi.",
+  "noSubscriptionFound": "Bərpa etmək üçün aktiv abunəlik tapılmadı.",
+  "subscriptionNowActive": "Family Security Pro artıq aktivdir.",
+  "purchaseEntitlementPending": "Satın alma tamamlandı, lakin abunəlik hələ aktiv deyil.",
+  "premiumTitleAdditionalChildren": "Daha çox uşaq profili açın",
+  "premiumTitleLiveMap": "Canlı ailə xəritəsini açın",
+  "premiumTitleMovementHistory": "Hərəkət tarixçəsini açın",
+  "premiumTitleAudioMonitoring": "Canlı ətraf səsi açın",
+  "premiumTitleScreenTime": "Ekran vaxtı nəzarətini açın",
+  "premiumTitleAppStats": "Tətbiq istifadə analitikasını açın",
+  "premiumTitleAchievements": "Nailiyyətləri və mükafatları açın",
+  "premiumTitleLoudAlarm": "Uzaqdan yüksək həyəcan siqnalını açın",
+  "premiumTitleFullMenu": "Tam valideyn menyusunu açın",
+  "premiumTitleGeneric": "Family Security Pro-nu açın",
+  "premiumSubtitleAdditionalChildren": "Pulsuz hesablar yalnız bir uşağı idarə edə bilər. Bütün ailəni əlavə etmək üçün yüksəldin.",
+  "premiumSubtitleLiveMap": "Bir xəritədən uşaqların real vaxt yerini, vəziyyətini və uzaqdan hərəkətlərini görün.",
+  "premiumSubtitleMovementHistory": "Tarixi marşrutları nəzərdən keçirin, hərəkəti yenidən oynayın, yer dəyişikliklərini araşdırın.",
+  "premiumSubtitleAudioMonitoring": "Dərhal kontekst lazım olduqda uşağın yaxınlığındakı ətraf səsləri dinləyin.",
+  "premiumSubtitleScreenTime": "Gündəlik tətbiq limitləri qurun, tətbiqləri bloklayın, sağlam istifadə vərdişlərini tətbiq edin.",
+  "premiumSubtitleAppStats": "İstifadə statistikasını, tendensiyaları və tətbiq səviyyəsindəki davranış anlayışlarını görün.",
+  "premiumSubtitleAchievements": "Uşağınız üçün müsbət vərdişlər yaratmaq üçün tapşırıqlar, ulduzlar və mükafatlardan istifadə edin.",
+  "premiumSubtitleLoudAlarm": "Uşaq cihazını tez tapmaq üçün uzaqdan yüksək həyəcan siqnalı verin.",
+  "premiumSubtitleFullMenu": "Qabaqcıl valideyn menyusu, idarəetmə vasitələri və izləmə alətləri Pro-nun bir hissəsidir.",
+  "premiumSubtitleGeneric": "Qabaqcıl valideyn nəzarəti və izləmə alətlərini açmaq üçün Family Security Pro-ya yüksəlin.",
+  "alreadyHaveAccount": "Artıq hesabınız var? Daxil olun",
+  "childRegisterSubtitle": "Valideyninizdən dəvət kodunu daxil edin",
+  "childRegisterTitle": "Ailəyə qoşulun",
+  "codeCopied": "Kod panoya kopyalandı",
+  "dontHaveCode": "Dəvət kodunuz var? Qeydiyyatdan keçin",
+  "enterYourDetails": "Görünən adınızı daxil edin",
+  "failedToGenerateCode": "Kod yaratmaq alınmadı: {error}",
+  "generateCode": "Kod yaradın",
+  "getHelp": "Kömək alın",
+  "invalidInviteCode": "Yanlış və ya müddəti keçmiş dəvət kodu",
+  "inviteChild": "Uşaq dəvət edin",
+  "inviteCode": "Dəvət kodu",
+  "inviteCodeLabel": "Kod 3 gün etibarlıdır",
+  "inviteShareText": "Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Ailə üzvləriniz tətbiqi quraşdırmalı və kodu istifadə edərək dairəyə qoşulmalıdır",
+  "inviteTitle": "Uşaqlarınızı və digər ailə üzvlərini dairənizə dəvət edin",
+  "next": "Növbəti",
+  "register": "Qeydiyyatdan keç",
+  "setupYourProfile": "Profilinizi qurun",
+  "shareCode": "Kodu paylaşın",
+  "seePlans": "Planlara bax"
 }

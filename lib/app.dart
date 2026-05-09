@@ -13,6 +13,7 @@ import 'core/services/device_notification_service.dart';
 import 'core/services/fcm_service.dart';
 import 'core/services/local_avatar_store.dart';
 import 'core/services/remote_device_service.dart';
+import 'core/subscriptions/subscription_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/child_theme.dart';
 import 'features/auth/intro_onboarding_screen.dart';
@@ -51,10 +52,22 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
 
     _sessionSubscription = ref.listenManual<SessionState>(
       sessionProvider,
-      (_, next) => unawaited(_syncNotificationSession(next.user)),
+      (_, next) {
+        unawaited(_syncNotificationSession(next.user));
+        unawaited(
+          ref.read(subscriptionServiceProvider.notifier).syncSessionUser(
+                next.user,
+              ),
+        );
+      },
     );
 
     unawaited(_syncNotificationSession(ref.read(sessionProvider).user));
+    unawaited(
+      ref
+          .read(subscriptionServiceProvider.notifier)
+          .syncSessionUser(ref.read(sessionProvider).user),
+    );
     unawaited(_loadIntroSeen());
   }
 

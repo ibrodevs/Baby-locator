@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro белсенді",
+  "freePlan": "Тегін жоспар",
+  "manageSubscription": "Жазылымды басқару",
+  "restorePurchases": "Сатып алуларды қалпына келтіру",
+  "skip": "Өткізіп жіберу",
+  "getPremium": "Premium алу",
+  "monthly": "Ай сайын",
+  "yearly": "Жылдық",
+  "bestValue": "Ең тиімді",
+  "perMonth": " айына",
+  "perYearSave58": "жылына · 58% үнемдеу",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Жаңарту",
+  "paywallBestValueSave": "Ең тиімді · {percent}% үнемдеу",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Бір отбасылық есептік жазбаға бірнеше бала қосыңыз",
+  "paywallBenefitUnlockTools": "Дыбыстық мониторинг, тікелей карта, тарих, статистика және дабыл құралдарын ашыңыз",
+  "paywallBenefitFullDashboard": "Тегін жоспардың шектеусіз бүкіл ата-ана тақтасын пайдаланыңыз",
+  "paywallBenefitAudio": "Бала құрылғысының жанындағы тікелей қоршаған дыбыс",
+  "paywallBenefitAppLimits": "Қолданба шектеулері, пайдалану аналитикасы және қозғалыс тарихы",
+  "paywallBenefitAlarm": "Қатты дабыл, жетістіктер және кеңейтілген ата-ана басқаруы",
+  "paywallIncludedWithPro": "Pro-ға кіреді",
+  "paywallPlansTitle": "Қолжетімді жоспарлар",
+  "paywallRecommended": "Ұсынылады",
+  "paywallPerMonthEquivalent": "{price} ай сайынғы баламасы",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Жоспарыңызды таңдаңыз",
+  "paywallChoosePlanDescription": "Отбасыңызға сәйкес ай сайынғы немесе жылдық Family Security Pro жоспарын таңдаңыз.",
+  "paywallLoadingPlans": "Жазылым жоспарлары жүктелуде...",
+  "paywallNoOffering": "Қазіргі уақытта ешқандай ұсыныс жоқ.",
+  "paywallPlatformOnly": "Төлем қабырғалары бұл нұсқада тек iOS және Android-де қол жетімді.",
+  "subscriptionRestored": "Сіздің жазылымыңыз қалпына келтірілді.",
+  "noSubscriptionFound": "Қалпына келтіру үшін белсенді жазылым табылмады.",
+  "subscriptionNowActive": "Family Security Pro енді белсенді.",
+  "purchaseEntitlementPending": "Сатып алу аяқталды, бірақ жазылым әлі белсендірілмеген.",
+  "premiumTitleAdditionalChildren": "Қосымша бала профильдерін ашу",
+  "premiumTitleLiveMap": "Отбасы тікелей картасын ашу",
+  "premiumTitleMovementHistory": "Қозғалыс тарихын ашу",
+  "premiumTitleAudioMonitoring": "Тікелей қоршаған дыбысты ашу",
+  "premiumTitleScreenTime": "Экран уақытын бақылауды ашу",
+  "premiumTitleAppStats": "Қолданба қолдану аналитикасын ашу",
+  "premiumTitleAchievements": "Жетістіктер мен сыйлықтарды ашу",
+  "premiumTitleLoudAlarm": "Қашықтан қатты дыбыстық сигналды ашу",
+  "premiumTitleFullMenu": "Ата-ананың толық мәзірін ашу",
+  "premiumTitleGeneric": "Family Security Pro ашу",
+  "premiumSubtitleAdditionalChildren": "Тегін есептік жазбалар тек бір баланы басқара алады. Бүкіл отбасын қосу үчін жаңартыңыз.",
+  "premiumSubtitleLiveMap": "Бір картадан балалардың нақты уақыттағы орнын, күйін және қашықтан басқарулардың.",
+  "premiumSubtitleMovementHistory": "Тарихи маршруттарды шолыңыз, қозғалысты ойнатыңыз және орын өзгерістерін зерттеңіз.",
+  "premiumSubtitleAudioMonitoring": "Қажет болғанда баланың жанындағы қоршаған дыбыстарды тыңдаңыз.",
+  "premiumSubtitleScreenTime": "Күнделікті қолданба шектеулерін орнатыңыз, қолданбаларды бұғаттаңыз және дені сау дағдыларды қалыптастырыңыз.",
+  "premiumSubtitleAppStats": "Пайдалану статистикасын, үрдістерді және қолданба деңгейінің мінез-құлқын қараңыз.",
+  "premiumSubtitleAchievements": "Баланыз үшін оң дағдылар қалыптастыру үшін тапсырмаларды, жұлдыздарды және сыйлықтарды пайдаланыңыз.",
+  "premiumSubtitleLoudAlarm": "Бала құрылғысын жылдам табу үшін қашықтан қатты дыбыстық сигнал іске қосыңыз.",
+  "premiumSubtitleFullMenu": "Кеңейтілген ата-ана мәзірі, басқарулар және бақылау құралдары Pro-ның бөлігі болып табылады.",
+  "premiumSubtitleGeneric": "Кеңейтілген ата-ана бақылауы мен бақылау құралдарын ашу үшін Family Security Pro-ға жаңартыңыз.",
+  "alreadyHaveAccount": "Есептік жазба бар ма? Кіру",
+  "childRegisterSubtitle": "Ата-анаңыздан алған шақыру кодын енгізіңіз",
+  "childRegisterTitle": "Отбасына қосылу",
+  "codeCopied": "Код буферге көшірілді",
+  "dontHaveCode": "Шақыру коды бар ма? Тіркелу",
+  "enterYourDetails": "Көрсетілетін атыңызды енгізіңіз",
+  "failedToGenerateCode": "Код жасалмады: {error}",
+  "generateCode": "Код жасау",
+  "getHelp": "Көмек алу",
+  "invalidInviteCode": "Жарамсыз немесе мерзімі өткен шақыру коды",
+  "inviteChild": "Бала шақыру",
+  "inviteCode": "Шақыру коды",
+  "inviteCodeLabel": "Код 3 күн жарамды",
+  "inviteShareText": "Family security-де менің отбасы шеңберіме қосылыңыз! Шақыру кодын пайдаланыңыз: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Отбасыңыздың мүшелері қолданбаны орнатып, кодты пайдаланып шеңберге қосылулары керек",
+  "inviteTitle": "Балаларыңызды және отбасының басқа мүшелерін шеңберіңізге шақырыңыз",
+  "next": "Келесі",
+  "register": "Тіркелу",
+  "setupYourProfile": "Профиліңізді орнатыңыз",
+  "shareCode": "Код бөлісу",
+  "seePlans": "Жоспарларды көру"
 }

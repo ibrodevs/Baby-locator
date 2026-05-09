@@ -741,70 +741,70 @@ class SKa extends S {
   String get childLogout => 'გასვლა';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'ბავშვის მოწვევა';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'მოიწვიეთ ბავშვები და ოჯახის სხვა წევრები თქვენს წრეში';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'თქვენი ოჯახის წევრებმა უნდა დააინსტალირონ აპი და შეუერთდნენ წრეს კოდის გამოყენებით';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'კოდი მოქმედებს 3 დღე';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'კოდის გაზიარება';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'დახმარების მიღება';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'კოდის გენერაცია';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'კოდი დაკოპირდა ბუფერში';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'კოდის გენერაცია ვერ მოხდა: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'ოჯახში შეერთება';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle => 'შეიყვანეთ მშობლის მოწვევის კოდი';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'მოწვევის კოდი';
 
   @override
-  String get next => 'Next';
+  String get next => 'შემდეგი';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'პროფილის მოწყობა';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'შეიყვანეთ სახელი';
 
   @override
-  String get register => 'Register';
+  String get register => 'რეგისტრაცია';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode => 'არასწორი ან ვადაგასული მოწვევის კოდი';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => 'უკვე გაქვთ ანგარიში? შებრძანდით';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => 'მოწვევის კოდი გაქვთ? დარეგისტრირდით';
 
   @override
   String get placesOnMap => 'ადგილები რუკაზე';
@@ -848,4 +848,191 @@ class SKa extends S {
   String radiusSummary(String radius, String schedule) {
     return 'რადიუსი $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro აქტიური';
+
+  @override
+  String get freePlan => 'უფასო გეგმა';
+
+  @override
+  String get manageSubscription => 'გამოწერის მართვა';
+
+  @override
+  String get restorePurchases => 'შესყიდვების აღდგენა';
+
+  @override
+  String get skip => 'გამოტოვება';
+
+  @override
+  String get getPremium => 'Premium-ის მიღება';
+
+  @override
+  String get monthly => 'ყოველთვიური';
+
+  @override
+  String get yearly => 'წლიური';
+
+  @override
+  String get bestValue => 'საუკეთესო ღირებულება';
+
+  @override
+  String get perMonth => 'თვეში';
+
+  @override
+  String get perYearSave58 => 'წელიწადში · 58% დაზოგვა';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'განახლება';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'საუკეთესო ღირებულება · $percent% დაზოგვა';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'რამდენიმე ბავშვის დამატება ოჯახის ერთ ანგარიშზე';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'განბლოკეთ ხმის მონიტორინგი, ლაივ რუქა, ისტორია, სტატისტიკა და სიგნალები';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'შეინარჩუნეთ მშობლის სრული პანელი უფასო გეგმის შეზღუდვების გარეშე';
+
+  @override
+  String get paywallBenefitAudio => 'ლაივ გარემო ხმა ბავშვის მოწყობილობასთან';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'აპლიკაციის ლიმიტები, გამოყენების ანალიტიკა და მოძრაობის ისტორია';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'ხმამაღალი სიგნალი, მიღწევები და გაფართოებული მშობლის კონტროლი';
+
+  @override
+  String get paywallIncludedWithPro => 'Pro-ში შედის';
+
+  @override
+  String get paywallPlansTitle => 'ხელმისაწვდომი გეგმები';
+
+  @override
+  String get paywallRecommended => 'რეკომენდებული';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price თვიური ეკვივალენტი';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'აირჩიეთ თქვენი გეგმა';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'აირჩიეთ Family Security Pro-ს ყოველთვიური ან წლიური გეგმა, რომელიც საუკეთესოდ შეეფერება თქვენს ოჯახს.';
+
+  @override
+  String get paywallLoadingPlans => 'გამოწერის გეგმები იტვირთება...';
+
+  @override
+  String get paywallNoOffering => 'ამჟამად შეთავაზება არ არის.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Paywall-ები ხელმისაწვდომია მხოლოდ iOS-სა და Android-ზე ამ build-ში.';
+
+  @override
+  String get subscriptionRestored => 'თქვენი გამოწერა აღდგა.';
+
+  @override
+  String get noSubscriptionFound => 'აქტიური გამოწერა ვერ მოიძებნა.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro ახლა აქტიურია.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'შეძენა დასრულდა, მაგრამ გამოწერა ჯერ არ არის აქტიური.';
+
+  @override
+  String get premiumTitleAdditionalChildren =>
+      'მეტი ბავშვის პროფილის განბლოკვა';
+
+  @override
+  String get premiumTitleLiveMap => 'ოჯახის ლაივ რუკის განბლოკვა';
+
+  @override
+  String get premiumTitleMovementHistory => 'მოძრაობის ისტორიის განბლოკვა';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'ლაივ გარემო ხმის განბლოკვა';
+
+  @override
+  String get premiumTitleScreenTime => 'ეკრანის დროის კონტროლის განბლოკვა';
+
+  @override
+  String get premiumTitleAppStats =>
+      'აპლიკაციის გამოყენების ანალიტიკის განბლოკვა';
+
+  @override
+  String get premiumTitleAchievements => 'მიღწევებისა და ჯილდოების განბლოკვა';
+
+  @override
+  String get premiumTitleLoudAlarm =>
+      'დისტანციური ხმამაღალი სიგნალის განბლოკვა';
+
+  @override
+  String get premiumTitleFullMenu => 'სრული მშობლის მენიუს განბლოკვა';
+
+  @override
+  String get premiumTitleGeneric => 'Family Security Pro-ს განბლოკვა';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'უფასო ანგარიშები მხოლოდ ერთ ბავშვს მართავს. განაახლეთ მთელი ოჯახის დასამატებლად.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'ნახეთ ბავშვების მდებარეობა, სტატუსი და დისტანციური მოქმედებები ერთი რუქიდან.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'განიხილეთ ისტორიული მარშრუტები, ჩაუქციეთ მოძრაობა და გამოიძიეთ ადგილმდებარეობის ცვლილებები.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'მოუსმინეთ გარემო ხმებს ბავშვის მახლობლად, როდესაც გჭირდებათ სწრაფი კონტექსტი.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'დააყენეთ ყოველდღიური აპლიკაციის ლიმიტები, დაბლოკეთ აპლიკაციები და ჩამოაყალიბეთ ჯანსაღი ჩვევები.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'იხილეთ გამოყენების სტატისტიკა, ტენდენციები და აპლიკაციის დონის ქცევის ანალიტიკა.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'გამოიყენეთ დავალებები, ვარსკვლავები და ჯილდოები ბავშვისთვის პოზიტიური ჩვევების ჩამოყალიბებისთვის.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'გაააქტიურეთ ხმამაღალი სიგნალი დისტანციურად, რომ სწრაფად პოვოთ ბავშვის მოწყობილობა.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'გაფართოებული მშობლის მენიუ, კონტროლი და მონიტორინგის ხელსაწყოები Pro-ს ნაწილია.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'განაახლეთ Family Security Pro-ზე, რომ განბლოკოთ გაფართოებული მშობლის კონტროლისა და მონიტორინგის ხელსაწყოები.';
+
+  @override
+  String get seePlans => 'გეგმების ნახვა';
 }

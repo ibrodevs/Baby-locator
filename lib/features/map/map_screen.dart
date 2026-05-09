@@ -11,6 +11,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/services/api_client.dart';
 import '../../core/services/location_service.dart';
 import '../../core/services/local_avatar_store.dart';
+import '../../core/subscriptions/subscription_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
@@ -20,6 +21,7 @@ import '../chat/chat_screen.dart';
 import '../parent/children_list_screen.dart';
 import '../settings/settings_screen.dart';
 import '../stats/stats_menu_feature_screens.dart';
+import '../subscription/premium_guard.dart';
 import 'adaptive_map.dart';
 import 'map_models.dart';
 import 'movement_history_screen.dart';
@@ -67,15 +69,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   Future<void> _fetchAll() async {
     try {
-      final results = await Future.wait<dynamic>([
-        ApiClient.instance.listChildren(),
-        ApiClient.instance.allChildrenLocations(),
-      ]);
+      final allChildren = await ApiClient.instance.listChildren();
+      final subscription = ref.read(subscriptionServiceProvider);
+      final canUseMainMap =
+          subscription.isPremium || allChildren.length <= freePlanChildLimit;
+      final locationData = canUseMainMap
+          ? await ApiClient.instance.allChildrenLocations()
+          : const <dynamic>[];
       if (!mounted) return;
-      final allChildren = (results[0] as List<dynamic>);
-      final locationData = (results[1] as List<dynamic>);
       ref.read(parentChildrenProvider.notifier).setFromList(allChildren);
-      ref.read(allChildrenLocationsProvider.notifier).setFromApi(locationData);
+      if (canUseMainMap) {
+        ref
+            .read(allChildrenLocationsProvider.notifier)
+            .setFromApi(locationData);
+      } else {
+        ref.read(allChildrenLocationsProvider.notifier).clear();
+      }
       final children = ref.read(parentChildrenProvider);
       final selectedChildId = ref.read(selectedChildIdProvider);
       final hasSelectedChild = selectedChildId != null &&
@@ -133,6 +142,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _openAddChildFlow() async {
+    final allowed = await requirePremiumForAdditionalChild(
+      context,
+      currentChildrenCount: ref.read(parentChildrenProvider).length,
+    );
+    if (!allowed || !mounted) return;
+
     final result = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         fullscreenDialog: true,
@@ -198,6 +213,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   Future<void> _triggerLoud(ChildLocation child) async {
     if (_sendingLoud) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.loudAlarm,
+    );
+    if (!allowed || !mounted) return;
+
     final childId = child.childId;
     if (childId == null) return;
     setState(() => _sendingLoud = true);
@@ -242,6 +263,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Future<void> _openAround(ChildLocation child) async {
     final childId = child.childId;
     if (childId == null || _startingAroundChildId == childId) return;
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.audioMonitoring,
+    );
+    if (!allowed || !mounted) return;
+
     setState(() => _startingAroundChildId = childId);
     try {
       if (!mounted) return;
@@ -276,8 +303,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SubscriptionState>(subscriptionServiceProvider,
+        (previous, next) {
+      if (previous?.isPremium == true || !next.isPremium) return;
+      unawaited(_fetchAll());
+    });
     final t = S.of(context);
     final session = ref.watch(sessionProvider);
+    final subscription = ref.watch(subscriptionServiceProvider);
     final allChildren = ref.watch(parentChildrenProvider);
     final locations = ref.watch(allChildrenLocationsProvider);
     final selectedChildId = ref.watch(selectedChildIdProvider);
@@ -350,44 +383,66 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       child: Stack(
                         children: [
                           Positioned.fill(
-                            child: hasChildren && mapCenter != null
-                                ? AdaptiveMap(
-                                    latitude: mapCenter.$1,
-                                    longitude: mapCenter.$2,
-                                    children: locations,
-                                    parentLocation: _parentLocation,
-                                    selectedIndex: selectedIndex >= 0
-                                        ? selectedIndex
-                                        : null,
-                                    followTarget: selectedLocation != null &&
-                                        _followSelectedChild,
-                                    onChildTapped: (idx) {
-                                      _selectChild(locations[idx].childId);
+                            child: session.user?.role == UserRole.parent &&
+                                    !subscription.isPremium &&
+                                    allChildren.length > freePlanChildLimit
+                                ? _PremiumMapOverlay(
+                                    onUpgrade: () => requirePremium(
+                                      context,
+                                      feature: PremiumFeature.liveMap,
+                                    ),
+                                    onManageChildren: () async {
+                                      await Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const ChildrenListScreen(),
+                                        ),
+                                      );
+                                      _fetchAll();
                                     },
-                                    onUserCameraMoveStarted: _disableFollowMode,
                                   )
-                                : hasChildren
-                                    ? _EmptyMapPlaceholder(
-                                        hasChildren: true,
-                                        error: _err,
-                                        onManage: () async {
-                                          await Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  const ChildrenListScreen(),
-                                            ),
-                                          );
-                                          _fetchAll();
-                                        },
-                                      )
-                                    : AdaptiveMap(
-                                        latitude:
-                                            _parentLocation?.latitude ?? 48.8566,
-                                        longitude:
-                                            _parentLocation?.longitude ?? 2.3522,
-                                        children: const [],
+                                : hasChildren && mapCenter != null
+                                    ? AdaptiveMap(
+                                        latitude: mapCenter.$1,
+                                        longitude: mapCenter.$2,
+                                        children: locations,
                                         parentLocation: _parentLocation,
-                                      ),
+                                        selectedIndex: selectedIndex >= 0
+                                            ? selectedIndex
+                                            : null,
+                                        followTarget:
+                                            selectedLocation != null &&
+                                                _followSelectedChild,
+                                        onChildTapped: (idx) {
+                                          _selectChild(locations[idx].childId);
+                                        },
+                                        onUserCameraMoveStarted:
+                                            _disableFollowMode,
+                                      )
+                                    : hasChildren
+                                        ? _EmptyMapPlaceholder(
+                                            hasChildren: true,
+                                            error: _err,
+                                            onManage: () async {
+                                              await Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const ChildrenListScreen(),
+                                                ),
+                                              );
+                                              _fetchAll();
+                                            },
+                                          )
+                                        : AdaptiveMap(
+                                            latitude:
+                                                _parentLocation?.latitude ??
+                                                    48.8566,
+                                            longitude:
+                                                _parentLocation?.longitude ??
+                                                    2.3522,
+                                            children: const [],
+                                            parentLocation: _parentLocation,
+                                          ),
                           ),
                           if (!hasChildren)
                             Positioned.fill(
@@ -504,12 +559,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  void _openMovementHistory(BuildContext context, ChildLocation loc) {
+  Future<void> _openMovementHistory(
+      BuildContext context, ChildLocation loc) async {
     final childId = loc.childId;
     if (childId == null) {
       _openActivity(context, loc);
       return;
     }
+    final allowed = await requirePremium(
+      context,
+      feature: PremiumFeature.movementHistory,
+    );
+    if (!allowed || !context.mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => MovementHistoryScreen(
@@ -571,10 +632,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   (double, double)? _mapCenterFor(
-    List<ChildLocation> children,
-    int? selectedChildId,
-    {ParentMapLocation? parentLocation}
-  ) {
+      List<ChildLocation> children, int? selectedChildId,
+      {ParentMapLocation? parentLocation}) {
     if (children.isEmpty) {
       if (parentLocation == null) return null;
       return (parentLocation.latitude, parentLocation.longitude);
@@ -649,6 +708,87 @@ class _EmptyMapPlaceholder extends StatelessWidget {
               label: Text(t.manageChildren),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumMapOverlay extends StatelessWidget {
+  const _PremiumMapOverlay({
+    required this.onUpgrade,
+    required this.onManageChildren,
+  });
+
+  final VoidCallback onUpgrade;
+  final VoidCallback onManageChildren;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.chipGrey,
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: AppCard(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.primarySoft,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(
+                  Icons.location_searching_rounded,
+                  color: AppColors.primary,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'One child stays free on the main map. Multi-child live map is part of Family Security Pro.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Upgrade to watch multiple children on the live map and unlock movement history, remote audio, and loud alarm controls.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  height: 1.45,
+                  color: AppColors.textSecondaryLight,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onUpgrade,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(
+                    S.of(context).seePlans,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: onManageChildren,
+                child: Text(S.of(context).manageChildren),
+              ),
+            ],
+          ),
         ),
       ),
     );

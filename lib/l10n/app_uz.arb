@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro faol",
+  "freePlan": "Bepul reja",
+  "manageSubscription": "Obunani boshqarish",
+  "restorePurchases": "Xaridlarni tiklash",
+  "skip": "O'tkazib yuborish",
+  "getPremium": "Premium olish",
+  "monthly": "Oylik",
+  "yearly": "Yillik",
+  "bestValue": "Eng yaxshi narx",
+  "perMonth": "oyda",
+  "perYearSave58": "yilda · 58% tejash",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Yangilash",
+  "paywallBestValueSave": "Eng yaxshi narx · {percent}% tejash",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Bitta oilaviy hisobga bir nechta bola qo'shing",
+  "paywallBenefitUnlockTools": "Audio monitoring, jonli xarita, tarix, statistika va signal vositalarini oching",
+  "paywallBenefitFullDashboard": "Bepul rejaning cheklovlarisiz butun ota-ona panelini saqlang",
+  "paywallBenefitAudio": "Bola qurilmasi yaqinidagi jonli atrofdagi tovush",
+  "paywallBenefitAppLimits": "Ilova cheklovlari, foydalanish tahlili va harakat tarixi",
+  "paywallBenefitAlarm": "Baland signal, yutuqlar va ilg'or ota-ona nazorati",
+  "paywallIncludedWithPro": "Pro-ga kiritilgan",
+  "paywallPlansTitle": "Mavjud rejalar",
+  "paywallRecommended": "Tavsiya etiladi",
+  "paywallPerMonthEquivalent": "{price} oylik ekvivalenti",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Rejangizni tanlang",
+  "paywallChoosePlanDescription": "Oilangizga eng mos keladigan oylik yoki yillik Family Security Pro rejasini tanlang.",
+  "paywallLoadingPlans": "Obuna rejalari yuklanmoqda...",
+  "paywallNoOffering": "Hozirda hech qanday taklif mavjud emas.",
+  "paywallPlatformOnly": "To'siq sahifalari bu to'plamda faqat iOS va Android-da mavjud.",
+  "subscriptionRestored": "Obunangiz tiklandi.",
+  "noSubscriptionFound": "Tiklash uchun faol obuna topilmadi.",
+  "subscriptionNowActive": "Family Security Pro endi faol.",
+  "purchaseEntitlementPending": "Xarid tugadi, lekin obuna hali faol emas.",
+  "premiumTitleAdditionalChildren": "Ko'proq bola profillarini ochish",
+  "premiumTitleLiveMap": "Jonli oila xaritasini ochish",
+  "premiumTitleMovementHistory": "Harakat tarixini ochish",
+  "premiumTitleAudioMonitoring": "Jonli atrofdagi tovushni ochish",
+  "premiumTitleScreenTime": "Ekran vaqtini boshqarishni ochish",
+  "premiumTitleAppStats": "Ilovalar foydalanish tahlilini ochish",
+  "premiumTitleAchievements": "Yutuqlar va mukofotlarni ochish",
+  "premiumTitleLoudAlarm": "Masofaviy baland signalni ochish",
+  "premiumTitleFullMenu": "Ota-ona to'liq menyusini ochish",
+  "premiumTitleGeneric": "Family Security Pro-ni ochish",
+  "premiumSubtitleAdditionalChildren": "Bepul hisoblar faqat bitta bolani boshqara oladi. Butun oilani qo'shish uchun yangilang.",
+  "premiumSubtitleLiveMap": "Bitta xaritadan bolalar joylashuvi, holati va masofaviy amallarni ko'ring.",
+  "premiumSubtitleMovementHistory": "Tarixiy marshrutlarni ko'rib chiqing, harakatni qayta ijro eting va joylashuv o'zgarishlarini tekshiring.",
+  "premiumSubtitleAudioMonitoring": "Darhol kontekst kerak bo'lganda bola yaqinidagi atrofdagi tovushlarni tinglang.",
+  "premiumSubtitleScreenTime": "Kunlik ilova cheklovlarini o'rnating, ilovalarni bloklab, sog'lom qurilma odatlarini shakllantiring.",
+  "premiumSubtitleAppStats": "Foydalanish statistikasi, tendensiyalar va ilova darajasidagi xatti-harakatlar tahlilini ko'ring.",
+  "premiumSubtitleAchievements": "Bolangizda ijobiy odatlarni shakllantirish uchun vazifalar, yulduzlar va mukofotlardan foydalaning.",
+  "premiumSubtitleLoudAlarm": "Bola qurilmasini tezda topish uchun masofadan baland signalni yoqing.",
+  "premiumSubtitleFullMenu": "Kengaytirilgan ota-ona menyusi, boshqaruvlar va monitoring vositalari Pro-ning bir qismi.",
+  "premiumSubtitleGeneric": "Kengaytirilgan ota-ona nazorati va monitoring vositalarini ochish uchun Family Security Pro-ga yangilang.",
+  "alreadyHaveAccount": "Allaqachon hisobingiz bormi? Kirish",
+  "childRegisterSubtitle": "Ota-onangizdan kelgan taklif kodini kiriting",
+  "childRegisterTitle": "Oilaga qo'shilish",
+  "codeCopied": "Kod buferga nusxalandi",
+  "dontHaveCode": "Taklif kodingiz bormi? Ro'yxatdan o'ting",
+  "enterYourDetails": "Ko'rsatma nomingizni kiriting",
+  "failedToGenerateCode": "Kod yaratib bo'lmadi: {error}",
+  "generateCode": "Kod yaratish",
+  "getHelp": "Yordam olish",
+  "invalidInviteCode": "Noto'g'ri yoki muddati o'tgan taklif kodi",
+  "inviteChild": "Bolani taklif qilish",
+  "inviteCode": "Taklif kodi",
+  "inviteCodeLabel": "Kod 3 kun amal qiladi",
+  "inviteShareText": "Family security da oilaviy davramga qo'shiling! Taklif kodidan foydalaning: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Oila a'zolaringiz ilovani o'rnatib, kod yordamida doiraga qo'shilishlari kerak",
+  "inviteTitle": "Bolalaringiz va boshqa oila a'zolarini doirangizga taklif qiling",
+  "next": "Keyingi",
+  "register": "Ro'yxatdan o'tish",
+  "setupYourProfile": "Profilingizni sozlang",
+  "shareCode": "Kodni ulashish",
+  "seePlans": "Rejalarni ko'rish"
 }

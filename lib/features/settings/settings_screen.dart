@@ -12,8 +12,10 @@ import '../../core/providers/locale_provider.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/device_notification_service.dart';
 import '../../core/services/local_avatar_store.dart';
+import '../../core/subscriptions/subscription_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_language_sheet.dart';
+import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
 import '../auth/onboarding_screen.dart';
 import '../parent/children_list_screen.dart';
@@ -117,16 +119,66 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     await showAppLanguageSheet(context);
   }
 
+  Future<void> _openCustomerCenter() async {
+    try {
+      await ref.read(subscriptionServiceProvider.notifier).openCustomerCenter();
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        'Subscription settings opened.',
+        type: AppFeedbackType.success,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        error.toString(),
+        type: AppFeedbackType.error,
+      );
+    }
+  }
+
+  Future<void> _restorePurchases() async {
+    try {
+      final info = await ref
+          .read(subscriptionServiceProvider.notifier)
+          .restorePurchases();
+      if (!mounted) return;
+      if (info != null && isPremiumUser(info)) {
+        showAppSnackBar(
+          context,
+          'Your Family Security Pro access has been restored.',
+          type: AppFeedbackType.success,
+        );
+        return;
+      }
+      showAppSnackBar(
+        context,
+        'No active Family Security Pro entitlement was found.',
+        type: AppFeedbackType.warning,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        error.toString(),
+        type: AppFeedbackType.error,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
     final selectedLocale = ref.watch(appLocaleProvider);
     final session = ref.watch(sessionProvider);
+    final subscription = ref.watch(subscriptionServiceProvider);
     final user = session.user;
     final selectedLanguageLabel = selectedLocale == null
         ? t.systemDefault
         : languageOptionFor(selectedLocale)?.nativeName ??
             selectedLocale.languageCode.toUpperCase();
+    final planLabel = subscription.isPremium ? t.proActive : t.freePlan;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -240,6 +292,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         builder: (_) => const ParentChildPermissionsScreen(),
                       ),
                     ),
+                  ),
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.dividerLight),
+                  _SettingsRow(
+                    icon: Icons.workspace_premium_outlined,
+                    iconColor: subscription.isPremium
+                        ? AppColors.warning
+                        : AppColors.primary,
+                    title: t.manageSubscription,
+                    trailingText: planLabel,
+                    onTap: _openCustomerCenter,
+                  ),
+                  const Divider(
+                      height: 1, indent: 56, color: AppColors.dividerLight),
+                  _SettingsRow(
+                    icon: Icons.restore_rounded,
+                    iconColor: AppColors.success,
+                    title: t.restorePurchases,
+                    onTap: _restorePurchases,
                   ),
                 ],
               ],

@@ -843,4 +843,190 @@ class SEn extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Radius $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro active';
+
+  @override
+  String get freePlan => 'Free plan';
+
+  @override
+  String get manageSubscription => 'Manage Subscription';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get getPremium => 'Get Premium';
+
+  @override
+  String get monthly => 'Monthly';
+
+  @override
+  String get yearly => 'Yearly';
+
+  @override
+  String get bestValue => 'Best value';
+
+  @override
+  String get perMonth => 'per month';
+
+  @override
+  String get perYearSave58 => 'per year · Save 58%';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Upgrade';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Best value · Save $percent%';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Add multiple children to one family account';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Unlock audio monitoring, live map, history, stats, and alarm tools';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Keep the entire parent dashboard available without free-plan limits';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Live surrounding audio near the child device';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'App limits, usage analytics, and movement history';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Loud alarm, achievements, and advanced parent controls';
+
+  @override
+  String get paywallIncludedWithPro => 'Included with Pro';
+
+  @override
+  String get paywallPlansTitle => 'Plans in this paywall';
+
+  @override
+  String get paywallRecommended => 'Recommended';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price per month equivalent';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Choose your plan';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Choose the monthly or yearly Family Security Pro plan that fits your family best.';
+
+  @override
+  String get paywallLoadingPlans => 'Loading subscription plans...';
+
+  @override
+  String get paywallNoOffering => 'No offering is currently available.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Paywalls are available only on iOS and Android in this build.';
+
+  @override
+  String get subscriptionRestored => 'Your subscription has been restored.';
+
+  @override
+  String get noSubscriptionFound =>
+      'No active subscription was found to restore.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro is now active.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Purchase finished, but the subscription is not active yet.';
+
+  @override
+  String get premiumTitleAdditionalChildren => 'Unlock more child profiles';
+
+  @override
+  String get premiumTitleLiveMap => 'Unlock live family map';
+
+  @override
+  String get premiumTitleMovementHistory => 'Unlock movement history';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Unlock live surrounding sound';
+
+  @override
+  String get premiumTitleScreenTime => 'Unlock screen time controls';
+
+  @override
+  String get premiumTitleAppStats => 'Unlock app usage analytics';
+
+  @override
+  String get premiumTitleAchievements => 'Unlock achievements and rewards';
+
+  @override
+  String get premiumTitleLoudAlarm => 'Unlock remote loud alarm';
+
+  @override
+  String get premiumTitleFullMenu => 'Unlock the full parent menu';
+
+  @override
+  String get premiumTitleGeneric => 'Unlock Family Security Pro';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Free accounts can manage only one child. Upgrade to add the whole family.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'See real-time child locations, status, and remote actions from one map.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Review historical routes, playback movement, and investigate location changes.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Listen to surrounding sound near the child when you need immediate context.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Set daily app limits, block apps, and enforce healthier device habits.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'See usage breakdowns, trends, and app-level behavior insights.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Use tasks, stars, and rewards to build positive habits for your child.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Trigger a loud alarm remotely to help locate the child device quickly.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'The advanced parent menu, controls, and monitoring tools are part of Pro.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Upgrade to Family Security Pro to unlock advanced parental control and monitoring tools.';
+
+  @override
+  String get seePlans => 'See plans';
 }

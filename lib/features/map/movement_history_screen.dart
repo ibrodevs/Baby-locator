@@ -242,7 +242,8 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
           left: 12,
           right: 12,
           top: 12,
-          child: _CurrentPointCard(point: current, total: _filtered.length, index: _currentIndex),
+          child: _CurrentPointCard(
+              point: current, total: _filtered.length, index: _currentIndex),
         ),
         Positioned(
           left: 12,
@@ -544,16 +545,17 @@ class _SliderPanel extends StatelessWidget {
                   ),
                   child: Slider(
                     min: 0,
-                    max: (points.length - 1).toDouble().clamp(0, double.infinity),
+                    max: (points.length - 1)
+                        .toDouble()
+                        .clamp(0, double.infinity),
                     value: index.toDouble().clamp(
                           0,
                           (points.length - 1).toDouble(),
                         ),
                     divisions: points.length > 1 ? points.length - 1 : null,
                     onChangeStart: (v) => onChangeStart(v.round()),
-                    onChanged: points.length < 2
-                        ? null
-                        : (v) => onChanged(v.round()),
+                    onChanged:
+                        points.length < 2 ? null : (v) => onChanged(v.round()),
                   ),
                 ),
               ),
@@ -634,8 +636,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline,
-                size: 56, color: AppColors.danger),
+            const Icon(Icons.error_outline, size: 56, color: AppColors.danger),
             const SizedBox(height: 12),
             Text(
               message,

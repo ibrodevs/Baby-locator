@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -272,8 +273,17 @@ class FcmService {
   /// Registers the current FCM token with the backend.
   /// Call after login / on app start when authenticated.
   Future<void> registerToken() async {
+    final messaging = FirebaseMessaging.instance;
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      final apnsToken = await messaging.getAPNSToken();
+      if (apnsToken == null || apnsToken.isEmpty) {
+        return;
+      }
+    }
+
     try {
-      final token = await FirebaseMessaging.instance.getToken();
+      final token = await messaging.getToken();
       if (token != null) {
         await ApiClient.instance.registerFcmToken(token);
       }
@@ -282,7 +292,7 @@ class FcmService {
     }
 
     // Listen for token refreshes.
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    messaging.onTokenRefresh.listen((newToken) async {
       try {
         await ApiClient.instance.registerFcmToken(newToken);
       } catch (_) {}

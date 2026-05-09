@@ -10,6 +10,7 @@ import 'core/providers/locale_provider.dart';
 import 'core/providers/session_providers.dart';
 import 'core/services/background_command_service.dart';
 import 'core/services/fcm_service.dart';
+import 'core/subscriptions/subscription_service.dart';
 
 Future<void> _bootstrapApp(ProviderContainer container) async {
   try {
@@ -29,6 +30,16 @@ Future<void> _bootstrapApp(ProviderContainer container) async {
         .timeout(const Duration(seconds: 8));
   } catch (error, stackTrace) {
     debugPrint('Session bootstrap failed: $error');
+    debugPrintStack(stackTrace: stackTrace);
+  }
+
+  try {
+    await container
+        .read(subscriptionServiceProvider.notifier)
+        .bootstrap(user: container.read(sessionProvider).user)
+        .timeout(const Duration(seconds: 8));
+  } catch (error, stackTrace) {
+    debugPrint('Subscription bootstrap failed: $error');
     debugPrintStack(stackTrace: stackTrace);
   }
 

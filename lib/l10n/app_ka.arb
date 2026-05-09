@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro აქტიური",
+  "freePlan": "უფასო გეგმა",
+  "manageSubscription": "გამოწერის მართვა",
+  "restorePurchases": "შესყიდვების აღდგენა",
+  "skip": "გამოტოვება",
+  "getPremium": "Premium-ის მიღება",
+  "monthly": "ყოველთვიური",
+  "yearly": "წლიური",
+  "bestValue": "საუკეთესო ღირებულება",
+  "perMonth": "თვეში",
+  "perYearSave58": "წელიწადში · 58% დაზოგვა",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "განახლება",
+  "paywallBestValueSave": "საუკეთესო ღირებულება · {percent}% დაზოგვა",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "რამდენიმე ბავშვის დამატება ოჯახის ერთ ანგარიშზე",
+  "paywallBenefitUnlockTools": "განბლოკეთ ხმის მონიტორინგი, ლაივ რუქა, ისტორია, სტატისტიკა და სიგნალები",
+  "paywallBenefitFullDashboard": "შეინარჩუნეთ მშობლის სრული პანელი უფასო გეგმის შეზღუდვების გარეშე",
+  "paywallBenefitAudio": "ლაივ გარემო ხმა ბავშვის მოწყობილობასთან",
+  "paywallBenefitAppLimits": "აპლიკაციის ლიმიტები, გამოყენების ანალიტიკა და მოძრაობის ისტორია",
+  "paywallBenefitAlarm": "ხმამაღალი სიგნალი, მიღწევები და გაფართოებული მშობლის კონტროლი",
+  "paywallIncludedWithPro": "Pro-ში შედის",
+  "paywallPlansTitle": "ხელმისაწვდომი გეგმები",
+  "paywallRecommended": "რეკომენდებული",
+  "paywallPerMonthEquivalent": "{price} თვიური ეკვივალენტი",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "აირჩიეთ თქვენი გეგმა",
+  "paywallChoosePlanDescription": "აირჩიეთ Family Security Pro-ს ყოველთვიური ან წლიური გეგმა, რომელიც საუკეთესოდ შეეფერება თქვენს ოჯახს.",
+  "paywallLoadingPlans": "გამოწერის გეგმები იტვირთება...",
+  "paywallNoOffering": "ამჟამად შეთავაზება არ არის.",
+  "paywallPlatformOnly": "Paywall-ები ხელმისაწვდომია მხოლოდ iOS-სა და Android-ზე ამ build-ში.",
+  "subscriptionRestored": "თქვენი გამოწერა აღდგა.",
+  "noSubscriptionFound": "აქტიური გამოწერა ვერ მოიძებნა.",
+  "subscriptionNowActive": "Family Security Pro ახლა აქტიურია.",
+  "purchaseEntitlementPending": "შეძენა დასრულდა, მაგრამ გამოწერა ჯერ არ არის აქტიური.",
+  "premiumTitleAdditionalChildren": "მეტი ბავშვის პროფილის განბლოკვა",
+  "premiumTitleLiveMap": "ოჯახის ლაივ რუკის განბლოკვა",
+  "premiumTitleMovementHistory": "მოძრაობის ისტორიის განბლოკვა",
+  "premiumTitleAudioMonitoring": "ლაივ გარემო ხმის განბლოკვა",
+  "premiumTitleScreenTime": "ეკრანის დროის კონტროლის განბლოკვა",
+  "premiumTitleAppStats": "აპლიკაციის გამოყენების ანალიტიკის განბლოკვა",
+  "premiumTitleAchievements": "მიღწევებისა და ჯილდოების განბლოკვა",
+  "premiumTitleLoudAlarm": "დისტანციური ხმამაღალი სიგნალის განბლოკვა",
+  "premiumTitleFullMenu": "სრული მშობლის მენიუს განბლოკვა",
+  "premiumTitleGeneric": "Family Security Pro-ს განბლოკვა",
+  "premiumSubtitleAdditionalChildren": "უფასო ანგარიშები მხოლოდ ერთ ბავშვს მართავს. განაახლეთ მთელი ოჯახის დასამატებლად.",
+  "premiumSubtitleLiveMap": "ნახეთ ბავშვების მდებარეობა, სტატუსი და დისტანციური მოქმედებები ერთი რუქიდან.",
+  "premiumSubtitleMovementHistory": "განიხილეთ ისტორიული მარშრუტები, ჩაუქციეთ მოძრაობა და გამოიძიეთ ადგილმდებარეობის ცვლილებები.",
+  "premiumSubtitleAudioMonitoring": "მოუსმინეთ გარემო ხმებს ბავშვის მახლობლად, როდესაც გჭირდებათ სწრაფი კონტექსტი.",
+  "premiumSubtitleScreenTime": "დააყენეთ ყოველდღიური აპლიკაციის ლიმიტები, დაბლოკეთ აპლიკაციები და ჩამოაყალიბეთ ჯანსაღი ჩვევები.",
+  "premiumSubtitleAppStats": "იხილეთ გამოყენების სტატისტიკა, ტენდენციები და აპლიკაციის დონის ქცევის ანალიტიკა.",
+  "premiumSubtitleAchievements": "გამოიყენეთ დავალებები, ვარსკვლავები და ჯილდოები ბავშვისთვის პოზიტიური ჩვევების ჩამოყალიბებისთვის.",
+  "premiumSubtitleLoudAlarm": "გაააქტიურეთ ხმამაღალი სიგნალი დისტანციურად, რომ სწრაფად პოვოთ ბავშვის მოწყობილობა.",
+  "premiumSubtitleFullMenu": "გაფართოებული მშობლის მენიუ, კონტროლი და მონიტორინგის ხელსაწყოები Pro-ს ნაწილია.",
+  "premiumSubtitleGeneric": "განაახლეთ Family Security Pro-ზე, რომ განბლოკოთ გაფართოებული მშობლის კონტროლისა და მონიტორინგის ხელსაწყოები.",
+  "alreadyHaveAccount": "უკვე გაქვთ ანგარიში? შებრძანდით",
+  "childRegisterSubtitle": "შეიყვანეთ მშობლის მოწვევის კოდი",
+  "childRegisterTitle": "ოჯახში შეერთება",
+  "codeCopied": "კოდი დაკოპირდა ბუფერში",
+  "dontHaveCode": "მოწვევის კოდი გაქვთ? დარეგისტრირდით",
+  "enterYourDetails": "შეიყვანეთ სახელი",
+  "failedToGenerateCode": "კოდის გენერაცია ვერ მოხდა: {error}",
+  "generateCode": "კოდის გენერაცია",
+  "getHelp": "დახმარების მიღება",
+  "invalidInviteCode": "არასწორი ან ვადაგასული მოწვევის კოდი",
+  "inviteChild": "ბავშვის მოწვევა",
+  "inviteCode": "მოწვევის კოდი",
+  "inviteCodeLabel": "კოდი მოქმედებს 3 დღე",
+  "inviteShareText": "შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "თქვენი ოჯახის წევრებმა უნდა დააინსტალირონ აპი და შეუერთდნენ წრეს კოდის გამოყენებით",
+  "inviteTitle": "მოიწვიეთ ბავშვები და ოჯახის სხვა წევრები თქვენს წრეში",
+  "next": "შემდეგი",
+  "register": "რეგისტრაცია",
+  "setupYourProfile": "პროფილის მოწყობა",
+  "shareCode": "კოდის გაზიარება",
+  "seePlans": "გეგმების ნახვა"
 }

@@ -309,9 +309,7 @@ class _SummaryBar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  total == 0
-                      ? t.noSafeZonesYet
-                      : t.placesCount(total),
+                  total == 0 ? t.noSafeZonesYet : t.placesCount(total),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -429,8 +427,7 @@ class _ZonesPanel extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         child: Column(
           children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.danger, size: 28),
+            const Icon(Icons.error_outline, color: AppColors.danger, size: 28),
             const SizedBox(height: 6),
             Text(
               e.toString(),
@@ -650,9 +647,7 @@ class _ZoneTile extends StatelessWidget {
             ? t.always
             : zone.activeDays.isEmpty
                 ? t.noDaysSelected
-                : zone.activeDays
-                    .map((d) => _weekdayLabel(t, d))
-                    .join(', ');
+                : zone.activeDays.map((d) => _weekdayLabel(t, d)).join(', ');
     return t.radiusSummary(radius, schedule);
   }
 

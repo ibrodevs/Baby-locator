@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro işjeň",
+  "freePlan": "Mugt meýilnama",
+  "manageSubscription": "Ýazylmagy dolandyrmak",
+  "restorePurchases": "Satyn alyşlary dikelt",
+  "skip": "Geç",
+  "getPremium": "Premium al",
+  "monthly": "Aýlyk",
+  "yearly": "Ýyllyk",
+  "bestValue": "Iň gowy baha",
+  "perMonth": "aýda",
+  "perYearSave58": "ýylda · 58% tygşytla",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Täzele",
+  "paywallBestValueSave": "Iň gowy baha · {percent}% tygşytla",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Bir maşgala hasabyna birnäçe çaga goşuň",
+  "paywallBenefitUnlockTools": "Audio gözegçilik, janly karta, taryh, statistika we duýduryş gurallary açyň",
+  "paywallBenefitFullDashboard": "Mugt meýilnamanyň çäklendirmesiz doly ene-ata dolandyryş panelini ulanyň",
+  "paywallBenefitAudio": "Çaga enjamynyň ýanyndaky janly daş-töwerek sesi",
+  "paywallBenefitAppLimits": "Programma çäkleri, ulanma analitikasy we hereket taryhy",
+  "paywallBenefitAlarm": "Güýçli signal, üstünlikler we öňdebaryjy ene-ata dolandyryjylary",
+  "paywallIncludedWithPro": "Pro-da bar",
+  "paywallPlansTitle": "Elýeterli meýilnamalar",
+  "paywallRecommended": "Maslahat berilýär",
+  "paywallPerMonthEquivalent": "{price} aýlyk deňwert",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Meýilnamaňyzy saýlaň",
+  "paywallChoosePlanDescription": "Maşgalaňyza iň laýyk aýlyk ýa-da ýyllyk Family Security Pro meýilnamasyny saýlaň.",
+  "paywallLoadingPlans": "Ýazylma meýilnamalary ýüklenýär...",
+  "paywallNoOffering": "Häzirki wagtda teklip ýok.",
+  "paywallPlatformOnly": "Töleg diwarlary bu gurmada diňe iOS we Android-de elýeterlidir.",
+  "subscriptionRestored": "Seniň ýazylmaň dikeldildi.",
+  "noSubscriptionFound": "Dikeltmek üçin işjeň ýazylma tapylmady.",
+  "subscriptionNowActive": "Family Security Pro indi işjeň.",
+  "purchaseEntitlementPending": "Satyn alyş tamamlandy, ýöne ýazylma heniz işjeň däl.",
+  "premiumTitleAdditionalChildren": "Has köp çaga profilini açyň",
+  "premiumTitleLiveMap": "Janly maşgala kartasyny açyň",
+  "premiumTitleMovementHistory": "Hereket taryhyny açyň",
+  "premiumTitleAudioMonitoring": "Janly daş-töwerek sesini açyň",
+  "premiumTitleScreenTime": "Ekran wagtyny dolandyrmagy açyň",
+  "premiumTitleAppStats": "Programma ulanma analitikasyny açyň",
+  "premiumTitleAchievements": "Üstünlikleri we sylaglary açyň",
+  "premiumTitleLoudAlarm": "Uzakdan güýçli signaly açyň",
+  "premiumTitleFullMenu": "Doly ene-ata menýusyny açyň",
+  "premiumTitleGeneric": "Family Security Pro-ny açyň",
+  "premiumSubtitleAdditionalChildren": "Mugt hasaplar diňe bir çagany dolandyryp bilýär. Tutuş maşgalany goşmak üçin täzele.",
+  "premiumSubtitleLiveMap": "Bir kartadan çagalaryň hakyky wagtdaky ýerini, ýagdaýyny we uzakdan hereketlerini görüň.",
+  "premiumSubtitleMovementHistory": "Taryhy ugurlary gözden geçiriň, hereketi gaýtalaň we ýer üýtgemelerini derňäň.",
+  "premiumSubtitleAudioMonitoring": "Derrew kontekst gerek bolanda çaganyň golaýyndaky daş-töwerek seslerini diňläň.",
+  "premiumSubtitleScreenTime": "Gündelik programma çäklerini belläň, programmalary petikläň we saglykly endikleri ösdüriň.",
+  "premiumSubtitleAppStats": "Ulanma statistikasyny, tendensiýalary we programma derejesindäki hereketleri görüň.",
+  "premiumSubtitleAchievements": "Çagaňyz üçin oňyn endikleri kemala getirmek üçin wezipeleri, ýyldyzlary we sylaglary ulanyň.",
+  "premiumSubtitleLoudAlarm": "Çaga enjamyny çalt tapmak üçin uzakdan güýçli signaly işjeňleşdiriň.",
+  "premiumSubtitleFullMenu": "Öňdebaryjy ene-ata menýusy, dolandyryşlar we gözegçilik gurallary Pro-nyň bir bölegidir.",
+  "premiumSubtitleGeneric": "Öňdebaryjy ene-ata gözegçilik we gözegçilik gurallaryny açmak üçin Family Security Pro-a täzele.",
+  "alreadyHaveAccount": "Hasabyňyz barmy? Giriň",
+  "childRegisterSubtitle": "Ene-ataňyzyň çakylyk kodyny giriziň",
+  "childRegisterTitle": "Maşgala goşulyň",
+  "codeCopied": "Kod panele göçürildi",
+  "dontHaveCode": "Çakylyk kodyňyz barmy? Hasaba duruň",
+  "enterYourDetails": "Görkezme adyňyzy giriziň",
+  "failedToGenerateCode": "Kod döredilmedi: {error}",
+  "generateCode": "Kod dör et",
+  "getHelp": "Kömek alyň",
+  "invalidInviteCode": "Nädogry ýa-da möhleti geçen çakylyk kody",
+  "inviteChild": "Çaga çagyr",
+  "inviteCode": "Çakylyk kody",
+  "inviteCodeLabel": "Kod 3 gün geçerlidir",
+  "inviteShareText": "Family security-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Maşgala agzaňyz programma gurnamalydyr we kody ulanyp topara goşulmalydyr",
+  "inviteTitle": "Çagalaryňyzy we beýleki maşgala agzalaryňyzy halkanyňyza çagyryň",
+  "next": "Indiki",
+  "register": "Hasaba durmak",
+  "setupYourProfile": "Profilinizi guruň",
+  "shareCode": "Kody paýlaşyň",
+  "seePlans": "Meýilnamalary gör"
 }

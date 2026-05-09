@@ -745,70 +745,72 @@ class STg extends S {
   String get childLogout => 'Баромадан';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'Даъвати кӯдак';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'Кӯдакон ва дигар аъзоёни оиларо ба доираи худ даъват кунед';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'Аъзоёни оилаи шумо бояд барномаро насб кунанд ва бо истифода аз рамз ба доира ҳамроҳ шаванд';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'Рамз барои 3 рӯз эътибор дорад';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'Мубодилаи рамз';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'Кӯмак гиред';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'Тавлиди рамз';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'Рамз ба буфер нусхабардорӣ шуд';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'Тавлиди рамз нашуд: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'Ба оила ҳамроҳ шавед';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle =>
+      'Рамзи даъватномаи волидайнатонро ворид кунед';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'Рамзи даъватнома';
 
   @override
-  String get next => 'Next';
+  String get next => 'Баъдӣ';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'Профили худро танзим кунед';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'Номи намоишии худро ворид кунед';
 
   @override
-  String get register => 'Register';
+  String get register => 'Бақайдгирӣ';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode =>
+      'Рамзи даъватномаи нодуруст ё мӯҳлаташ гузашта';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => 'Аллакай ҳисоб доред? Ворид шавед';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => 'Рамзи даъватнома доред? Бақайдгирӣ';
 
   @override
   String get placesOnMap => 'Ҷойҳо дар харита';
@@ -852,4 +854,191 @@ class STg extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Радиус $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro фаъол';
+
+  @override
+  String get freePlan => 'Нақшаи ройгон';
+
+  @override
+  String get manageSubscription => 'Идоракунии обуна';
+
+  @override
+  String get restorePurchases => 'Харидҳоро барқарор кунед';
+
+  @override
+  String get skip => 'Гузаштан';
+
+  @override
+  String get getPremium => 'Premium гирифтан';
+
+  @override
+  String get monthly => 'Моҳона';
+
+  @override
+  String get yearly => 'Солона';
+
+  @override
+  String get bestValue => 'Беҳтарин арзиш';
+
+  @override
+  String get perMonth => 'дар як моҳ';
+
+  @override
+  String get perYearSave58 => 'дар як сол · 58% сарфа';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Навсозӣ';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Беҳтарин арзиш · $percent% сарфа';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Якчанд кӯдакро ба як ҳисоби оилавӣ илова кунед';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Мониторинги аудио, харитаи зинда, таърих, омор ва абзорҳои огоҳиро кушоед';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Тамоми панели волидайнро бидуни маҳдудиятҳои нақшаи ройгон нигоҳ доред';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Садои иҳотаи зинда дар наздикии дастгоҳи кӯдак';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Маҳдудиятҳои замима, аналитикаи истифода ва таърихи ҳаракат';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Огоҳии баланд, дастовардҳо ва назорати пешрафтаи волидайн';
+
+  @override
+  String get paywallIncludedWithPro => 'Дар Pro дохил аст';
+
+  @override
+  String get paywallPlansTitle => 'Нақшаҳои дастрас';
+
+  @override
+  String get paywallRecommended => 'Тавсия карда мешавад';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price арзиши моҳона';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Нақшаатонро интихоб кунед';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Нақшаи моҳона ё солонаи Family Security Pro-ро интихоб кунед, ки барои оилаи шумо мувофиқтарин аст.';
+
+  @override
+  String get paywallLoadingPlans => 'Нақшаҳои обуна бор мешаванд...';
+
+  @override
+  String get paywallNoOffering => 'Дар айни замон пешниҳоде вуҷуд надорад.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Деворҳои пардохт танҳо дар iOS ва Android дар ин нусха дастрасанд.';
+
+  @override
+  String get subscriptionRestored => 'Обунаи шумо барқарор карда шуд.';
+
+  @override
+  String get noSubscriptionFound =>
+      'Барои барқарор кардан ягон обунаи фаъол ёфт нашуд.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro ҳоло фаъол аст.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Харид ба итмом расид, аммо обуна ҳанӯз фаъол нест.';
+
+  @override
+  String get premiumTitleAdditionalChildren =>
+      'Кушодани профилҳои бештари кӯдакон';
+
+  @override
+  String get premiumTitleLiveMap => 'Кушодани харитаи оилаи зинда';
+
+  @override
+  String get premiumTitleMovementHistory => 'Кушодани таърихи ҳаракат';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Кушодани садои иҳотаи зинда';
+
+  @override
+  String get premiumTitleScreenTime => 'Кушодани назорати вақти экран';
+
+  @override
+  String get premiumTitleAppStats => 'Кушодани аналитикаи истифодаи замима';
+
+  @override
+  String get premiumTitleAchievements => 'Кушодани дастовардҳо ва мукофотҳо';
+
+  @override
+  String get premiumTitleLoudAlarm => 'Кушодани огоҳии баланди дурдаст';
+
+  @override
+  String get premiumTitleFullMenu => 'Кушодани менюи пурраи волидайн';
+
+  @override
+  String get premiumTitleGeneric => 'Кушодани Family Security Pro';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Ҳисобҳои ройгон танҳо як кӯдакро идора мекунанд. Барои илова кардани тамоми оила навсозӣ кунед.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Аз як харита ҷойгиршавии кӯдакон, ҳолат ва амалиётҳои дурдастро бинед.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Масирҳои таърихиро баррасӣ кунед, ҳаракатро бозпахш кунед ва тағйиротҳои ҷойгиршавиро тафтиш кунед.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Вақте ки контексти фаврӣ лозим аст, садоҳои атрофи кӯдакро гӯш кунед.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Маҳдудиятҳои рӯзонаи замима танзим кунед, замимаҳоро банд кунед ва одатҳои солимтари дастгоҳро татбиқ намоед.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Омори истифода, тамоилҳо ва таҳлили рафтори замимаро бинед.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Барои ташаккули одатҳои мусбат барои кӯдакатон аз вазифаҳо, ситораҳо ва мукофотҳо истифода баред.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Барои ёфтани дастгоҳи кӯдак зуд, огоҳии баландро аз дур фаъол созед.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'Менюи пешрафтаи волидайн, назоратҳо ва абзорҳои мониторинг қисми Pro мебошанд.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Барои кушодани абзорҳои пешрафтаи назорати волидайн ба Family Security Pro навсозӣ кунед.';
+
+  @override
+  String get seePlans => 'Дидани нақшаҳо';
 }

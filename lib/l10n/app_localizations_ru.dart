@@ -848,4 +848,191 @@ class SRu extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Радиус $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro активен';
+
+  @override
+  String get freePlan => 'Бесплатный план';
+
+  @override
+  String get manageSubscription => 'Управление подпиской';
+
+  @override
+  String get restorePurchases => 'Восстановить покупки';
+
+  @override
+  String get skip => 'Пропустить';
+
+  @override
+  String get getPremium => 'Получить Premium';
+
+  @override
+  String get monthly => 'Ежемесячно';
+
+  @override
+  String get yearly => 'Ежегодно';
+
+  @override
+  String get bestValue => 'Лучшее предложение';
+
+  @override
+  String get perMonth => 'в месяц';
+
+  @override
+  String get perYearSave58 => 'в год · Экономия 58%';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Улучшить';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Выгодно · Экономия $percent%';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Добавьте нескольких детей в один семейный аккаунт';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Разблокируйте аудиомониторинг, карту, историю, статистику и инструменты тревоги';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Используйте всю панель управления без ограничений бесплатного плана';
+
+  @override
+  String get paywallBenefitAudio =>
+      'Прослушивание окружения рядом с устройством ребёнка';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Лимиты приложений, аналитика использования и история движения';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Громкий сигнал тревоги, достижения и расширенный контроль';
+
+  @override
+  String get paywallIncludedWithPro => 'Включено в Pro';
+
+  @override
+  String get paywallPlansTitle => 'Доступные планы';
+
+  @override
+  String get paywallRecommended => 'Рекомендуется';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price в месяц (эквивалент)';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Выберите план';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Выберите ежемесячный или ежегодный план Family Security Pro, подходящий для вашей семьи.';
+
+  @override
+  String get paywallLoadingPlans => 'Загрузка планов подписки...';
+
+  @override
+  String get paywallNoOffering => 'Нет доступных предложений.';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Страницы оплаты доступны только на iOS и Android в этой сборке.';
+
+  @override
+  String get subscriptionRestored => 'Ваша подписка восстановлена.';
+
+  @override
+  String get noSubscriptionFound =>
+      'Активная подписка для восстановления не найдена.';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro теперь активен.';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Покупка завершена, но подписка ещё не активирована.';
+
+  @override
+  String get premiumTitleAdditionalChildren => 'Разблокировать профили детей';
+
+  @override
+  String get premiumTitleLiveMap => 'Разблокировать карту семьи';
+
+  @override
+  String get premiumTitleMovementHistory => 'Разблокировать историю движения';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Разблокировать прослушивание';
+
+  @override
+  String get premiumTitleScreenTime =>
+      'Разблокировать контроль экранного времени';
+
+  @override
+  String get premiumTitleAppStats => 'Разблокировать аналитику использования';
+
+  @override
+  String get premiumTitleAchievements => 'Разблокировать достижения и награды';
+
+  @override
+  String get premiumTitleLoudAlarm => 'Разблокировать громкий сигнал тревоги';
+
+  @override
+  String get premiumTitleFullMenu => 'Разблокировать полное меню родителя';
+
+  @override
+  String get premiumTitleGeneric => 'Разблокировать Family Security Pro';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Бесплатные аккаунты управляют только одним ребёнком. Обновитесь, чтобы добавить всю семью.';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Просматривайте местоположение детей, статус и удалённые действия с одной карты.';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Просматривайте маршруты, воспроизводите движение и изучайте изменения местоположения.';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Слушайте звуки вокруг ребёнка, когда вам нужен немедленный контекст.';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Устанавливайте ежедневные лимиты, блокируйте приложения и формируйте здоровые привычки.';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Просматривайте статистику использования, тенденции и поведенческие данные.';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Используйте задания, звёзды и награды для формирования позитивных привычек ребёнка.';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Активируйте громкий сигнал дистанционно, чтобы быстро найти устройство ребёнка.';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'Расширенное меню, инструменты контроля и мониторинга — часть Pro.';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Обновитесь до Family Security Pro, чтобы разблокировать расширенный родительский контроль.';
+
+  @override
+  String get seePlans => 'Смотреть планы';
 }

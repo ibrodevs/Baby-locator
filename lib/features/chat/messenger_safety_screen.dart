@@ -49,7 +49,9 @@ class MessengerSafetyScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         _BigScoreRing(
-                            value: 0.92, label: '92%', sub: _secureLabel(context)),
+                            value: 0.92,
+                            label: '92%',
+                            sub: _secureLabel(context)),
                         const SizedBox(height: 14),
                         Text(
                           _messengerSafetyScoreTitle(context),
@@ -76,7 +78,8 @@ class MessengerSafetyScreen extends StatelessWidget {
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w800)),
                       const Spacer(),
-                      StatusBadge(text: _realTime(context), color: AppColors.success),
+                      StatusBadge(
+                          text: _realTime(context), color: AppColors.success),
                     ],
                   ),
                   const SizedBox(height: 10),

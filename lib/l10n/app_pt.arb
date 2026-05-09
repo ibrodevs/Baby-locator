@@ -249,5 +249,93 @@
         "type": "String"
       }
     }
-  }
+  },
+  "proActive": "Pro ativo",
+  "freePlan": "Plano gratuito",
+  "manageSubscription": "Gerenciar assinatura",
+  "restorePurchases": "Restaurar compras",
+  "skip": "Pular",
+  "getPremium": "Obter Premium",
+  "monthly": "Mensal",
+  "yearly": "Anual",
+  "bestValue": "Melhor custo-benefício",
+  "perMonth": "por mês",
+  "perYearSave58": "por ano · Economize 58%",
+  "paywallProductName": "Family Security Pro",
+  "paywallUpgrade": "Fazer upgrade",
+  "paywallBestValueSave": "Melhor custo-benefício · Economize {percent}%",
+  "@paywallBestValueSave": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "paywallBenefitAddChildren": "Adicione vários filhos a uma conta familiar",
+  "paywallBenefitUnlockTools": "Desbloqueie monitoramento de áudio, mapa ao vivo, histórico, estatísticas e ferramentas de alarme",
+  "paywallBenefitFullDashboard": "Mantenha todo o painel dos pais disponível sem os limites do plano gratuito",
+  "paywallBenefitAudio": "Áudio do ambiente ao vivo perto do dispositivo do filho",
+  "paywallBenefitAppLimits": "Limites de apps, análise de uso e histórico de movimentos",
+  "paywallBenefitAlarm": "Alarme alto, conquistas e controles parentais avançados",
+  "paywallIncludedWithPro": "Incluído no Pro",
+  "paywallPlansTitle": "Planos disponíveis",
+  "paywallRecommended": "Recomendado",
+  "paywallPerMonthEquivalent": "{price} equivalente mensal",
+  "@paywallPerMonthEquivalent": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "paywallChooseYourPlan": "Escolha seu plano",
+  "paywallChoosePlanDescription": "Escolha o plano mensal ou anual Family Security Pro que melhor se adapta à sua família.",
+  "paywallLoadingPlans": "Carregando planos de assinatura...",
+  "paywallNoOffering": "Nenhuma oferta disponível no momento.",
+  "paywallPlatformOnly": "Os paywalls estão disponíveis apenas no iOS e Android nesta versão.",
+  "subscriptionRestored": "Sua assinatura foi restaurada.",
+  "noSubscriptionFound": "Nenhuma assinatura ativa foi encontrada para restaurar.",
+  "subscriptionNowActive": "Family Security Pro está agora ativo.",
+  "purchaseEntitlementPending": "Compra concluída, mas a assinatura ainda não está ativa.",
+  "premiumTitleAdditionalChildren": "Desbloquear mais perfis de filhos",
+  "premiumTitleLiveMap": "Desbloquear mapa familiar ao vivo",
+  "premiumTitleMovementHistory": "Desbloquear histórico de movimentos",
+  "premiumTitleAudioMonitoring": "Desbloquear som ambiente ao vivo",
+  "premiumTitleScreenTime": "Desbloquear controles de tempo de tela",
+  "premiumTitleAppStats": "Desbloquear análise de uso de apps",
+  "premiumTitleAchievements": "Desbloquear conquistas e recompensas",
+  "premiumTitleLoudAlarm": "Desbloquear alarme remoto alto",
+  "premiumTitleFullMenu": "Desbloquear o menu completo dos pais",
+  "premiumTitleGeneric": "Desbloquear Family Security Pro",
+  "premiumSubtitleAdditionalChildren": "Contas gratuitas podem gerenciar apenas um filho. Atualize para adicionar toda a família.",
+  "premiumSubtitleLiveMap": "Veja a localização em tempo real, status e ações remotas dos filhos em um único mapa.",
+  "premiumSubtitleMovementHistory": "Revise rotas históricas, reproduza movimentos e investigue mudanças de localização.",
+  "premiumSubtitleAudioMonitoring": "Ouça os sons ao redor do filho quando precisar de contexto imediato.",
+  "premiumSubtitleScreenTime": "Defina limites diários de apps, bloqueie apps e promova hábitos de uso mais saudáveis.",
+  "premiumSubtitleAppStats": "Veja análises de uso, tendências e insights de comportamento por app.",
+  "premiumSubtitleAchievements": "Use tarefas, estrelas e recompensas para desenvolver hábitos positivos no seu filho.",
+  "premiumSubtitleLoudAlarm": "Ative um alarme sonoro remotamente para localizar rapidamente o dispositivo do filho.",
+  "premiumSubtitleFullMenu": "O menu avançado de pais, controles e ferramentas de monitoramento fazem parte do Pro.",
+  "premiumSubtitleGeneric": "Atualize para Family Security Pro para desbloquear ferramentas avançadas de controle parental.",
+  "alreadyHaveAccount": "Já tem uma conta? Entrar",
+  "childRegisterSubtitle": "Digite o código de convite do seu pai/mãe",
+  "childRegisterTitle": "Entrar na família",
+  "codeCopied": "Código copiado para a área de transferência",
+  "dontHaveCode": "Tem um código de convite? Cadastre-se",
+  "enterYourDetails": "Digite seu nome de exibição",
+  "failedToGenerateCode": "Falha ao gerar código: {error}",
+  "generateCode": "Gerar código",
+  "getHelp": "Obter ajuda",
+  "invalidInviteCode": "Código de convite inválido ou expirado",
+  "inviteChild": "Convidar filho",
+  "inviteCode": "Código de convite",
+  "inviteCodeLabel": "Código válido por 3 dias",
+  "inviteShareText": "Junte-se ao meu círculo familiar no Family security! Use o código de convite: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteSubtitle": "Seus familiares precisam instalar o app e entrar no círculo usando o código",
+  "inviteTitle": "Convide seus filhos e outros familiares para o seu círculo",
+  "next": "Próximo",
+  "register": "Cadastrar-se",
+  "setupYourProfile": "Configure seu perfil",
+  "shareCode": "Compartilhar código",
+  "seePlans": "Ver planos"
 }

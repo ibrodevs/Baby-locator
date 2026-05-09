@@ -297,7 +297,8 @@ class ChildWebRTCService {
           }
         }
         params.addAll(desiredParams);
-        final rebuilt = params.entries.map((e) => '${e.key}=${e.value}').join(';');
+        final rebuilt =
+            params.entries.map((e) => '${e.key}=${e.value}').join(';');
         lines[i] = '$fmtpPrefix $rebuilt';
         break;
       }

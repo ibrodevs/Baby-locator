@@ -746,70 +746,70 @@ class SHy extends S {
   String get childLogout => 'Դուրս գալ';
 
   @override
-  String get inviteChild => 'Invite Child';
+  String get inviteChild => 'Հրավիրել երեխա';
 
   @override
   String get inviteTitle =>
-      'Invite children and other family members to your circle';
+      'Հրավիրե՛ք երեխաներին ու ընտանիքի այլ անդամներին ձեր շրջան';
 
   @override
   String get inviteSubtitle =>
-      'Your family members need to install the app and join the circle using the code';
+      'Ձեր ընտանիքի անդամները պետք է տեղադրեն հավելվածն ու կոդի միջոցով անդամակցեն շրջանին';
 
   @override
-  String get inviteCodeLabel => 'Code valid for 3 days';
+  String get inviteCodeLabel => 'Կոդն ուժի մեջ է 3 օր';
 
   @override
-  String get shareCode => 'Share code';
+  String get shareCode => 'Կիսվել կոդով';
 
   @override
-  String get getHelp => 'Get help';
+  String get getHelp => 'Ստանալ օգնություն';
 
   @override
-  String get generateCode => 'Generate Code';
+  String get generateCode => 'Ստեղծել կոդ';
 
   @override
-  String get codeCopied => 'Code copied to clipboard';
+  String get codeCopied => 'Կոդն արտատված է clipboard-ում';
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: $code\n\nhttp://89.108.81.151/invite/$code';
   }
 
   @override
   String failedToGenerateCode(String error) {
-    return 'Failed to generate code: $error';
+    return 'Կոդ ստեղծելու ձախողում: $error';
   }
 
   @override
-  String get childRegisterTitle => 'Join Family';
+  String get childRegisterTitle => 'Միանալ ընտանիքին';
 
   @override
-  String get childRegisterSubtitle => 'Enter the invite code from your parent';
+  String get childRegisterSubtitle => 'Մուտք գրեք ծնողից ստացած հրավերի կոդը';
 
   @override
-  String get inviteCode => 'Invite code';
+  String get inviteCode => 'Հրավերի կոդ';
 
   @override
-  String get next => 'Next';
+  String get next => 'Հաջորդ';
 
   @override
-  String get setupYourProfile => 'Set up your profile';
+  String get setupYourProfile => 'Կարգաբերեք ձեր պրոֆիլը';
 
   @override
-  String get enterYourDetails => 'Enter your display name';
+  String get enterYourDetails => 'Մուտք գրեք ձեր ցուցադրման անունը';
 
   @override
-  String get register => 'Register';
+  String get register => 'Գրանցվել';
 
   @override
-  String get invalidInviteCode => 'Invalid or expired invite code';
+  String get invalidInviteCode => 'Անվավեր կամ ժամկետանց հրավերի կոդ';
 
   @override
-  String get alreadyHaveAccount => 'Already have an account? Sign in';
+  String get alreadyHaveAccount => 'Արդեն հաշիվ ունե՞ք: Մուտք գործել';
 
   @override
-  String get dontHaveCode => 'Have an invite code? Register';
+  String get dontHaveCode => 'Հրավերի կոդ ունե՞ք: Գրանցվել';
 
   @override
   String get placesOnMap => 'Վայրերը քարտեզի վրա';
@@ -853,4 +853,193 @@ class SHy extends S {
   String radiusSummary(String radius, String schedule) {
     return 'Շառավիղ $radius • $schedule';
   }
+
+  @override
+  String get proActive => 'Pro ակտիվ';
+
+  @override
+  String get freePlan => 'Անվճար պլան';
+
+  @override
+  String get manageSubscription => 'Կառավարել բաժանորդագրությունը';
+
+  @override
+  String get restorePurchases => 'Վերականգնել գնումները';
+
+  @override
+  String get skip => 'Բաց թողնել';
+
+  @override
+  String get getPremium => 'Ստանալ Premium';
+
+  @override
+  String get monthly => 'Ամսական';
+
+  @override
+  String get yearly => 'Տարեկան';
+
+  @override
+  String get bestValue => 'Լավագույն արժեք';
+
+  @override
+  String get perMonth => 'ամսական';
+
+  @override
+  String get perYearSave58 => 'տարեկան · Խնայողություն 58%';
+
+  @override
+  String get paywallProductName => 'Family Security Pro';
+
+  @override
+  String get paywallUpgrade => 'Թարմացնել';
+
+  @override
+  String paywallBestValueSave(int percent) {
+    return 'Լավագույն արժեք · Խնայողություն $percent%';
+  }
+
+  @override
+  String get paywallBenefitAddChildren =>
+      'Ավելացրեք մի քանի երեխա մեկ ընտանեկան հաշվի';
+
+  @override
+  String get paywallBenefitUnlockTools =>
+      'Ապակողպել ձայնային մոնիտորինգ, ուղիղ քարտեզ, պատմություն, վիճակագրություն և ազդանշաններ';
+
+  @override
+  String get paywallBenefitFullDashboard =>
+      'Ամբողջ ծնողական վահանակը հասանելի պահեք առանց անվճար պլանի սահմանափակումների';
+
+  @override
+  String get paywallBenefitAudio => 'Ուղիղ շրջապատի ձայն երեխայի սարքի մոտ';
+
+  @override
+  String get paywallBenefitAppLimits =>
+      'Հավելվածի սահմանափակումներ, օգտագործման վերլուծություն և շարժման պատմություն';
+
+  @override
+  String get paywallBenefitAlarm =>
+      'Բարձր ազդանշան, ձեռքբերումներ և ընդլայնված ծնողական վերահսկողություն';
+
+  @override
+  String get paywallIncludedWithPro => 'Ներառված Pro-ում';
+
+  @override
+  String get paywallPlansTitle => 'Հասանելի պլաններ';
+
+  @override
+  String get paywallRecommended => 'Առաջարկվում է';
+
+  @override
+  String paywallPerMonthEquivalent(String price) {
+    return '$price ամսական համարժեք';
+  }
+
+  @override
+  String get paywallChooseYourPlan => 'Ընտրեք ձեր պլանը';
+
+  @override
+  String get paywallChoosePlanDescription =>
+      'Ընտրեք ամսական կամ տարեկան Family Security Pro պլանը, որն ամենահամապատասխանն է ձեր ընտանիքի համար:';
+
+  @override
+  String get paywallLoadingPlans => 'Բաժանորդագրության պլանները բեռնվում են...';
+
+  @override
+  String get paywallNoOffering => 'Ներկայումս առաջարկ չկա:';
+
+  @override
+  String get paywallPlatformOnly =>
+      'Վճարային պատերը հասանելի են միայն iOS-ում և Android-ում այս հավաքաձևով:';
+
+  @override
+  String get subscriptionRestored => 'Ձեր բաժանորդագրությունը վերականգնվեց:';
+
+  @override
+  String get noSubscriptionFound =>
+      'Վերականգնելու համար ակտիվ բաժանորդագրություն չի գտնվել:';
+
+  @override
+  String get subscriptionNowActive => 'Family Security Pro-ն այժմ ակտիվ է:';
+
+  @override
+  String get purchaseEntitlementPending =>
+      'Գնումն ավարտվեց, բայց բաժանորդագրությունը դեռ ակտիվ չէ:';
+
+  @override
+  String get premiumTitleAdditionalChildren =>
+      'Ապակողպել ավելի շատ երեխայի պրոֆիլ';
+
+  @override
+  String get premiumTitleLiveMap => 'Ապակողպել ընտանիքի ուղիղ քարտեզ';
+
+  @override
+  String get premiumTitleMovementHistory => 'Ապակողպել շարժման պատմությունը';
+
+  @override
+  String get premiumTitleAudioMonitoring => 'Ապակողպել ուղիղ շրջապատի ձայն';
+
+  @override
+  String get premiumTitleScreenTime =>
+      'Ապակողպել էկրանի ժամանակի վերահսկողությունը';
+
+  @override
+  String get premiumTitleAppStats =>
+      'Ապակողպել հավելվածի օգտագործման վերլուծությունը';
+
+  @override
+  String get premiumTitleAchievements => 'Ապակողպել ձեռքբերումները և պարգևները';
+
+  @override
+  String get premiumTitleLoudAlarm =>
+      'Ապակողպել հեռակառավարվող բարձր ազդանշանը';
+
+  @override
+  String get premiumTitleFullMenu => 'Ապակողպել ծնողի ամբողջական ընտրացանկը';
+
+  @override
+  String get premiumTitleGeneric => 'Ապակողպել Family Security Pro-ն';
+
+  @override
+  String get premiumSubtitleAdditionalChildren =>
+      'Անվճար հաշիվները կարող են կառավարել միայն մեկ երեխա: Թարմացրեք՝ ամբողջ ընտանիքն ավելացնելու համար:';
+
+  @override
+  String get premiumSubtitleLiveMap =>
+      'Մեկ քարտեզից տեսեք երեխաների դիրքը, կարգավիճակը և հեռավոր գործողությունները:';
+
+  @override
+  String get premiumSubtitleMovementHistory =>
+      'Վերանայեք պատմական երթուղիները, վերարտադրեք շարժումը և ուսումնասիրեք տեղության փոփոխությունները:';
+
+  @override
+  String get premiumSubtitleAudioMonitoring =>
+      'Լսեք երեխայի մոտ գտնվող շրջապատի ձայնը, երբ անհրաժեշտ է անմիջական կոնտեքստ:';
+
+  @override
+  String get premiumSubtitleScreenTime =>
+      'Սահմանեք ամենօրյա հավելվածների սահմանափակումներ, արգելափակեք հավելվածները և կիրառեք ավելի առողջ սովորություններ:';
+
+  @override
+  String get premiumSubtitleAppStats =>
+      'Տեսեք օգտագործման մանրամասներ, միտումներ և հավելվածի մակարդակի վարքի վերլուծություն:';
+
+  @override
+  String get premiumSubtitleAchievements =>
+      'Օգտագործեք առաջադրանքներ, աստղեր և պարգևներ ձեր երեխայի դրական սովորություններ ձևավորելու համար:';
+
+  @override
+  String get premiumSubtitleLoudAlarm =>
+      'Հեռակա կարգով ակտիվացրեք բարձրաձայն ազդանշան՝ երեխայի սարքը արագ գտնելու համար:';
+
+  @override
+  String get premiumSubtitleFullMenu =>
+      'Ծնողական ընդլայնված ընտրացանկը, կառավարումը և մոնիտորինգի գործիքները Pro-ի մաս են:';
+
+  @override
+  String get premiumSubtitleGeneric =>
+      'Բարձրացրեք Family Security Pro-ին՝ ծնողական ընդլայնված վերահսկողության գործիքների ապակողպման համար:';
+
+  @override
+  String get seePlans => 'Տեսնել պլանները';
 }

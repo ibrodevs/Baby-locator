@@ -240,9 +240,7 @@ class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _status.isEmpty
-                      ? t.tapToStartListeningAroundChild
-                      : _status,
+                  _status.isEmpty ? t.tapToStartListeningAroundChild : _status,
                   style: const TextStyle(
                     fontSize: 14,
                     height: 1.45,
@@ -810,7 +808,9 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
       if (!mounted) return;
       showAppSnackBar(
         context,
-        _blockedPackages.contains(pkg) ? t.appBlocked(name) : t.appUnblocked(name),
+        _blockedPackages.contains(pkg)
+            ? t.appBlocked(name)
+            : t.appUnblocked(name),
         type: AppFeedbackType.success,
       );
       unawaited(_refreshSilently());
@@ -1700,9 +1700,7 @@ class _MenuLoudSignalScreenState extends State<MenuLoudSignalScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _active
-                            ? t.stopSignalHint
-                            : t.sendSignalHint,
+                        _active ? t.stopSignalHint : t.sendSignalHint,
                         style: const TextStyle(
                           fontSize: 14,
                           height: 1.45,

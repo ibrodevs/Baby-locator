@@ -66,8 +66,7 @@ class LocalAvatarStore {
       avatarsDir.createSync(recursive: true);
     }
     final ext = _extOf(source.path);
-    final filename =
-        '${key}_${DateTime.now().microsecondsSinceEpoch}$ext';
+    final filename = '${key}_${DateTime.now().microsecondsSinceEpoch}$ext';
     final dest = File('${avatarsDir.path}/$filename');
     await source.copy(dest.path);
 
