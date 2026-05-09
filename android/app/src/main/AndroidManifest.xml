@@ -30,7 +30,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${googleMapsApiKey}" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.kid_security.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
@@ -54,7 +54,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SosAlertActivity"
+            android:name="com.example.kid_security.SosAlertActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
