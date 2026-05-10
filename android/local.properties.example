@@ -4,11 +4,11 @@
 sdk.dir=/Users/YOUR_USER/Library/Android/sdk
 
 # Real Play package name for the Android app.
-APP_APPLICATION_ID=com.yourcompany.familysecurity
+APP_APPLICATION_ID=com.company.familysecurity
 
 # Optional: keep the namespace aligned with the app id if you want.
 # If omitted, APP_APPLICATION_ID will also be used as the applicationId.
-APP_NAMESPACE=com.yourcompany.familysecurity
+APP_NAMESPACE=com.company.familysecurity
 
 # Android Google Maps / Geocoding API key.
 GOOGLE_MAPS_ANDROID_API_KEY=YOUR_ANDROID_MAPS_KEY

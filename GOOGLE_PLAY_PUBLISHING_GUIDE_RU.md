@@ -36,6 +36,27 @@
 6. создать подписки в Google Play;
 7. связать Google Play с RevenueCat и протестировать покупку.
 
+### Критично: у этого проекта есть чувствительные Android permissions
+
+Для этого приложения подготовка к публикации не ограничивается сборкой и подписками.
+В манифесте уже есть permissions и API, которые в Google Play считаются чувствительными
+или высокорисковыми:
+
+- `ACCESS_BACKGROUND_LOCATION`
+- `QUERY_ALL_PACKAGES`
+- `PACKAGE_USAGE_STATS`
+- `AccessibilityService` в Android bridge
+
+Это значит, что перед отправкой в review нужно заранее подготовить:
+
+- корректные in-app disclosures;
+- privacy policy;
+- точные reviewer instructions;
+- permission declaration forms в Play Console;
+- при необходимости короткое видео для review, где видно сценарий использования.
+
+Без этого приложение может быть отклонено даже если `.aab` собирается без ошибок.
+
 ---
 
 ## 3. Подготовка Android-конфига
@@ -58,8 +79,8 @@ cp android/local.properties.example android/local.properties
 
 ```properties
 sdk.dir=/Users/YOUR_USER/Library/Android/sdk
-APP_APPLICATION_ID=com.yourcompany.familysecurity
-APP_NAMESPACE=com.yourcompany.familysecurity
+APP_APPLICATION_ID=com.company.familysecurity
+APP_NAMESPACE=com.company.familysecurity
 GOOGLE_MAPS_ANDROID_API_KEY=YOUR_ANDROID_MAPS_KEY
 ```
 
@@ -120,6 +141,20 @@ storeFile=/absolute/path/to/upload-keystore.jks
 - keystore и пароли не коммить;
 - без этого release build остановится с ошибкой, и это правильно.
 
+### Альтернатива для CI или локальной сборки без файла
+
+Проект также умеет брать release signing из environment variables:
+
+```bash
+ANDROID_KEYSTORE_FILE=/absolute/path/to/upload-keystore.jks
+ANDROID_KEYSTORE_PASSWORD=YOUR_STORE_PASSWORD
+ANDROID_KEY_ALIAS=upload
+ANDROID_KEY_PASSWORD=YOUR_KEY_PASSWORD
+```
+
+Это удобно для CI/CD и для случаев, когда не хочется хранить локальный
+`android/key.properties`.
+
 ---
 
 ## 5. Firebase: обновить Android app
@@ -133,7 +168,7 @@ storeFile=/absolute/path/to/upload-keystore.jks
 3. Добавь или отредактируй Android app с новым package name:
 
 ```text
-com.yourcompany.familysecurity
+com.company.familysecurity
 ```
 
 4. Скачай новый `google-services.json`.
@@ -275,6 +310,49 @@ python manage.py migrate
 ### Важно
 
 До публикации подписок и тестов убедись, что Play Console не блокирует тебя незаполненными обязательными разделами.
+
+## 10.1. Отдельно подготовить материалы для Play review
+
+Для этого проекта это обязательно, потому что приложение использует фоновые и
+чувствительные Android-возможности.
+
+### Что подготовить заранее
+
+1. Privacy policy URL.
+2. App access instructions для ревьюеров:
+   - как войти;
+   - как создать/выбрать родителя и ребёнка;
+   - как открыть экран карты, геозон и блокировки приложений.
+3. Короткое reviewer video:
+   - как включается background location;
+   - как работает геозона;
+   - как включается accessibility/app blocking;
+   - где пользователь видит disclosure и зачем это нужно.
+4. Тексты in-app disclosure до системных permission prompts.
+
+### Что особенно важно для этого приложения
+
+#### Background location
+
+В Play Console нужно будет задекларировать одну главную background-location функцию.
+Для этого проекта лучшая кандидатура:
+
+- геозоны / child safety location tracking.
+
+Не надо описывать сразу несколько функций. Для декларации выбери одну core-feature.
+
+#### AccessibilityService
+
+Если app blocking использует accessibility automation, это почти наверняка потребует
+отдельной декларации в Play Console и понятного объяснения, что именно делает сервис
+и зачем он нужен пользователю.
+
+#### QUERY_ALL_PACKAGES
+
+Если функциональность блокировки приложений реально требует видеть список установленных
+приложений на устройстве ребёнка, это нужно будет отдельно обосновать в permission form.
+Если можно обойтись более узкой package visibility моделью, Google Play обычно ожидает,
+что разработчик уберёт `QUERY_ALL_PACKAGES`.
 
 ---
 
@@ -538,6 +616,7 @@ Settings -> License testing
 7. выставить backend production env
 8. выполнить backend migrate
 9. собрать `app-release.aab`
+
 10. создать приложение в Google Play Console
 11. загрузить `.aab` в Internal testing
 12. создать подписку `family_security_pro`

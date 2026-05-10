@@ -252,7 +252,7 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
                         Icon(
                           Icons.shield_rounded,

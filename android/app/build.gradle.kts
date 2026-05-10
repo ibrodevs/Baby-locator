@@ -38,7 +38,7 @@ fun propertyOrEnv(name: String, defaultValue: String = ""): String {
 
 val appNamespace = propertyOrEnv(
     name = "APP_NAMESPACE",
-    defaultValue = "com.example.kid_security",
+    defaultValue = "com.company.familysecurity",
 )
 val appApplicationId = propertyOrEnv(
     name = "APP_APPLICATION_ID",
@@ -49,12 +49,25 @@ val googleMapsApiKey = propertyOrEnv(
     defaultValue = "AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8",
 )
 
-val releaseStoreFile = keystoreProperties.getProperty("storeFile")?.trim().orEmpty()
+fun signingProperty(
+    fileKey: String,
+    envKey: String,
+): String {
+    val envValue = providers.environmentVariable(envKey).orNull?.trim().orEmpty()
+    if (envValue.isNotEmpty()) return envValue
+    return keystoreProperties.getProperty(fileKey)?.trim().orEmpty()
+}
+
+val releaseStoreFile = signingProperty("storeFile", "ANDROID_KEYSTORE_FILE")
+val releaseStorePassword = signingProperty("storePassword", "ANDROID_KEYSTORE_PASSWORD")
+val releaseKeyAlias = signingProperty("keyAlias", "ANDROID_KEY_ALIAS")
+val releaseKeyPassword = signingProperty("keyPassword", "ANDROID_KEY_PASSWORD")
+
 val hasReleaseSigning =
     releaseStoreFile.isNotEmpty() &&
-        keystoreProperties.getProperty("storePassword")?.isNotBlank() == true &&
-        keystoreProperties.getProperty("keyAlias")?.isNotBlank() == true &&
-        keystoreProperties.getProperty("keyPassword")?.isNotBlank() == true
+        releaseStorePassword.isNotEmpty() &&
+        releaseKeyAlias.isNotEmpty() &&
+        releaseKeyPassword.isNotEmpty()
 
 val isReleaseTaskRequested = gradle.startParameter.taskNames.any {
     it.contains("release", ignoreCase = true)
@@ -95,9 +108,9 @@ android {
         if (hasReleaseSigning) {
             create("release") {
                 storeFile = file(releaseStoreFile)
-                storePassword = keystoreProperties.getProperty("storePassword")
-                keyAlias = keystoreProperties.getProperty("keyAlias")
-                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }

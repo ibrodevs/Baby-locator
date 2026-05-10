@@ -1,5 +1,9 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 from pathlib import Path
+
 
 
 def env_bool(name, default=False):
@@ -19,7 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-change-me")
 DEBUG = env_bool("DJANGO_DEBUG", True)
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["*"] if DEBUG else [])
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", ["*"])
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -77,6 +83,8 @@ DATABASES = {
         "PORT": os.getenv("DJANGO_DB_PORT", "5432"),
     }
 }
+
+print("DB PASSWORD:", os.getenv("DJANGO_DB_PASSWORD"))
 
 AUTH_USER_MODEL = "accounts.User"
 

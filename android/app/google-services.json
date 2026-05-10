@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:316624003643:android:081fb6676c71446779b21e",
+        "android_client_info": {
+          "package_name": "com.company.familysecurity"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyASwa83UpkzfQx88q3-GacE3_wkuj1pSEc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:316624003643:android:2366084dfe5c62bb79b21e",
         "android_client_info": {
           "package_name": "com.example.kid_security"
