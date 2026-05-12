@@ -772,7 +772,7 @@ class SPt extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Junte-se ao meu círculo familiar no Family security! Use o código de convite: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Junte-se ao meu círculo familiar no Family security! Use o código de convite: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

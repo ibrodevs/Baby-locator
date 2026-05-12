@@ -768,7 +768,7 @@ class SEs extends S {
 
   @override
   String inviteShareText(String code) {
-    return '¡Únete a mi círculo familiar en Family security! Usa el código de invitación: $code\n\nhttp://89.108.81.151/invite/$code';
+    return '¡Únete a mi círculo familiar en Family security! Usa el código de invitación: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

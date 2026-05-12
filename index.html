@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Security — приложение для семейной безопасности</title>
+  <meta
+    name="description"
+    content="Family Security — приложение для родителей: геолокация ребенка, безопасные зоны, уведомления, семейный чат и контроль важных разрешений на устройстве ребенка."
+  >
+  <meta name="theme-color" content="#0f172a">
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --surface: rgba(255, 255, 255, 0.82);
+      --surface-strong: #ffffff;
+      --text: #132238;
+      --muted: #526277;
+      --line: rgba(19, 34, 56, 0.12);
+      --brand: #1768ac;
+      --brand-strong: #0f4c81;
+      --accent: #f28f3b;
+      --accent-soft: #ffe0c4;
+      --ok: #26734d;
+      --shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --max: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "SF Pro Display", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(242, 143, 59, 0.18), transparent 30%),
+        radial-gradient(circle at top right, rgba(23, 104, 172, 0.18), transparent 36%),
+        linear-gradient(180deg, #f9f6f0 0%, #eef3f8 100%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(18px);
+      background: rgba(244, 241, 234, 0.72);
+      border-bottom: 1px solid rgba(19, 34, 56, 0.08);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 76px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-badge {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%);
+      box-shadow: 0 16px 40px rgba(23, 104, 172, 0.22);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(19, 34, 56, 0.06);
+    }
+
+    .lang-switch button {
+      border: 0;
+      background: transparent;
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .lang-switch button.active {
+      background: #fff;
+      color: var(--text);
+      box-shadow: 0 6px 20px rgba(19, 34, 56, 0.12);
+    }
+
+    .hero {
+      padding: 56px 0 36px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .panel,
+    .info-card,
+    .footer-card {
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-card {
+      padding: 42px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #8b4b17;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      margin-top: 18px;
+      font-size: clamp(36px, 5vw, 62px);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      max-width: 12ch;
+    }
+
+    .hero-copy {
+      margin-top: 18px;
+      font-size: 18px;
+      line-height: 1.65;
+      color: var(--muted);
+      max-width: 60ch;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+    }
+
+    .button-primary {
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-strong) 100%);
+      color: #fff;
+      box-shadow: 0 18px 36px rgba(23, 104, 172, 0.22);
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+
+    .hero-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 34px;
+    }
+
+    .stat {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(19, 34, 56, 0.06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 28px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .panel {
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .phone {
+      min-height: 100%;
+      padding: 24px;
+      border-radius: 28px;
+      background:
+        linear-gradient(180deg, rgba(23, 104, 172, 0.12) 0%, rgba(255, 255, 255, 0.95) 55%),
+        #fff;
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phone::after {
+      content: "";
+      position: absolute;
+      inset: auto -50px -60px auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(242, 143, 59, 0.22), transparent 70%);
+    }
+
+    .phone-map {
+      height: 220px;
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(23, 104, 172, 0.12), rgba(242, 143, 59, 0.12)),
+        repeating-linear-gradient(
+          45deg,
+          rgba(255, 255, 255, 0.7) 0,
+          rgba(255, 255, 255, 0.7) 12px,
+          rgba(19, 34, 56, 0.03) 12px,
+          rgba(19, 34, 56, 0.03) 24px
+        );
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phone-map .pin,
+    .phone-map .zone {
+      position: absolute;
+      border-radius: 999px;
+    }
+
+    .phone-map .pin {
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border: 4px solid #fff;
+      box-shadow: 0 10px 24px rgba(242, 143, 59, 0.28);
+    }
+
+    .phone-map .zone {
+      width: 110px;
+      height: 110px;
+      background: rgba(38, 115, 77, 0.16);
+      border: 1px solid rgba(38, 115, 77, 0.24);
+    }
+
+    .map-path {
+      position: absolute;
+      left: 18%;
+      top: 52%;
+      width: 52%;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(23, 104, 172, 0.8), rgba(242, 143, 59, 0.85));
+      transform: rotate(-12deg);
+      border-radius: 999px;
+    }
+
+    .screen-card {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid rgba(19, 34, 56, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .screen-card small,
+    .list-item p,
+    .muted {
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 0 8px rgba(38, 115, 77, 0.14);
+    }
+
+    section {
+      padding: 24px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 18px;
+    }
+
+    .section-head p {
+      max-width: 62ch;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .grid-3,
+    .grid-2 {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .info-card {
+      padding: 24px;
+    }
+
+    .info-card h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .info-card p,
+    .info-card li {
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .list {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .list-item {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(19, 34, 56, 0.08);
+    }
+
+    .cta {
+      padding: 20px 0 42px;
+    }
+
+    .footer-card {
+      padding: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .footer-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .placeholder {
+      font-weight: 700;
+      color: var(--brand-strong);
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .stats,
+      .footer-card {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .footer-card {
+        justify-content: stretch;
+      }
+
+      .nav {
+        flex-wrap: wrap;
+        padding: 12px 0;
+      }
+
+      .nav-links {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .hero-card,
+      .panel {
+        padding: 24px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        width: min(var(--max), calc(100% - 20px));
+      }
+
+      .hero {
+        padding-top: 28px;
+      }
+
+      h1 {
+        max-width: none;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="#top" aria-label="Family Security">
+        <span class="brand-badge">FS</span>
+        <span>Family Security</span>
+      </a>
+      <div class="nav-links">
+        <a href="#features" data-i18n="navFeatures">Возможности</a>
+        <a href="#privacy" data-i18n="navPrivacy">Конфиденциальность</a>
+        <a href="#permissions" data-i18n="navPermissions">Разрешения</a>
+        <a href="#contact" data-i18n="navContact">Контакты</a>
+        <div class="lang-switch" aria-label="Language switcher">
+          <button class="active" type="button" data-lang-btn="ru">RU</button>
+          <button type="button" data-lang-btn="en">EN</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <article class="hero-card">
+          <div class="eyebrow" data-i18n="heroEyebrow">Семейная безопасность и спокойствие родителей</div>
+          <h1 data-i18n="heroTitle">Family Security помогает быть рядом, даже когда вы не рядом.</h1>
+          <p class="hero-copy" data-i18n="heroCopy">
+            Приложение объединяет геолокацию ребенка, безопасные зоны, важные уведомления, семейный чат,
+            контроль статуса устройства и дополнительные инструменты родительской безопасности в одном интерфейсе.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="privacy-policy.html" data-i18n="heroPrimary">Открыть политику конфиденциальности</a>
+            <a class="button button-secondary" href="#features" data-i18n="heroSecondary">Посмотреть возможности</a>
+          </div>
+          <p class="hero-note" data-i18n="heroNote">
+            Сайт подготовлен как публичная страница приложения и может использоваться для публикации в Google Play и App Store после замены контактных данных.
+          </p>
+          <div class="stats">
+            <div class="stat">
+              <strong data-i18n="stat1Value">24/7</strong>
+              <span data-i18n="stat1Label">контроль статуса ребенка и его устройства</span>
+            </div>
+            <div class="stat">
+              <strong data-i18n="stat2Value">GPS</strong>
+              <span data-i18n="stat2Label">геолокация и история перемещений</span>
+            </div>
+            <div class="stat">
+              <strong data-i18n="stat3Value">SOS</strong>
+              <span data-i18n="stat3Label">оперативные уведомления и связь внутри семьи</span>
+            </div>
+          </div>
+        </article>
+
+        <aside class="panel">
+          <div class="phone" aria-hidden="true">
+            <div class="phone-map">
+              <div class="zone" style="left: 14%; top: 20%;"></div>
+              <div class="pin" style="left: 24%; top: 34%;"></div>
+              <div class="pin" style="left: 63%; top: 48%; background: var(--brand);"></div>
+              <div class="map-path"></div>
+            </div>
+            <div class="screen-card">
+              <div>
+                <strong data-i18n="demoCard1Title">Безопасная зона: Школа</strong>
+                <small data-i18n="demoCard1Text">Ребенок внутри зоны, уведомления активны</small>
+              </div>
+              <span class="dot"></span>
+            </div>
+            <div class="screen-card">
+              <div>
+                <strong data-i18n="demoCard2Title">Статус устройства</strong>
+                <small data-i18n="demoCard2Text">Батарея, фоновые разрешения, уведомления, микрофон</small>
+              </div>
+              <strong>92%</strong>
+            </div>
+            <div class="screen-card">
+              <div>
+                <strong data-i18n="demoCard3Title">Семейный чат</strong>
+                <small data-i18n="demoCard3Text">Быстрые сообщения, задания и важные события</small>
+              </div>
+              <strong data-i18n="demoCard3Badge">Live</strong>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 data-i18n="featuresTitle">Что умеет приложение</h2>
+          </div>
+          <p data-i18n="featuresIntro">
+            Ниже отражены функции, которые уже видны в коде и логике проекта: семейные профили, привязка ребенка к родителю,
+            отправка геопозиции, безопасные зоны, системные уведомления, чат, контроль разрешений и отдельные родительские инструменты на устройстве ребенка.
+          </p>
+        </div>
+        <div class="grid-3">
+          <article class="info-card">
+            <h3 data-i18n="feature1Title">Геолокация и карта</h3>
+            <p data-i18n="feature1Text">
+              Просмотр текущего местоположения ребенка, истории координат, адреса, уровня заряда и статуса активности устройства.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="feature2Title">Безопасные зоны</h3>
+            <p data-i18n="feature2Text">
+              Создание зон на карте с радиусом и расписанием, а также автоматические уведомления о входе и выходе из них.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="feature3Title">Связь и уведомления</h3>
+            <p data-i18n="feature3Text">
+              Push-уведомления, семейный чат, обмен файлами и уведомления о событиях, связанных с безопасностью ребенка.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="feature4Title">Статус устройства ребенка</h3>
+            <p data-i18n="feature4Text">
+              Проверка включенной геолокации, фонового доступа к местоположению, уведомлений, микрофона, батареи и других важных разрешений.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="feature5Title">Родительские инструменты</h3>
+            <p data-i18n="feature5Text">
+              Поддержка блокировки приложений на Android, учет экранного времени и отдельных статистических сводок по устройству ребенка.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="feature6Title">Дополнительные функции</h3>
+            <p data-i18n="feature6Text">
+              Профили детей, фото аватара, коды приглашения, подписки и функции, связанные с расширенным доступом.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="privacy">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 data-i18n="privacyTitle">Прозрачность обработки данных</h2>
+          </div>
+          <p data-i18n="privacyIntro">
+            Для прохождения модерации магазинам важно, чтобы приложение ясно объясняло, какие данные собираются и зачем. Эта страница
+            и отдельная политика конфиденциальности ниже по ссылке составлены под текущую архитектуру проекта.
+          </p>
+        </div>
+        <div class="grid-2">
+          <article class="info-card">
+            <h3 data-i18n="privacyCard1Title">Какие данные могут обрабатываться</h3>
+            <div class="list">
+              <div class="list-item"><p data-i18n="privacyItem1">Данные аккаунта: имя пользователя, отображаемое имя, роль родителя или ребенка, фото профиля.</p></div>
+              <div class="list-item"><p data-i18n="privacyItem2">Геоданные: координаты, адрес, история местоположений, безопасные зоны, состояние батареи.</p></div>
+              <div class="list-item"><p data-i18n="privacyItem3">Технические данные: модель устройства, ОС, часовой пояс, статус разрешений и push-токен.</p></div>
+              <div class="list-item"><p data-i18n="privacyItem4">Дополнительные семейные данные: сообщения чата, задания, вложения и события уведомлений.</p></div>
+            </div>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="privacyCard2Title">Для чего это используется</h3>
+            <div class="list">
+              <div class="list-item"><p data-i18n="privacyUse1">Для отображения местоположения ребенка и построения уведомлений о движении и безопасных зонах.</p></div>
+              <div class="list-item"><p data-i18n="privacyUse2">Для доставки команд и push-уведомлений между устройством родителя и устройством ребенка.</p></div>
+              <div class="list-item"><p data-i18n="privacyUse3">Для показа статуса разрешений и корректной работы функций вроде фоновой геолокации и микрофона.</p></div>
+              <div class="list-item"><p data-i18n="privacyUse4">Для предоставления статистики, подписок и других функций семейной безопасности, если они включены пользователем.</p></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="permissions">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 data-i18n="permissionsTitle">Разрешения, которые важны для функций приложения</h2>
+          </div>
+          <p data-i18n="permissionsIntro">
+            Текст ниже поможет и пользователю, и модерации понять назначение чувствительных разрешений. Он не заменяет системные permission-строки внутри мобильных сборок, но хорошо подходит для публичного сайта.
+          </p>
+        </div>
+        <div class="grid-2">
+          <article class="info-card">
+            <h3 data-i18n="perm1Title">Доступ к геолокации</h3>
+            <p data-i18n="perm1Text">
+              Нужен для показа текущего местоположения ребенка, работы безопасных зон и получения координат даже при свернутом приложении, если пользователь выдал фоновый доступ.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="perm2Title">Уведомления</h3>
+            <p data-i18n="perm2Text">
+              Используются для доставки важных семейных событий, команд, сигналов безопасности, напоминаний и статусов.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="perm3Title">Микрофон</h3>
+            <p data-i18n="perm3Text">
+              Запрашивается только для функций, связанных с аудио вокруг устройства ребенка, если такие функции активирует пользователь.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="perm4Title">Фото и файлы</h3>
+            <p data-i18n="perm4Text">
+              Могут использоваться для выбора аватара или отправки вложений в чате, если пользователь сам инициирует это действие.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="perm5Title">Доступ к использованию приложений</h3>
+            <p data-i18n="perm5Text">
+              На Android может применяться для статистики экранного времени, родительского контроля и блокировки выбранных приложений на устройстве ребенка.
+            </p>
+          </article>
+          <article class="info-card">
+            <h3 data-i18n="perm6Title">Accessibility Service на Android</h3>
+            <p data-i18n="perm6Text">
+              Используется только на устройстве ребенка для реализации функции блокировки приложений. Эта возможность должна быть отдельно и понятно объяснена внутри приложения и в листинге магазина.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta" id="contact">
+      <div class="container">
+        <div class="footer-card">
+          <div>
+            <h2 data-i18n="contactTitle">Контакты и публикация</h2>
+            <p class="footer-meta" data-i18n="contactText">
+              Перед публикацией замените контактные заполнители на реальные данные владельца приложения: email поддержки, юридическое имя компании или разработчика и, при необходимости, ссылку на страницу удаления аккаунта.
+            </p>
+            <p class="footer-meta">
+              <span class="placeholder">Email:</span> <span data-i18n="contactEmail">support@your-domain.com</span><br>
+              <span class="placeholder" data-i18n="contactCompanyLabel">Владелец:</span> <span data-i18n="contactCompany">Название компании или ФИО разработчика</span>
+            </p>
+          </div>
+          <div class="hero-actions">
+            <a class="button button-primary" href="privacy-policy.html" data-i18n="contactPrimary">Читать политику</a>
+            <a class="button button-secondary" href="#top" data-i18n="contactSecondary">Наверх</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const translations = {
+      ru: {
+        navFeatures: "Возможности",
+        navPrivacy: "Конфиденциальность",
+        navPermissions: "Разрешения",
+        navContact: "Контакты",
+        heroEyebrow: "Семейная безопасность и спокойствие родителей",
+        heroTitle: "Family Security помогает быть рядом, даже когда вы не рядом.",
+        heroCopy: "Приложение объединяет геолокацию ребенка, безопасные зоны, важные уведомления, семейный чат, контроль статуса устройства и дополнительные инструменты родительской безопасности в одном интерфейсе.",
+        heroPrimary: "Открыть политику конфиденциальности",
+        heroSecondary: "Посмотреть возможности",
+        heroNote: "Сайт подготовлен как публичная страница приложения и может использоваться для публикации в Google Play и App Store после замены контактных данных.",
+        stat1Value: "24/7",
+        stat1Label: "контроль статуса ребенка и его устройства",
+        stat2Value: "GPS",
+        stat2Label: "геолокация и история перемещений",
+        stat3Value: "SOS",
+        stat3Label: "оперативные уведомления и связь внутри семьи",
+        demoCard1Title: "Безопасная зона: Школа",
+        demoCard1Text: "Ребенок внутри зоны, уведомления активны",
+        demoCard2Title: "Статус устройства",
+        demoCard2Text: "Батарея, фоновые разрешения, уведомления, микрофон",
+        demoCard3Title: "Семейный чат",
+        demoCard3Text: "Быстрые сообщения, задания и важные события",
+        demoCard3Badge: "Live",
+        featuresTitle: "Что умеет приложение",
+        featuresIntro: "Ниже отражены функции, которые уже видны в коде и логике проекта: семейные профили, привязка ребенка к родителю, отправка геопозиции, безопасные зоны, системные уведомления, чат, контроль разрешений и отдельные родительские инструменты на устройстве ребенка.",
+        feature1Title: "Геолокация и карта",
+        feature1Text: "Просмотр текущего местоположения ребенка, истории координат, адреса, уровня заряда и статуса активности устройства.",
+        feature2Title: "Безопасные зоны",
+        feature2Text: "Создание зон на карте с радиусом и расписанием, а также автоматические уведомления о входе и выходе из них.",
+        feature3Title: "Связь и уведомления",
+        feature3Text: "Push-уведомления, семейный чат, обмен файлами и уведомления о событиях, связанных с безопасностью ребенка.",
+        feature4Title: "Статус устройства ребенка",
+        feature4Text: "Проверка включенной геолокации, фонового доступа к местоположению, уведомлений, микрофона, батареи и других важных разрешений.",
+        feature5Title: "Родительские инструменты",
+        feature5Text: "Поддержка блокировки приложений на Android, учет экранного времени и отдельных статистических сводок по устройству ребенка.",
+        feature6Title: "Дополнительные функции",
+        feature6Text: "Профили детей, фото аватара, коды приглашения, подписки и функции, связанные с расширенным доступом.",
+        privacyTitle: "Прозрачность обработки данных",
+        privacyIntro: "Для прохождения модерации магазинам важно, чтобы приложение ясно объясняло, какие данные собираются и зачем. Эта страница и отдельная политика конфиденциальности ниже по ссылке составлены под текущую архитектуру проекта.",
+        privacyCard1Title: "Какие данные могут обрабатываться",
+        privacyItem1: "Данные аккаунта: имя пользователя, отображаемое имя, роль родителя или ребенка, фото профиля.",
+        privacyItem2: "Геоданные: координаты, адрес, история местоположений, безопасные зоны, состояние батареи.",
+        privacyItem3: "Технические данные: модель устройства, ОС, часовой пояс, статус разрешений и push-токен.",
+        privacyItem4: "Дополнительные семейные данные: сообщения чата, задания, вложения и события уведомлений.",
+        privacyCard2Title: "Для чего это используется",
+        privacyUse1: "Для отображения местоположения ребенка и построения уведомлений о движении и безопасных зонах.",
+        privacyUse2: "Для доставки команд и push-уведомлений между устройством родителя и устройством ребенка.",
+        privacyUse3: "Для показа статуса разрешений и корректной работы функций вроде фоновой геолокации и микрофона.",
+        privacyUse4: "Для предоставления статистики, подписок и других функций семейной безопасности, если они включены пользователем.",
+        permissionsTitle: "Разрешения, которые важны для функций приложения",
+        permissionsIntro: "Текст ниже поможет и пользователю, и модерации понять назначение чувствительных разрешений. Он не заменяет системные permission-строки внутри мобильных сборок, но хорошо подходит для публичного сайта.",
+        perm1Title: "Доступ к геолокации",
+        perm1Text: "Нужен для показа текущего местоположения ребенка, работы безопасных зон и получения координат даже при свернутом приложении, если пользователь выдал фоновый доступ.",
+        perm2Title: "Уведомления",
+        perm2Text: "Используются для доставки важных семейных событий, команд, сигналов безопасности, напоминаний и статусов.",
+        perm3Title: "Микрофон",
+        perm3Text: "Запрашивается только для функций, связанных с аудио вокруг устройства ребенка, если такие функции активирует пользователь.",
+        perm4Title: "Фото и файлы",
+        perm4Text: "Могут использоваться для выбора аватара или отправки вложений в чате, если пользователь сам инициирует это действие.",
+        perm5Title: "Доступ к использованию приложений",
+        perm5Text: "На Android может применяться для статистики экранного времени, родительского контроля и блокировки выбранных приложений на устройстве ребенка.",
+        perm6Title: "Accessibility Service на Android",
+        perm6Text: "Используется только на устройстве ребенка для реализации функции блокировки приложений. Эта возможность должна быть отдельно и понятно объяснена внутри приложения и в листинге магазина.",
+        contactTitle: "Контакты и публикация",
+        contactText: "Перед публикацией замените контактные заполнители на реальные данные владельца приложения: email поддержки, юридическое имя компании или разработчика и, при необходимости, ссылку на страницу удаления аккаунта.",
+        contactEmail: "support@your-domain.com",
+        contactCompanyLabel: "Владелец:",
+        contactCompany: "Название компании или ФИО разработчика",
+        contactPrimary: "Читать политику",
+        contactSecondary: "Наверх"
+      },
+      en: {
+        navFeatures: "Features",
+        navPrivacy: "Privacy",
+        navPermissions: "Permissions",
+        navContact: "Contact",
+        heroEyebrow: "Family safety and peace of mind for parents",
+        heroTitle: "Family Security helps you stay close, even when you are far away.",
+        heroCopy: "The app combines child location tracking, safe zones, important notifications, family chat, device status monitoring, and extra parental safety tools in one interface.",
+        heroPrimary: "Open privacy policy",
+        heroSecondary: "Explore features",
+        heroNote: "This website is prepared as a public app page and can be used for Google Play and App Store publishing after replacing the placeholder contact details.",
+        stat1Value: "24/7",
+        stat1Label: "visibility into child and device status",
+        stat2Value: "GPS",
+        stat2Label: "location tracking and movement history",
+        stat3Value: "SOS",
+        stat3Label: "important alerts and family communication",
+        demoCard1Title: "Safe zone: School",
+        demoCard1Text: "The child is inside the zone, alerts are active",
+        demoCard2Title: "Device status",
+        demoCard2Text: "Battery, background permissions, notifications, microphone",
+        demoCard3Title: "Family chat",
+        demoCard3Text: "Quick messages, tasks, and important events",
+        demoCard3Badge: "Live",
+        featuresTitle: "What the app does",
+        featuresIntro: "The sections below reflect functionality that is already visible in the codebase and project logic: family profiles, parent-child linking, location sharing, safe zones, system alerts, chat, permission monitoring, and parent-side controls on the child's device.",
+        feature1Title: "Location and map",
+        feature1Text: "View the child's current location, coordinate history, address, battery level, and device activity status.",
+        feature2Title: "Safe zones",
+        feature2Text: "Create map zones with radius and schedule, and receive automatic enter and exit alerts.",
+        feature3Title: "Communication and alerts",
+        feature3Text: "Push notifications, family chat, file sharing, and alerts related to the child's safety.",
+        feature4Title: "Child device status",
+        feature4Text: "Check whether location, background access, notifications, microphone, battery, and other important permissions are enabled.",
+        feature5Title: "Parental tools",
+        feature5Text: "Support for Android app blocking, screen-time tracking, and selected device usage summaries.",
+        feature6Title: "Additional functions",
+        feature6Text: "Child profiles, avatar photos, invite codes, subscriptions, and premium-related functions.",
+        privacyTitle: "Transparent data handling",
+        privacyIntro: "Store review requires a clear explanation of what data is processed and why. This page and the dedicated privacy policy linked here are based on the current project architecture.",
+        privacyCard1Title: "What data may be processed",
+        privacyItem1: "Account data: username, display name, parent or child role, profile photo.",
+        privacyItem2: "Location data: coordinates, address, location history, safe zones, battery state.",
+        privacyItem3: "Technical data: device model, OS, timezone, permission status, and push token.",
+        privacyItem4: "Additional family data: chat messages, tasks, attachments, and alert events.",
+        privacyCard2Title: "Why it is used",
+        privacyUse1: "To show the child's location and generate movement and safe-zone alerts.",
+        privacyUse2: "To deliver commands and push notifications between the parent and child devices.",
+        privacyUse3: "To display permission status and keep features such as background location and microphone working correctly.",
+        privacyUse4: "To provide statistics, subscriptions, and other family safety features if enabled by the user.",
+        permissionsTitle: "Permissions important for app features",
+        permissionsIntro: "The notes below help both users and store reviewers understand why sensitive permissions are needed. They do not replace system permission strings inside the mobile builds, but they work well for the public website.",
+        perm1Title: "Location access",
+        perm1Text: "Required to show the child's current location, operate safe zones, and receive coordinates when the app is minimized if background access has been granted.",
+        perm2Title: "Notifications",
+        perm2Text: "Used to deliver important family events, commands, safety signals, reminders, and statuses.",
+        perm3Title: "Microphone",
+        perm3Text: "Requested only for features related to audio around the child's device when those features are activated by the user.",
+        perm4Title: "Photos and files",
+        perm4Text: "May be used for avatar selection or sending attachments in chat when the user initiates those actions.",
+        perm5Title: "App usage access",
+        perm5Text: "On Android this may be used for screen-time statistics, parental control, and blocking selected apps on the child's device.",
+        perm6Title: "Android Accessibility Service",
+        perm6Text: "Used only on the child's device to implement app blocking. This capability should also be clearly explained inside the app and in the store listing.",
+        contactTitle: "Contact and publishing",
+        contactText: "Before publishing, replace the placeholders with the real app owner details: support email, legal developer or company name, and, if needed, a link to the account deletion page.",
+        contactEmail: "support@your-domain.com",
+        contactCompanyLabel: "Owner:",
+        contactCompany: "Company name or developer full name",
+        contactPrimary: "Read policy",
+        contactSecondary: "Back to top"
+      }
+    };
+
+    const html = document.documentElement;
+    const buttons = document.querySelectorAll("[data-lang-btn]");
+    const translatable = document.querySelectorAll("[data-i18n]");
+
+    function setLanguage(lang) {
+      html.lang = lang;
+      localStorage.setItem("family-security-lang", lang);
+      translatable.forEach((node) => {
+        const key = node.dataset.i18n;
+        if (translations[lang] && translations[lang][key]) {
+          node.textContent = translations[lang][key];
+        }
+      });
+      buttons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.langBtn === lang);
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.langBtn));
+    });
+
+    const preferred = localStorage.getItem("family-security-lang") || "ru";
+    setLanguage(preferred);
+  </script>
+</body>
+</html>

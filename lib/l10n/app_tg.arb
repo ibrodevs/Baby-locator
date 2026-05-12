@@ -330,7 +330,7 @@
   "inviteChild": "Даъвати кӯдак",
   "inviteCode": "Рамзи даъватнома",
   "inviteCodeLabel": "Рамз барои 3 рӯз эътибор дорад",
-  "inviteShareText": "Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Аъзоёни оилаи шумо бояд барномаро насб кунанд ва бо истифода аз рамз ба доира ҳамроҳ шаванд",
   "inviteTitle": "Кӯдакон ва дигар аъзоёни оиларо ба доираи худ даъват кунед",
   "next": "Баъдӣ",

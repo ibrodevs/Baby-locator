@@ -330,7 +330,7 @@
   "inviteChild": "Uşaq dəvət edin",
   "inviteCode": "Dəvət kodu",
   "inviteCodeLabel": "Kod 3 gün etibarlıdır",
-  "inviteShareText": "Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Ailə üzvləriniz tətbiqi quraşdırmalı və kodu istifadə edərək dairəyə qoşulmalıdır",
   "inviteTitle": "Uşaqlarınızı və digər ailə üzvlərini dairənizə dəvət edin",
   "next": "Növbəti",

@@ -770,7 +770,7 @@ class SKy extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security боюнча үй-бүлөлүк чөйрөмө кошулуңуз! Чакыруу кодун колдонуңуз: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security боюнча үй-бүлөлүк чөйрөмө кошулуңуз! Чакыруу кодун колдонуңуз: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

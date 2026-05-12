@@ -768,7 +768,7 @@ class SPl extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Dołącz do mojego kręgu rodzinnego w Family security! Użyj kodu zaproszenia: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Dołącz do mojego kręgu rodzinnego w Family security! Użyj kodu zaproszenia: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

@@ -330,7 +330,7 @@
   "inviteChild": "دعوة طفل",
   "inviteCode": "رمز الدعوة",
   "inviteCodeLabel": "الرمز صالح لمدة 3 أيام",
-  "inviteShareText": "انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "يحتاج أفراد عائلتك إلى تثبيت التطبيق والانضمام إلى الدائرة باستخدام الرمز",
   "inviteTitle": "ادعُ الأطفال وأفراد الأسرة الآخرين إلى دائرتك",
   "next": "التالي",

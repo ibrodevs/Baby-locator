@@ -479,7 +479,7 @@
   "getHelp": "Get help",
   "generateCode": "Generate Code",
   "codeCopied": "Code copied to clipboard",
-  "inviteShareText": "Join my family circle in Family security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Join my family circle in Family security! Use invite code: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "@inviteShareText": {
     "placeholders": {
       "code": {

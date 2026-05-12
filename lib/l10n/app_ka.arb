@@ -330,7 +330,7 @@
   "inviteChild": "ბავშვის მოწვევა",
   "inviteCode": "მოწვევის კოდი",
   "inviteCodeLabel": "კოდი მოქმედებს 3 დღე",
-  "inviteShareText": "შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "თქვენი ოჯახის წევრებმა უნდა დააინსტალირონ აპი და შეუერთდნენ წრეს კოდის გამოყენებით",
   "inviteTitle": "მოიწვიეთ ბავშვები და ოჯახის სხვა წევრები თქვენს წრეში",
   "next": "შემდეგი",

@@ -772,7 +772,7 @@ class SDe extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Tritt meinem Familienkreis in Family security bei! Verwende den Einladungscode: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Tritt meinem Familienkreis in Family security bei! Verwende den Einladungscode: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

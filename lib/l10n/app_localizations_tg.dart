@@ -772,7 +772,7 @@ class STg extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

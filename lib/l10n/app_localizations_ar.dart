@@ -760,7 +760,7 @@ class SAr extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

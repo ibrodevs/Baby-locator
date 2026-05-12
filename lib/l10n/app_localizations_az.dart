@@ -768,7 +768,7 @@ class SAz extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

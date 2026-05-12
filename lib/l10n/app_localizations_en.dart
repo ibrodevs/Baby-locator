@@ -763,7 +763,7 @@ class SEn extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Join my family circle in Family security! Use invite code: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Join my family circle in Family security! Use invite code: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

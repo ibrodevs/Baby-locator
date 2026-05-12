@@ -771,7 +771,7 @@ class SUz extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security da oilaviy davramga qo\'shiling! Taklif kodidan foydalaning: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security da oilaviy davramga qo\'shiling! Taklif kodidan foydalaning: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

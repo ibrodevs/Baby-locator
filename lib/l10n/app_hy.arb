@@ -330,7 +330,7 @@
   "inviteChild": "Հրավիրել երեխա",
   "inviteCode": "Հրավերի կոդ",
   "inviteCodeLabel": "Կոդն ուժի մեջ է 3 օր",
-  "inviteShareText": "Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Ձեր ընտանիքի անդամները պետք է տեղադրեն հավելվածն ու կոդի միջոցով անդամակցեն շրջանին",
   "inviteTitle": "Հրավիրե՛ք երեխաներին ու ընտանիքի այլ անդամներին ձեր շրջան",
   "next": "Հաջորդ",

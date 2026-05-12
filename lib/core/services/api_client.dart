@@ -217,6 +217,10 @@ class ApiClient {
     await _saveSession(null);
   }
 
+  Future<void> deleteCurrentAccount() async {
+    await _delete('/api/auth/me/');
+  }
+
   // === Invite Code ===
   Future<Map<String, dynamic>> generateInviteCode({int? childId}) async {
     return await _post('/api/auth/invite/', {

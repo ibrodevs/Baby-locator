@@ -773,7 +773,7 @@ class SHy extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

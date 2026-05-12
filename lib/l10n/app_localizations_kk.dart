@@ -767,7 +767,7 @@ class SKk extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-де менің отбасы шеңберіме қосылыңыз! Шақыру кодын пайдаланыңыз: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security-де менің отбасы шеңберіме қосылыңыз! Шақыру кодын пайдаланыңыз: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

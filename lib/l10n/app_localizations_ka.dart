@@ -768,7 +768,7 @@ class SKa extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

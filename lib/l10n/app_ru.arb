@@ -222,7 +222,7 @@
   "getHelp": "Получить помощь",
   "generateCode": "Сгенерировать код",
   "codeCopied": "Код скопирован в буфер обмена",
-  "inviteShareText": "Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "@inviteShareText": {
     "placeholders": {
       "code": {

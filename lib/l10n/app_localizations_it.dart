@@ -771,7 +771,7 @@ class SIt extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Unisciti al mio circolo familiare in Family security! Usa il codice invito: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Unisciti al mio circolo familiare in Family security! Usa il codice invito: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

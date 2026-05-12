@@ -231,6 +231,23 @@ class SessionNotifier extends StateNotifier<SessionState> {
     await ApiClient.instance.logout();
     state = SessionState(initialized: true);
   }
+
+  Future<void> deleteAccount() async {
+    if (state.user == null) return;
+    state = state.copyWith(loading: true, error: null);
+    try {
+      await ApiClient.instance.deleteCurrentAccount();
+      await ApiClient.instance.logout();
+      state = SessionState(initialized: true);
+    } catch (e) {
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
+      rethrow;
+    }
+  }
 }
 
 final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>(

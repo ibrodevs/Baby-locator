@@ -330,7 +330,7 @@
   "inviteChild": "Convidar filho",
   "inviteCode": "Código de convite",
   "inviteCodeLabel": "Código válido por 3 dias",
-  "inviteShareText": "Junte-se ao meu círculo familiar no Family security! Use o código de convite: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Junte-se ao meu círculo familiar no Family security! Use o código de convite: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Seus familiares precisam instalar o app e entrar no círculo usando o código",
   "inviteTitle": "Convide seus filhos e outros familiares para o seu círculo",
   "next": "Próximo",

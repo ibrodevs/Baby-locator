@@ -7,12 +7,14 @@ import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/compliance/app_compliance.dart';
 import '../../core/providers/locale_provider.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/local_avatar_store.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
 import '../../core/widgets/brand_header.dart';
+import '../auth/onboarding_screen.dart';
 import 'child_permissions_screen.dart';
 
 /// Kid-friendly settings screen — blue palette with playful rounded shapes.
@@ -56,6 +58,27 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
       ),
       builder: (_) => const _LanguageSheet(),
     );
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await AppCompliance.confirmDeleteAccount(
+      context,
+      cascadesChildren: false,
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      await ref.read(sessionProvider.notifier).deleteAccount();
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    }
   }
 
   @override
@@ -200,7 +223,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                       accentSoft: palette.primarySoft,
                       icon: Icons.help_outline_rounded,
                       title: t.helpAndSupport,
-                      onTap: () {},
+                      onTap: () => AppCompliance.contactSupport(),
                     ),
                     const Divider(
                         height: 1, indent: 56, color: AppColors.dividerLight),
@@ -209,7 +232,7 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                       accentSoft: palette.primarySoft,
                       icon: Icons.info_outline_rounded,
                       title: t.about,
-                      onTap: () {},
+                      onTap: () => AppCompliance.showAboutSheet(context),
                     ),
                     const Divider(
                         height: 1, indent: 56, color: AppColors.dividerLight),
@@ -218,7 +241,16 @@ class _ChildSettingsScreenState extends ConsumerState<ChildSettingsScreen> {
                       accentSoft: palette.primarySoft,
                       icon: Icons.privacy_tip_outlined,
                       title: t.privacyPolicy,
-                      onTap: () {},
+                      onTap: () => AppCompliance.openPrivacyPolicy(),
+                    ),
+                    const Divider(
+                        height: 1, indent: 56, color: AppColors.dividerLight),
+                    _KidSettingsRow(
+                      accent: AppColors.danger,
+                      accentSoft: AppColors.dangerSoft,
+                      icon: Icons.delete_forever_outlined,
+                      title: 'Delete account',
+                      onTap: _deleteAccount,
                     ),
                   ],
                 ),

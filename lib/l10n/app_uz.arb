@@ -330,7 +330,7 @@
   "inviteChild": "Bolani taklif qilish",
   "inviteCode": "Taklif kodi",
   "inviteCodeLabel": "Kod 3 kun amal qiladi",
-  "inviteShareText": "Family security da oilaviy davramga qo'shiling! Taklif kodidan foydalaning: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Family security da oilaviy davramga qo'shiling! Taklif kodidan foydalaning: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Oila a'zolaringiz ilovani o'rnatib, kod yordamida doiraga qo'shilishlari kerak",
   "inviteTitle": "Bolalaringiz va boshqa oila a'zolarini doirangizga taklif qiling",
   "next": "Keyingi",

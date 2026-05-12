@@ -100,6 +100,10 @@ class MeView(APIView):
 
         return Response(UserSerializer(user, context={"request": request}).data)
 
+    def delete(self, request):
+        request.user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ChildrenView(APIView):
     def get(self, request):

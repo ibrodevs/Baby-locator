@@ -765,7 +765,7 @@ class STk extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Family security-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

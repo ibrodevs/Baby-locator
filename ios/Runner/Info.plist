@@ -54,37 +54,22 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Family security uses your location to share with your family.</string>
+	<string>Family Security uses your location to share live family location and safety status.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Family security uses your location even in the background so the parent can see where the child is.</string>
+	<string>Family Security uses location in the background so the parent can see where the child is and receive safety updates.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Family security uses your location in the background to keep your family informed.</string>
+	<string>Family Security uses location in the background to show the child's live location, safe zones, and safety alerts to the parent.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Family security needs access to your photo library to set a profile picture.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Family security needs camera access to take a profile picture.</string>
+	<string>Family Security needs photo library access so you can choose a profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Family security uses the microphone so a parent can hear what is happening around the child's phone.</string>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>89.108.81.151</key>
-			<dict>
-				<key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
-	</dict>
+	<string>Family Security uses the microphone only when the live surrounding audio feature is started by the family.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
-		<string>voip</string>
 		<string>fetch</string>
 		<string>location</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UISupportedInterfaceOrientations</key>

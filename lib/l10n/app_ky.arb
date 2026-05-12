@@ -330,7 +330,7 @@
   "inviteChild": "Баланы чакыруу",
   "inviteCode": "Чакыруу коду",
   "inviteCodeLabel": "Код 3 күн жарактуу",
-  "inviteShareText": "Family security боюнча үй-бүлөлүк чөйрөмө кошулуңуз! Чакыруу кодун колдонуңуз: {code}\n\nhttp://89.108.81.151/invite/{code}",
+  "inviteShareText": "Family security боюнча үй-бүлөлүк чөйрөмө кошулуңуз! Чакыруу кодун колдонуңуз: {code}\n\nhttps://baby-locator.online/invite/{code}",
   "inviteSubtitle": "Үй-бүлөңүздүн мүчөлөрү тиркемени орнотуп, код аркылуу чөйрөгө кошулушу керек",
   "inviteTitle": "Балаларыңызды жана үй-бүлөнүн башка мүчөлөрүн чөйрөңүзгө чакырыңыз",
   "next": "Кийинки",

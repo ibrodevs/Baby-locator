@@ -768,7 +768,7 @@ class SRu extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override

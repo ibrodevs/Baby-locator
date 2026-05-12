@@ -176,9 +176,9 @@ class ExtraL10n {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Family Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Install Family Security on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
           'ru':
-              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
         }),
         {'code': code},
       );
@@ -3720,9 +3720,9 @@ class ExtraTranslations {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Family Security on the child phone and enter this code: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Install Family Security on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
           'ru':
-              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttp://89.108.81.151/invite/{code}',
+              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
         }),
         {'code': code},
       );

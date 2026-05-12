@@ -8,6 +8,7 @@ import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../core/compliance/app_compliance.dart';
 import '../../core/providers/locale_provider.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/services/device_notification_service.dart';
@@ -117,6 +118,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _selectLanguage() async {
     await showAppLanguageSheet(context);
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await AppCompliance.confirmDeleteAccount(
+      context,
+      cascadesChildren: true,
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      await ref.read(sessionProvider.notifier).deleteAccount();
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      showAppSnackBar(
+        context,
+        error.toString(),
+        type: AppFeedbackType.error,
+      );
+    }
   }
 
   Future<void> _openCustomerCenter() async {
@@ -403,7 +427,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.help_outline,
                   iconColor: AppColors.textSecondaryLight,
                   title: t.helpAndSupport,
-                  onTap: () {},
+                  onTap: () => AppCompliance.contactSupport(),
                 ),
                 const Divider(
                     height: 1, indent: 56, color: AppColors.dividerLight),
@@ -411,7 +435,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.info_outline,
                   iconColor: AppColors.textSecondaryLight,
                   title: t.about,
-                  onTap: () {},
+                  onTap: () => AppCompliance.showAboutSheet(context),
                 ),
                 const Divider(
                     height: 1, indent: 56, color: AppColors.dividerLight),
@@ -419,7 +443,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   icon: Icons.privacy_tip_outlined,
                   iconColor: AppColors.textSecondaryLight,
                   title: t.privacyPolicy,
-                  onTap: () {},
+                  onTap: () => AppCompliance.openPrivacyPolicy(),
+                ),
+                const Divider(
+                    height: 1, indent: 56, color: AppColors.dividerLight),
+                _SettingsRow(
+                  icon: Icons.delete_forever_outlined,
+                  iconColor: AppColors.danger,
+                  title: 'Delete account',
+                  onTap: _deleteAccount,
                 ),
               ],
             ),

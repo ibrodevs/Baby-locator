@@ -1462,7 +1462,7 @@ abstract class S {
   /// No description provided for @inviteShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my family circle in Family security! Use invite code: {code}\n\nhttp://89.108.81.151/invite/{code}'**
+  /// **'Join my family circle in Family security! Use invite code: {code}\n\nhttps://baby-locator.online/invite/{code}'**
   String inviteShareText(String code);
 
   /// No description provided for @failedToGenerateCode.

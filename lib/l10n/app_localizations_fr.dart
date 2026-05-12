@@ -774,7 +774,7 @@ class SFr extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Rejoignez mon cercle familial dans Family security! Utilisez le code d\'invitation: $code\n\nhttp://89.108.81.151/invite/$code';
+    return 'Rejoignez mon cercle familial dans Family security! Utilisez le code d\'invitation: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
