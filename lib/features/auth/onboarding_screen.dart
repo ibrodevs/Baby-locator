@@ -8,7 +8,7 @@ import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_language_sheet.dart';
 import '../child/child_root_screen.dart';
-import 'role_select_screen.dart';
+import 'parent_auth_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -82,7 +82,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   void _openParentLogin() {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+      MaterialPageRoute(builder: (_) => const ParentAuthScreen()),
     );
   }
 
