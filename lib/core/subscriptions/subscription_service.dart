@@ -23,6 +23,18 @@ const String revenueCatEntitlementId = 'family_security_pro';
 const String revenueCatDefaultOfferingId = 'default';
 const String revenueCatMonthlyProductId = 'monthly';
 const String revenueCatYearlyProductId = 'yearly';
+const String revenueCatIosMonthlyProductId =
+    'com.location.tracke.parental.control.monthly';
+const String revenueCatIosYearlyProductId =
+    'com.location.tracke.parental.control.yearly';
+const List<String> revenueCatMonthlyProductIds = [
+  revenueCatMonthlyProductId,
+  revenueCatIosMonthlyProductId,
+];
+const List<String> revenueCatYearlyProductIds = [
+  revenueCatYearlyProductId,
+  revenueCatIosYearlyProductId,
+];
 const int freePlanChildLimit = 1;
 
 bool matchesRevenueCatProductId(String storeProductId, String configuredId) {
@@ -37,6 +49,32 @@ bool matchesRevenueCatProductId(String storeProductId, String configuredId) {
 
   final storeSegments = normalizedStoreId.split(':');
   return storeSegments.contains(normalizedConfiguredId);
+}
+
+bool matchesAnyRevenueCatProductId(
+  String storeProductId,
+  Iterable<String> configuredIds,
+) {
+  for (final configuredId in configuredIds) {
+    if (matchesRevenueCatProductId(storeProductId, configuredId)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool isRevenueCatMonthlyProductId(String storeProductId) {
+  return matchesAnyRevenueCatProductId(
+    storeProductId,
+    revenueCatMonthlyProductIds,
+  );
+}
+
+bool isRevenueCatYearlyProductId(String storeProductId) {
+  return matchesAnyRevenueCatProductId(
+    storeProductId,
+    revenueCatYearlyProductIds,
+  );
 }
 
 String get revenueCatApiKey {
@@ -123,11 +161,11 @@ class SubscriptionState {
       offerings?.getOffering(revenueCatDefaultOfferingId) ?? offerings?.current;
 
   Package? get monthlyPackage =>
-      _findPackage(currentOffering, revenueCatMonthlyProductId) ??
+      _findPackage(currentOffering, revenueCatMonthlyProductIds) ??
       currentOffering?.monthly;
 
   Package? get yearlyPackage =>
-      _findPackage(currentOffering, revenueCatYearlyProductId) ??
+      _findPackage(currentOffering, revenueCatYearlyProductIds) ??
       currentOffering?.annual;
 
   List<Package> get paywallPackages {
@@ -188,12 +226,13 @@ class SubscriptionState {
     );
   }
 
-  static Package? _findPackage(Offering? offering, String productId) {
+  static Package? _findPackage(
+      Offering? offering, Iterable<String> productIds) {
     if (offering == null) return null;
     for (final package in offering.availablePackages) {
-      if (matchesRevenueCatProductId(
+      if (matchesAnyRevenueCatProductId(
         package.storeProduct.identifier,
-        productId,
+        productIds,
       )) {
         return package;
       }

@@ -59,10 +59,14 @@
 	<string>Family Security uses location in the background so the parent can see where the child is and receive safety updates.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Family Security uses location in the background to show the child's live location, safe zones, and safety alerts to the parent.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Family Security needs camera access so you can take a profile picture.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Family Security needs photo library access so you can choose a profile picture.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Family Security uses the microphone only when the live surrounding audio feature is started by the family.</string>
+	<string>Family Security needs microphone access for audio features that are started by the user.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>Family Security uses this permission to understand marketing performance and improve the app experience.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>UIBackgroundModes</key>

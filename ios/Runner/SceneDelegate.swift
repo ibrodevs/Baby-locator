@@ -26,6 +26,7 @@ class SceneDelegate: FlutterSceneDelegate {
       let flutterVC = findFlutterViewController(in: rootVC)
     {
       appDelegate.registerLiveAudioChannel(on: flutterVC.binaryMessenger)
+      appDelegate.registerTrackingChannel(on: flutterVC.binaryMessenger)
     }
   }
 

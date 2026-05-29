@@ -410,10 +410,7 @@ class _PlanTile extends StatelessWidget {
   final Package package;
 
   bool get _isRecommended =>
-      matchesRevenueCatProductId(
-        package.storeProduct.identifier,
-        revenueCatYearlyProductId,
-      ) ||
+      isRevenueCatYearlyProductId(package.storeProduct.identifier) ||
       package.packageType == PackageType.annual;
 
   @override
@@ -499,19 +496,11 @@ class _PlanTile extends StatelessWidget {
   }
 
   String _titleFor(Package package, BuildContext context) {
-    if (package.storeProduct.identifier == revenueCatMonthlyProductId ||
-        matchesRevenueCatProductId(
-          package.storeProduct.identifier,
-          revenueCatMonthlyProductId,
-        ) ||
+    if (isRevenueCatMonthlyProductId(package.storeProduct.identifier) ||
         package.packageType == PackageType.monthly) {
       return S.of(context).monthly;
     }
-    if (package.storeProduct.identifier == revenueCatYearlyProductId ||
-        matchesRevenueCatProductId(
-          package.storeProduct.identifier,
-          revenueCatYearlyProductId,
-        ) ||
+    if (isRevenueCatYearlyProductId(package.storeProduct.identifier) ||
         package.packageType == PackageType.annual) {
       return S.of(context).yearly;
     }
@@ -580,10 +569,7 @@ class _PurchaseButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   bool get _isRecommended =>
-      matchesRevenueCatProductId(
-        package.storeProduct.identifier,
-        revenueCatYearlyProductId,
-      ) ||
+      isRevenueCatYearlyProductId(package.storeProduct.identifier) ||
       package.packageType == PackageType.annual;
 
   @override
@@ -684,19 +670,11 @@ class _PurchaseButton extends StatelessWidget {
 }
 
 String _displayPrice(Package package) {
-  if (package.storeProduct.identifier == revenueCatMonthlyProductId ||
-      matchesRevenueCatProductId(
-        package.storeProduct.identifier,
-        revenueCatMonthlyProductId,
-      ) ||
+  if (isRevenueCatMonthlyProductId(package.storeProduct.identifier) ||
       package.packageType == PackageType.monthly) {
     return revenueCatMonthlyDisplayPrice;
   }
-  if (package.storeProduct.identifier == revenueCatYearlyProductId ||
-      matchesRevenueCatProductId(
-        package.storeProduct.identifier,
-        revenueCatYearlyProductId,
-      ) ||
+  if (isRevenueCatYearlyProductId(package.storeProduct.identifier) ||
       package.packageType == PackageType.annual) {
     return revenueCatYearlyDisplayPrice;
   }
@@ -704,11 +682,7 @@ String _displayPrice(Package package) {
 }
 
 String? _displayPerMonthEquivalent(Package package) {
-  if (package.storeProduct.identifier == revenueCatYearlyProductId ||
-      matchesRevenueCatProductId(
-        package.storeProduct.identifier,
-        revenueCatYearlyProductId,
-      ) ||
+  if (isRevenueCatYearlyProductId(package.storeProduct.identifier) ||
       package.packageType == PackageType.annual) {
     return revenueCatYearlyEquivalentDisplayPrice;
   }

@@ -2,14 +2,17 @@ import Flutter
 import UIKit
 import FirebaseCore
 import AVFoundation
+import AppTrackingTransparency
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   static let liveAudioChannelName = "kid_security/live_audio_player"
+  static let trackingChannelName = "kid_security/app_tracking_transparency"
   private var liveAudioEngine: AVAudioEngine?
   private var liveAudioPlayerNode: AVAudioPlayerNode?
   private var liveAudioFormat: AVAudioFormat?
   private var registeredMessengers: [ObjectIdentifier: FlutterMethodChannel] = [:]
+  private var registeredTrackingMessengers: [ObjectIdentifier: FlutterMethodChannel] = [:]
 
   override func application(
     _ application: UIApplication,
@@ -23,6 +26,7 @@ import AVFoundation
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
     registerLiveAudioChannel(on: engineBridge.applicationRegistrar.messenger())
+    registerTrackingChannel(on: engineBridge.applicationRegistrar.messenger())
   }
 
   /// Public so SceneDelegate can register the channel against the
@@ -39,6 +43,17 @@ import AVFoundation
     )
     attachLiveAudioHandler(to: channel)
     registeredMessengers[key] = channel
+  }
+
+  func registerTrackingChannel(on messenger: FlutterBinaryMessenger) {
+    let key = ObjectIdentifier(messenger as AnyObject)
+    if registeredTrackingMessengers[key] != nil { return }
+    let channel = FlutterMethodChannel(
+      name: AppDelegate.trackingChannelName,
+      binaryMessenger: messenger
+    )
+    attachTrackingHandler(to: channel)
+    registeredTrackingMessengers[key] = channel
   }
 
   private func configureAudioSession() {
@@ -99,6 +114,46 @@ import AVFoundation
         result(FlutterMethodNotImplemented)
       }
     }
+  }
+
+  private func attachTrackingHandler(to channel: FlutterMethodChannel) {
+    channel.setMethodCallHandler { call, result in
+      switch call.method {
+      case "getTrackingStatus":
+        result(self.trackingStatusString())
+      case "requestTrackingAuthorization":
+        if #available(iOS 14, *) {
+          DispatchQueue.main.async {
+            ATTrackingManager.requestTrackingAuthorization { _ in
+              result(self.trackingStatusString())
+            }
+          }
+        } else {
+          result("authorized")
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+  }
+
+  private func trackingStatusString() -> String {
+    if #available(iOS 14, *) {
+      switch ATTrackingManager.trackingAuthorizationStatus {
+      case .notDetermined:
+        return "not_determined"
+      case .restricted:
+        return "restricted"
+      case .denied:
+        return "denied"
+      case .authorized:
+        return "authorized"
+      @unknown default:
+        return "restricted"
+      }
+    }
+
+    return "authorized"
   }
 
   private func initializeLiveAudio(sampleRate: Int, channels: Int) {

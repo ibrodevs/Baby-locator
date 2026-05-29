@@ -261,7 +261,7 @@ DJANGO_DB_PORT=5432
 
 REVENUECAT_WEBHOOK_AUTH_HEADER=Bearer very-long-random-secret
 REVENUECAT_ENTITLEMENT_ID=family_security_pro
-REVENUECAT_PREMIUM_PRODUCT_IDS=monthly,yearly,family_security_pro:monthly,family_security_pro:yearly
+REVENUECAT_PREMIUM_PRODUCT_IDS=monthly,yearly,family_security_pro:monthly,family_security_pro:yearly,com.location.tracke.parental.control.monthly,com.location.tracke.parental.control.yearly
 REVENUECAT_LIFETIME_PRODUCT_IDS=
 ```
 

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/services/app_tracking_transparency_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations_extras.dart';
 
@@ -39,6 +42,9 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
       vsync: this,
       duration: const Duration(milliseconds: 520),
     )..forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_maybeRequestTrackingAuthorization());
+    });
   }
 
   @override
@@ -56,6 +62,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
       await prefs.setBool(introSeenKey, true);
     } catch (_) {}
     if (mounted) widget.onFinished();
+  }
+
+  Future<void> _maybeRequestTrackingAuthorization() async {
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (!mounted) return;
+    await AppTrackingTransparencyService.instance.requestIfNeeded();
   }
 
   void _next() {
