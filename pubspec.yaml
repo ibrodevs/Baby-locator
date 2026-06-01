@@ -1,7 +1,7 @@
 name: kid_security
 description: Family security - Parental GPS tracking app with platform-adaptive maps.
 publish_to: "none"
-version: 1.0.1+2
+version: 1.0.1+4
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -68,6 +68,7 @@ dev_dependencies:
   flutter_lints: ^3.0.2
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.3
 
 dependency_overrides:
   record_linux:
@@ -81,3 +82,8 @@ flutter:
   assets:
     - assets/images/
     - "assets/subscriptions/Kid Security (3)/"
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/1212.png"
