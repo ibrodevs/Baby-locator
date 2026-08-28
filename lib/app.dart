@@ -15,12 +15,9 @@ import 'core/services/local_avatar_store.dart';
 import 'core/services/remote_device_service.dart';
 import 'core/subscriptions/subscription_service.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/child_theme.dart';
 import 'features/auth/intro_onboarding_screen.dart';
 import 'features/auth/onboarding_screen.dart';
 import 'features/auth/parent_setup_gate.dart';
-import 'features/auth/splash_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'features/child/child_root_screen.dart';
 import 'features/sos/sos_alert_screen.dart';
 
@@ -33,10 +30,6 @@ class KidSecurityApp extends ConsumerStatefulWidget {
 
 class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     with WidgetsBindingObserver {
-  ProviderSubscription<SessionState>? _sessionSubscription;
-  bool _splashDone = false;
-  bool _introChecked = false;
-  bool _introSeen = true;
   bool _sosRouteVisible = false;
 
   @override
@@ -49,41 +42,6 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
 
     // Wire SOS callback so FCM foreground handler can show the red screen.
     FcmService.instance.onSosReceived = _showSosScreen;
-
-    _sessionSubscription = ref.listenManual<SessionState>(
-      sessionProvider,
-      (_, next) {
-        unawaited(_syncNotificationSession(next.user));
-        unawaited(
-          ref.read(subscriptionServiceProvider.notifier).syncSessionUser(
-                next.user,
-              ),
-        );
-      },
-    );
-
-    unawaited(_syncNotificationSession(ref.read(sessionProvider).user));
-    unawaited(
-      ref
-          .read(subscriptionServiceProvider.notifier)
-          .syncSessionUser(ref.read(sessionProvider).user),
-    );
-    unawaited(_loadIntroSeen());
-  }
-
-  Future<void> _loadIntroSeen() async {
-    bool seen = true;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      seen = prefs.getBool(introSeenKey) ?? false;
-    } catch (_) {
-      seen = false;
-    }
-    if (!mounted) return;
-    setState(() {
-      _introSeen = seen;
-      _introChecked = true;
-    });
   }
 
   void _showSosScreen(String childName, String? message) {
@@ -107,6 +65,8 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
     if (user != null) {
       await FcmService.instance.registerToken();
     }
+
+    if (!mounted) return;
 
     if (user?.role == UserRole.parent) {
       unawaited(ref.read(parentChildrenProvider.notifier).refresh());
@@ -135,7 +95,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+    if (state == AppLifecycleState.resumed && mounted) {
       unawaited(FcmService.instance.restorePendingSosFromDisk());
       final role = ref.read(sessionProvider).user?.role;
       if (role == UserRole.parent) {
@@ -148,15 +108,38 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
 
   @override
   void dispose() {
-    _sessionSubscription?.close();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<SessionState>(sessionProvider, (previous, next) {
+      if (!mounted) return;
+      unawaited(_syncNotificationSession(next.user));
+      unawaited(
+        ref.read(subscriptionServiceProvider.notifier).syncSessionUser(
+              next.user,
+            ),
+      );
+    });
+
     final locale = ref.watch(appLocaleProvider);
     final session = ref.watch(sessionProvider);
+    final introSeen = ref.watch(introSeenProvider);
+
+    final Widget homeWidget = switch (session.user?.role) {
+      UserRole.parent => const ParentSetupGate(),
+      UserRole.child => const ChildRootScreen(),
+      _ => !introSeen
+          ? IntroOnboardingScreen(
+              onFinished: () {
+                ref.read(introSeenProvider.notifier).state = true;
+              },
+            )
+          : const OnboardingScreen(),
+    };
+
     return MaterialApp(
       navigatorKey: rootNavigatorKey,
       onGenerateTitle: (context) => S.of(context).appName,
@@ -176,47 +159,7 @@ class _KidSecurityAppState extends ConsumerState<KidSecurityApp>
       theme: AppTheme.light,
       darkTheme: AppTheme.light,
       themeMode: ThemeMode.light,
-      home: _buildHome(session),
-    );
-  }
-
-  Widget _buildHome(SessionState session) {
-    final loggedOut = session.user == null;
-    final showIntro = loggedOut && _introChecked && !_introSeen;
-    final Widget destination = switch (session.user?.role) {
-      UserRole.parent => const ParentSetupGate(),
-      UserRole.child => const ChildRootScreen(),
-      _ => showIntro
-          ? IntroOnboardingScreen(
-              onFinished: () {
-                if (mounted) setState(() => _introSeen = true);
-              },
-            )
-          : const OnboardingScreen(),
-    };
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 420),
-      switchInCurve: Curves.easeOutCubic,
-      switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (child, animation) => FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(
-          scale: Tween<double>(begin: 1.04, end: 1.0).animate(animation),
-          child: child,
-        ),
-      ),
-      child: _splashDone && session.initialized && _introChecked
-          ? KeyedSubtree(key: const ValueKey('app'), child: destination)
-          : SplashScreen(
-              key: const ValueKey('splash'),
-              palette: session.user?.role == UserRole.child
-                  ? ChildPalette.girl
-                  : ChildPalette.boy,
-              onFinished: () {
-                if (mounted) setState(() => _splashDone = true);
-              },
-            ),
+      home: homeWidget,
     );
   }
 }

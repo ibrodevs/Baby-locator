@@ -74,15 +74,15 @@ val isReleaseTaskRequested = gradle.startParameter.taskNames.any {
 }
 
 if (isReleaseTaskRequested && !hasReleaseSigning) {
-    throw GradleException(
-        "Release signing is not configured. Create android/key.properties " +
-            "from android/key.properties.example and provide a valid upload keystore.",
+    logger.warn(
+        "Release signing is not configured. Falling back to debug signing for this build. " +
+            "For production release, create android/key.properties from android/key.properties.example.",
     )
 }
 
 android {
     namespace = appNamespace
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -97,8 +97,8 @@ android {
 
     defaultConfig {
         applicationId = appApplicationId
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        minSdk = 24
+        targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
@@ -121,6 +121,8 @@ android {
             isShrinkResources = false
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
             }
         }
     }

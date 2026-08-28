@@ -841,4 +841,21 @@ class ApiClient {
   Future<void> deleteReward(int childId, int rewardId) async {
     await _delete('/api/chat/$childId/rewards/$rewardId/');
   }
+
+  Future<Map<String, dynamic>?> getSubscriptionConfig() async {
+    try {
+      final r = await http
+          .get(_u('/api/revenuecat/config/'), headers: _headers(json: false))
+          .timeout(const Duration(seconds: 5));
+      if (r.statusCode == 200) {
+        final data = _decode(r);
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+      }
+    } catch (e) {
+      debugPrint('[ApiClient] getSubscriptionConfig error: $e');
+    }
+    return null;
+  }
 }

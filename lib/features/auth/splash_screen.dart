@@ -31,7 +31,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void _finish() {
     if (!mounted || _finished) return;
     _finished = true;
-    widget.onFinished();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        widget.onFinished();
+      }
+    });
   }
 
   @override

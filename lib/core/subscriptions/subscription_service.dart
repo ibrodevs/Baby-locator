@@ -5,19 +5,23 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../services/api_client.dart';
 import '../providers/session_providers.dart';
 import 'revenuecat_ui_bridge.dart';
 
 const String _revenueCatFallbackApiKey = String.fromEnvironment(
   'REVENUECAT_API_KEY',
-  defaultValue: 'test_JSSNigqntAdnsSPLrHFggHWpZpm',
+  defaultValue: 'goog_EqvRQpJxoxPTrEyftuZNYNpXrog',
 );
 const String _revenueCatAndroidApiKey = String.fromEnvironment(
   'REVENUECAT_API_KEY_ANDROID',
+  defaultValue: 'goog_EqvRQpJxoxPTrEyftuZNYNpXrog',
 );
 const String _revenueCatIosApiKey = String.fromEnvironment(
   'REVENUECAT_API_KEY_IOS',
+  defaultValue: 'goog_EqvRQpJxoxPTrEyftuZNYNpXrog',
 );
 const String revenueCatEntitlementId = 'family_security_pro';
 const String revenueCatDefaultOfferingId = 'default';
@@ -77,19 +81,89 @@ bool isRevenueCatYearlyProductId(String storeProductId) {
   );
 }
 
-String get revenueCatApiKey {
-  final androidKey = _revenueCatAndroidApiKey.trim();
-  final iosKey = _revenueCatIosApiKey.trim();
-  switch (defaultTargetPlatform) {
-    case TargetPlatform.android:
-      return androidKey.isNotEmpty ? androidKey : _revenueCatFallbackApiKey;
-    case TargetPlatform.iOS:
-    case TargetPlatform.macOS:
-      return iosKey.isNotEmpty ? iosKey : _revenueCatFallbackApiKey;
-    default:
-      return _revenueCatFallbackApiKey;
+
+class SubscriptionConfigStore {
+  static const _androidKeyPref = 'revenuecat_api_key_android';
+  static const _iosKeyPref = 'revenuecat_api_key_ios';
+  static const _fallbackKeyPref = 'revenuecat_api_key_fallback';
+
+  static String? _cachedAndroidKey;
+  static String? _cachedIosKey;
+  static String? _cachedFallbackKey;
+
+  static Future<void> loadCachedKeys() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _cachedAndroidKey = prefs.getString(_androidKeyPref);
+      if (_cachedAndroidKey?.startsWith('test_') == true) {
+        _cachedAndroidKey = null;
+        await prefs.remove(_androidKeyPref);
+      }
+      _cachedIosKey = prefs.getString(_iosKeyPref);
+      if (_cachedIosKey?.startsWith('test_') == true) {
+        _cachedIosKey = null;
+        await prefs.remove(_iosKeyPref);
+      }
+      _cachedFallbackKey = prefs.getString(_fallbackKeyPref);
+      if (_cachedFallbackKey?.startsWith('test_') == true) {
+        _cachedFallbackKey = null;
+        await prefs.remove(_fallbackKeyPref);
+      }
+    } catch (_) {}
+  }
+
+  static Future<void> updateFromRemote(Map<String, dynamic> remote) async {
+    try {
+      final androidKey = (remote['android_api_key'] as String?)?.trim();
+      final iosKey = (remote['ios_api_key'] as String?)?.trim();
+      final fallbackKey = (remote['api_key'] as String?)?.trim();
+
+      final prefs = await SharedPreferences.getInstance();
+      if (androidKey != null && androidKey.isNotEmpty && !androidKey.startsWith('test_')) {
+        _cachedAndroidKey = androidKey;
+        await prefs.setString(_androidKeyPref, androidKey);
+      }
+      if (iosKey != null && iosKey.isNotEmpty && !iosKey.startsWith('test_')) {
+        _cachedIosKey = iosKey;
+        await prefs.setString(_iosKeyPref, iosKey);
+      }
+      if (fallbackKey != null && fallbackKey.isNotEmpty && !fallbackKey.startsWith('test_')) {
+        _cachedFallbackKey = fallbackKey;
+        await prefs.setString(_fallbackKeyPref, fallbackKey);
+      }
+    } catch (_) {}
+  }
+
+  static String resolveApiKey() {
+    final dynamicAndroid = _cachedAndroidKey?.trim() ?? '';
+    final dynamicIos = _cachedIosKey?.trim() ?? '';
+    final dynamicFallback = _cachedFallbackKey?.trim() ?? '';
+
+    final envAndroid = _revenueCatAndroidApiKey.trim();
+    final envIos = _revenueCatIosApiKey.trim();
+    final envFallback = _revenueCatFallbackApiKey.trim();
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        if (dynamicAndroid.isNotEmpty && !dynamicAndroid.startsWith('test_')) return dynamicAndroid;
+        if (envAndroid.isNotEmpty && !envAndroid.startsWith('test_')) return envAndroid;
+        if (dynamicFallback.isNotEmpty && !dynamicFallback.startsWith('test_')) return dynamicFallback;
+        return envFallback;
+      case TargetPlatform.iOS:
+      case TargetPlatform.macOS:
+        if (dynamicIos.isNotEmpty && !dynamicIos.startsWith('test_')) return dynamicIos;
+        if (envIos.isNotEmpty && !envIos.startsWith('test_')) return envIos;
+        if (dynamicFallback.isNotEmpty && !dynamicFallback.startsWith('test_')) return dynamicFallback;
+        return envFallback;
+      default:
+        if (dynamicFallback.isNotEmpty && !dynamicFallback.startsWith('test_')) return dynamicFallback;
+        return envFallback;
+    }
   }
 }
+
+String get revenueCatApiKey => SubscriptionConfigStore.resolveApiKey();
+
 
 bool isPremiumUser(CustomerInfo info) {
   return info.entitlements.active.containsKey(revenueCatEntitlementId);
@@ -129,6 +203,7 @@ class SubscriptionState {
     this.refreshingCustomerInfo = false,
     this.purchaseInProgress = false,
     this.restoringPurchases = false,
+    this.backendIsPremium = false,
     this.appUserId,
     this.customerInfo,
     this.offerings,
@@ -141,21 +216,24 @@ class SubscriptionState {
   final bool refreshingCustomerInfo;
   final bool purchaseInProgress;
   final bool restoringPurchases;
+  final bool backendIsPremium;
   final String? appUserId;
   final CustomerInfo? customerInfo;
   final Offerings? offerings;
   final String? errorMessage;
 
   bool get isPremium {
+    if (backendIsPremium) return true;
     final info = customerInfo;
     return info != null && isPremiumUser(info);
   }
 
   bool get hasActiveEntitlement =>
-      customerInfo?.entitlements.active.containsKey(
-        revenueCatEntitlementId,
-      ) ??
-      false;
+      backendIsPremium ||
+      (customerInfo?.entitlements.active.containsKey(
+            revenueCatEntitlementId,
+          ) ??
+          false);
 
   Offering? get currentOffering =>
       offerings?.getOffering(revenueCatDefaultOfferingId) ?? offerings?.current;
@@ -201,6 +279,7 @@ class SubscriptionState {
     bool? refreshingCustomerInfo,
     bool? purchaseInProgress,
     bool? restoringPurchases,
+    bool? backendIsPremium,
     String? appUserId,
     CustomerInfo? customerInfo,
     Offerings? offerings,
@@ -218,6 +297,7 @@ class SubscriptionState {
           refreshingCustomerInfo ?? this.refreshingCustomerInfo,
       purchaseInProgress: purchaseInProgress ?? this.purchaseInProgress,
       restoringPurchases: restoringPurchases ?? this.restoringPurchases,
+      backendIsPremium: backendIsPremium ?? this.backendIsPremium,
       appUserId: clearAppUserId ? null : appUserId ?? this.appUserId,
       customerInfo:
           clearCustomerInfo ? null : customerInfo ?? this.customerInfo,
@@ -253,6 +333,21 @@ class SubscriptionService extends StateNotifier<SubscriptionState> {
 
   Future<void> bootstrap({SessionUser? user}) async {
     try {
+      if (user?.isPremium == true) {
+        state = state.copyWith(backendIsPremium: true);
+      }
+      await SubscriptionConfigStore.loadCachedKeys();
+      try {
+        final remoteConfig = await ApiClient.instance
+            .getSubscriptionConfig()
+            .timeout(const Duration(seconds: 4));
+        if (remoteConfig != null) {
+          await SubscriptionConfigStore.updateFromRemote(remoteConfig);
+        }
+      } catch (e) {
+        debugPrint('[SubscriptionService] Remote config fetch skipped: $e');
+      }
+
       await _configureIfNeeded(user);
       await Future.wait([
         fetchOfferings(),
@@ -268,7 +363,16 @@ class SubscriptionService extends StateNotifier<SubscriptionState> {
     }
   }
 
+  void syncBackendPremium(bool isPremium) {
+    if (state.backendIsPremium != isPremium) {
+      state = state.copyWith(backendIsPremium: isPremium);
+    }
+  }
+
   Future<void> syncSessionUser(SessionUser? user) async {
+    if (user != null) {
+      state = state.copyWith(backendIsPremium: user.isPremium);
+    }
     await _configureIfNeeded(user);
     final nextAppUserId = _normalizeAppUserId(user);
 
@@ -570,3 +674,4 @@ final subscriptionServiceProvider =
     StateNotifierProvider<SubscriptionService, SubscriptionState>(
   (ref) => SubscriptionService(),
 );
+

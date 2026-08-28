@@ -1065,9 +1065,6 @@ class _MenuGameLimitsScreenState extends State<MenuGameLimitsScreen> {
     );
   }
 
-  String _formatMinutes(int minutes) {
-    return S.of(context).formatCompactDuration(minutes);
-  }
 
   List<Map<String, dynamic>> _asList(dynamic value) {
     if (value is! List) return const [];

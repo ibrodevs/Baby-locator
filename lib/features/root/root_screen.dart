@@ -18,11 +18,6 @@ class _RootScreenState extends State<RootScreen> {
   int _index = 0;
   final _activeIndexNotifier = ValueNotifier<int>(0);
 
-  final List<GlobalKey<NavigatorState>> _navKeys = List.generate(
-    4,
-    (_) => GlobalKey<NavigatorState>(),
-  );
-
   @override
   void dispose() {
     _activeIndexNotifier.dispose();
@@ -30,53 +25,36 @@ class _RootScreenState extends State<RootScreen> {
   }
 
   void _onTabTapped(int i) {
-    if (i == _index) {
-      _navKeys[i].currentState?.popUntil((route) => route.isFirst);
-    } else {
+    if (i != _index) {
       setState(() => _index = i);
       _activeIndexNotifier.value = i;
     }
   }
 
   Widget _buildTab(int i) {
-    return Navigator(
-      key: _navKeys[i],
-      onGenerateRoute: (_) => MaterialPageRoute(
-        builder: (_) => switch (i) {
-          0 => const MapScreen(),
-          1 => const ActivityScreen(),
-          2 => ValueListenableBuilder<int>(
-              valueListenable: _activeIndexNotifier,
-              builder: (_, active, __) => ChatScreen(isActive: active == 2),
-            ),
-          3 => const StatsScreen(showMenu: true),
-          _ => const SizedBox.shrink(),
-        },
-      ),
-    );
+    return switch (i) {
+      0 => const MapScreen(),
+      1 => const ActivityScreen(),
+      2 => ValueListenableBuilder<int>(
+          valueListenable: _activeIndexNotifier,
+          builder: (_, active, __) => ChatScreen(isActive: active == 2),
+        ),
+      3 => const StatsScreen(showMenu: true),
+      _ => const SizedBox.shrink(),
+    };
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) return;
-        final nav = _navKeys[_index].currentState;
-        if (nav != null && nav.canPop()) {
-          nav.pop();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.backgroundLight,
-        body: IndexedStack(
-          index: _index,
-          children: List.generate(4, _buildTab),
-        ),
-        bottomNavigationBar: AppBottomNav(
-          index: _index,
-          onChanged: _onTabTapped,
-        ),
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      body: IndexedStack(
+        index: _index,
+        children: List.generate(4, _buildTab),
+      ),
+      bottomNavigationBar: AppBottomNav(
+        index: _index,
+        onChanged: _onTabTapped,
       ),
     );
   }
@@ -99,58 +77,85 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.dividerLight)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x0F000000),
+            blurRadius: 20,
+            offset: Offset(0, -4),
+          ),
+        ],
       ),
-      padding: EdgeInsets.only(
-        top: 8,
-        bottom: MediaQuery.of(context).padding.bottom + 6,
-        left: 12,
-        right: 12,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(items.length, (i) {
+              final (icon, label) = items[i];
+              final isSelected = index == i;
+              return _BottomNavItem(
+                icon: icon,
+                label: label,
+                isSelected: isSelected,
+                onTap: () => onChanged(i),
+              );
+            }),
+          ),
+        ),
       ),
-      child: Row(
-        children: List.generate(items.length, (i) {
-          final active = i == index;
-          return Expanded(
-            child: InkWell(
-              onTap: () => onChanged(i),
-              borderRadius: BorderRadius.circular(28),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: active ? AppColors.primary : Colors.transparent,
-                      ),
-                      child: Icon(
-                        items[i].$1,
-                        size: 22,
-                        color: active
-                            ? Colors.white
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      items[i].$2,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: active
-                            ? AppColors.primary
-                            : AppColors.textSecondaryLight,
-                      ),
-                    ),
-                  ],
-                ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  const _BottomNavItem({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected ? AppColors.primary : AppColors.textMuted,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                color: isSelected ? AppColors.primary : AppColors.textMuted,
               ),
             ),
-          );
-        }),
+          ],
+        ),
       ),
     );
   }

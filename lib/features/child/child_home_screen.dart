@@ -20,6 +20,7 @@ import '../../core/services/local_avatar_store.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
+import '../../core/widgets/accessibility_disclosure.dart';
 import '../../core/widgets/brand_header.dart';
 import '../auth/onboarding_screen.dart';
 import '../map/adaptive_map.dart';
@@ -102,6 +103,8 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
 
   Future<void> _openAccessibilitySettings() async {
     if (!Platform.isAndroid) return;
+    final agreed = await AccessibilityDisclosureDialog.show(context);
+    if (!agreed) return;
     try {
       await _appBlocking.openAccessibilitySettings();
     } catch (_) {}
@@ -176,7 +179,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     if (_starting) return;
     _starting = true;
     final status = await _svc.ensurePermission(
-      requireBackground: Platform.isAndroid,
+      requireBackground: false,
     );
     if (!mounted) return;
     setState(() => _status = status);
@@ -184,13 +187,26 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       _starting = false;
       return;
     }
+
+    // 1. Instantly show last cached position (no GPS wait).
     try {
-      final first = await _svc.currentOnce();
-      if (first != null && mounted) {
-        _updateLocal(first);
-        await _push(first);
+      final lastKnown = await _svc.getLastKnown();
+      if (lastKnown != null && mounted) {
+        _updateLocal(lastKnown);
+        unawaited(_push(lastKnown));
       }
     } catch (_) {}
+
+    // 2. Get a fresh high-accuracy fix (with timeout fallback).
+    try {
+      final fresh = await _svc.currentOnce();
+      if (fresh != null && mounted) {
+        _updateLocal(fresh);
+        await _push(fresh);
+      }
+    } catch (_) {}
+
+    // 3. Start continuous tracking stream.
     _sub = _svc.watch().listen((fix) async {
       _updateLocal(fix);
       await _push(fix);

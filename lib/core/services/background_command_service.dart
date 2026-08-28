@@ -40,8 +40,6 @@ Future<void> initBackgroundCommandService() async {
       initialNotificationContent: t.trackingNotification,
       foregroundServiceTypes: [
         AndroidForegroundType.location,
-        AndroidForegroundType.microphone,
-        AndroidForegroundType.mediaPlayback,
       ],
     ),
     iosConfiguration: IosConfiguration(

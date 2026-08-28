@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blocking_accessibility_label">Family Security — Блокировка приложений</string>
+    <string name="blocking_accessibility_description">Позволяет родителю ограничивать использование выбранных приложений на устройстве ребёнка. Family Security определяет заблокированное приложение на переднем плане и закрывает его. Сервис не собирает, не читает и не сохраняет личные сообщения, пароли и текст на экране.</string>
+    <string name="blocking_screen_default_app_name">Это приложение</string>
+    <string name="blocking_screen_title">%1$s заблокировано</string>
+    <string name="blocking_screen_subtitle">Доступ к приложению ограничен родительским контролем.</string>
+    <string name="blocking_screen_hint">Обратитесь к родителю, чтобы изменить список заблокированных приложений в Family Security.</string>
+    <string name="blocking_screen_home_button">На главный экран</string>
+    <string name="blocking_screen_open_app_button">Открыть Family Security</string>
+</resources>

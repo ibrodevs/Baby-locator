@@ -10,6 +10,7 @@ import '../../core/services/app_blocking_service.dart';
 import '../../core/services/device_stats_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
+import '../../core/widgets/accessibility_disclosure.dart';
 import '../../core/widgets/brand_header.dart';
 
 class AppBlockingScreen extends StatefulWidget {
@@ -167,6 +168,8 @@ class _AppBlockingScreenState extends State<AppBlockingScreen>
   }
 
   Future<void> _openAccessibilitySettings() async {
+    final agreed = await AccessibilityDisclosureDialog.show(context);
+    if (!agreed) return;
     await _blockingService.openAccessibilitySettings();
     await Future<void>.delayed(const Duration(milliseconds: 800));
     await _refreshPermissions();

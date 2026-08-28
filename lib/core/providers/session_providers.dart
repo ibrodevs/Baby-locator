@@ -16,6 +16,7 @@ class SessionUser {
     this.gender,
     this.parentId,
     this.avatarUrl,
+    this.isPremium = false,
   });
 
   final int id;
@@ -25,6 +26,7 @@ class SessionUser {
   final String? gender;
   final int? parentId;
   final String? avatarUrl;
+  final bool isPremium;
 
   factory SessionUser.fromJson(Map<String, dynamic> j) {
     final id = j['id'] as int;
@@ -37,6 +39,7 @@ class SessionUser {
       parentId: j['parent'] as int?,
       avatarUrl: LocalAvatarStore.instance.userAvatar(id) ??
           j['avatar_url'] as String?,
+      isPremium: j['is_premium'] as bool? ?? false,
     );
   }
 
@@ -45,6 +48,7 @@ class SessionUser {
     String? displayName,
     String? gender,
     String? avatarUrl,
+    bool? isPremium,
   }) =>
       SessionUser(
         id: id,
@@ -54,6 +58,7 @@ class SessionUser {
         gender: gender ?? this.gender,
         parentId: parentId,
         avatarUrl: avatarUrl ?? this.avatarUrl,
+        isPremium: isPremium ?? this.isPremium,
       );
 
   static UserRole _roleFrom(String? r) {

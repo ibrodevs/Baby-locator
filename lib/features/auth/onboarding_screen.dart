@@ -7,7 +7,6 @@ import 'package:kid_security/l10n/app_localizations_extras.dart';
 import '../../core/providers/session_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_language_sheet.dart';
-import '../child/child_root_screen.dart';
 import 'parent_auth_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -67,11 +66,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
     try {
       await ref.read(sessionProvider.notifier).registerChild(code: code);
-      if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ChildRootScreen()),
-        (route) => false,
-      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = t.invalidInviteCode);
@@ -252,7 +246,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                       )
                                     : Text(
                                         t.signIn,
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w800,
                                         ),

@@ -2677,6 +2677,90 @@ extension SExtras on S {
         'tk': 'Köpräk',
         'uz': 'Ko‘proq',
       });
+
+  String get backgroundLocationDisclosureTitle => _pick({
+        'en': 'Real-Time Location & Safety',
+        'ru': 'Отслеживание местоположения и безопасность',
+      });
+
+  String get backgroundLocationDisclosureSubtitle => _pick({
+        'en': 'Prominent Disclosure: Background Location Access',
+        'ru': 'Уведомление об использовании геолокации в фоновом режиме',
+      });
+
+  String get backgroundLocationDisclosureBody => _pick({
+        'en':
+            'Family Security collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
+            '• Real-time child location tracking visible to parents on the live map\n'
+            '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
+            '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
+            'Data Protection & Privacy:\n'
+            '• Location data is transmitted via encrypted HTTPS connections.\n'
+            '• Location is accessible only to the paired parent account.\n'
+            '• Location data is never used for advertising and is never sold to third parties.',
+        'ru':
+            'Family Security собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
+            '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
+            '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
+            '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
+            'Защита данных и конфиденциальность:\n'
+            '• Данные геолокации передаются по защищённому зашифрованному протоколу HTTPS.\n'
+            '• Доступ к координатам имеет только привязанный аккаунт родителя.\n'
+            '• Данные о местоположении не используются для рекламы и никогда не передаются третьим лицам.',
+      });
+
+  String get backgroundLocationDisclosureAgree => _pick({
+        'en': 'Agree & Enable Location',
+        'ru': 'Согласиться и включить',
+      });
+
+  String get backgroundLocationDisclosureCancel => _pick({
+        'en': 'Not now',
+        'ru': 'Не сейчас',
+      });
+
+  String get accessibilityDisclosureTitle => _pick({
+        'en': 'Parental App Blocking',
+        'ru': 'Родительский контроль: Блокировка приложений',
+      });
+
+  String get accessibilityDisclosureSubtitle => _pick({
+        'en': 'Prominent Disclosure: AccessibilityService API Usage',
+        'ru': 'Уведомление об использовании AccessibilityService API',
+      });
+
+  String get accessibilityDisclosureBody => _pick({
+        'en':
+            'Family Security uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
+            'How it works:\n'
+            '• Detects the package name of the currently active foreground app.\n'
+            '• If the opened app has been restricted by a parent, Family Security automatically displays a blocking screen and restricts access.\n'
+            '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
+            'Privacy & Safety Guarantee:\n'
+            '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
+            '• It only determines which application is active on screen for parental blocking.\n'
+            '• No data from AccessibilityService is ever sold or shared with third parties.',
+        'ru':
+            'Family Security использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
+            'Как это работает:\n'
+            '• Сервис определяет имя открытого приложения на переднем плане.\n'
+            '• Если открытое приложение входит в список ограниченных родителем, Family Security автоматически закрывает его и показывает экран блокировки.\n'
+            '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
+            'Гарантия безопасности и конфиденциальности:\n'
+            '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'
+            '• Сервис считывает только имя пакета запущенного приложения для функции блокировки.\n'
+            '• Данные специальных возможностей никогда не продаются и не передаются третьим лицам.',
+      });
+
+  String get accessibilityDisclosureAgree => _pick({
+        'en': 'Continue to Settings',
+        'ru': 'Перейти в настройки',
+      });
+
+  String get accessibilityDisclosureCancel => _pick({
+        'en': 'Cancel',
+        'ru': 'Отмена',
+      });
 }
 
 class ExtraTranslations {
@@ -4109,5 +4193,89 @@ class ExtraTranslations {
   String get addChildFirstWarning => _pick({
         'en': 'Add a child first.',
         'ru': 'Сначала добавьте ребёнка.',
+      });
+
+  String get backgroundLocationDisclosureTitle => _pick({
+        'en': 'Real-Time Location & Safety',
+        'ru': 'Отслеживание местоположения и безопасность',
+      });
+
+  String get backgroundLocationDisclosureSubtitle => _pick({
+        'en': 'Prominent Disclosure: Background Location Access',
+        'ru': 'Уведомление об использовании геолокации в фоновом режиме',
+      });
+
+  String get backgroundLocationDisclosureBody => _pick({
+        'en':
+            'Family Security collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
+            '• Real-time child location tracking visible to parents on the live map\n'
+            '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
+            '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
+            'Data Protection & Privacy:\n'
+            '• Location data is transmitted via encrypted HTTPS connections.\n'
+            '• Location is accessible only to the paired parent account.\n'
+            '• Location data is never used for advertising and is never sold to third parties.',
+        'ru':
+            'Family Security собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
+            '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
+            '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
+            '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
+            'Защита данных и конфиденциальность:\n'
+            '• Данные геолокации передаются по защищённому зашифрованному протоколу HTTPS.\n'
+            '• Доступ к координатам имеет только привязанный аккаунт родителя.\n'
+            '• Данные о местоположении не используются для рекламы и никогда не передаются третьим лицам.',
+      });
+
+  String get backgroundLocationDisclosureAgree => _pick({
+        'en': 'Agree & Enable Location',
+        'ru': 'Согласиться и включить',
+      });
+
+  String get backgroundLocationDisclosureCancel => _pick({
+        'en': 'Not now',
+        'ru': 'Не сейчас',
+      });
+
+  String get accessibilityDisclosureTitle => _pick({
+        'en': 'Parental App Blocking',
+        'ru': 'Родительский контроль: Блокировка приложений',
+      });
+
+  String get accessibilityDisclosureSubtitle => _pick({
+        'en': 'Prominent Disclosure: AccessibilityService API Usage',
+        'ru': 'Уведомление об использовании AccessibilityService API',
+      });
+
+  String get accessibilityDisclosureBody => _pick({
+        'en':
+            'Family Security uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
+            'How it works:\n'
+            '• Detects the package name of the currently active foreground app.\n'
+            '• If the opened app has been restricted by a parent, Family Security automatically displays a blocking screen and restricts access.\n'
+            '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
+            'Privacy & Safety Guarantee:\n'
+            '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
+            '• It only determines which application is active on screen for parental blocking.\n'
+            '• No data from AccessibilityService is ever sold or shared with third parties.',
+        'ru':
+            'Family Security использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
+            'Как это работает:\n'
+            '• Сервис определяет имя открытого приложения на переднем плане.\n'
+            '• Если открытое приложение входит в список ограниченных родителем, Family Security автоматически закрывает его и показывает экран блокировки.\n'
+            '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
+            'Гарантия безопасности и конфиденциальности:\n'
+            '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'
+            '• Сервис считывает только имя пакета запущенного приложения для функции блокировки.\n'
+            '• Данные специальных возможностей никогда не продаются и не передаются третьим лицам.',
+      });
+
+  String get accessibilityDisclosureAgree => _pick({
+        'en': 'Continue to Settings',
+        'ru': 'Перейти в настройки',
+      });
+
+  String get accessibilityDisclosureCancel => _pick({
+        'en': 'Cancel',
+        'ru': 'Отмена',
       });
 }

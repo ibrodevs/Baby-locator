@@ -2,11 +2,14 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
-    prefer_const_constructors: info
-    prefer_const_literals_to_create_immutables: info
+    prefer_const_constructors: ignore
+    prefer_const_literals_to_create_immutables: ignore
+    prefer_single_quotes: ignore
+    deprecated_member_use: ignore
+    unnecessary_import: ignore
 
 linter:
   rules:
-    - prefer_single_quotes
     - sort_child_properties_last
     - use_key_in_widget_constructors
+

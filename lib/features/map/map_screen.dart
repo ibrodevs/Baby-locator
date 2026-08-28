@@ -104,12 +104,26 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     try {
       final permission = await _locationService.ensurePermission();
       if (permission != LocationPermissionStatus.granted) return;
-      final fix = await _locationService.currentOnce();
-      if (!mounted || fix == null) return;
       final user = ref.read(sessionProvider).user;
       final label = (user?.displayName.trim().isNotEmpty ?? false)
           ? user!.displayName.trim()
           : 'Родитель';
+
+      // 1. Instantly show last known position (no GPS wait).
+      final lastKnown = await _locationService.getLastKnown();
+      if (lastKnown != null && mounted) {
+        setState(() {
+          _parentLocation = ParentMapLocation(
+            latitude: lastKnown.lat,
+            longitude: lastKnown.lng,
+            label: label,
+          );
+        });
+      }
+
+      // 2. Get a fresh accurate fix.
+      final fix = await _locationService.currentOnce();
+      if (!mounted || fix == null) return;
       setState(() {
         _parentLocation = ParentMapLocation(
           latitude: fix.lat,

@@ -54,32 +54,21 @@ class LocationService {
       return LocationPermissionStatus.denied;
     }
 
-    // Background upgrade. Geolocator on Android stops at whileInUse; we need
-    // the ACCESS_BACKGROUND_LOCATION runtime grant so the foreground service
-    // keeps receiving updates once the screen is off.
     if (requireBackground && !kIsWeb) {
       if (Platform.isAndroid && p == LocationPermission.whileInUse) {
-        final always = await ph.Permission.locationAlways.request();
-        if (!always.isGranted) {
+        final status = await ph.Permission.locationAlways.status;
+        if (!status.isGranted) {
           return LocationPermissionStatus.backgroundDenied;
         }
-        p = await Geolocator.checkPermission();
       } else if (Platform.isIOS && p == LocationPermission.whileInUse) {
-        try {
-          p = await Geolocator.requestPermission();
-        } catch (_) {}
-        if (p == LocationPermission.whileInUse) {
-          return LocationPermissionStatus.backgroundDenied;
-        }
+        return LocationPermissionStatus.backgroundDenied;
       }
     }
 
     return LocationPermissionStatus.granted;
   }
 
-  /// Best-effort request for Android's ACCESS_BACKGROUND_LOCATION.
-  /// Must be called AFTER whileInUse has been granted — Android will silently
-  /// deny otherwise.
+  /// Request Android's ACCESS_BACKGROUND_LOCATION directly only after disclosure has been accepted.
   Future<bool> requestBackgroundPermission() async {
     if (kIsWeb) return true;
     if (!Platform.isAndroid && !Platform.isIOS) return true;
@@ -117,11 +106,36 @@ class LocationService {
     return true;
   }
 
+  /// Returns the last known position instantly (no GPS wait).
+  /// Returns null if the platform has no cached fix at all.
+  Future<LocationFix?> getLastKnown() async {
+    try {
+      final pos = await Geolocator.getLastKnownPosition();
+      if (pos != null) return _toFix(pos);
+    } catch (_) {}
+    return null;
+  }
+
+  /// Gets the current position. First tries to return quickly with high
+  /// accuracy; if that takes too long falls back to low accuracy.
   Future<LocationFix?> currentOnce() async {
-    final pos = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.best,
-    );
-    return _toFix(pos);
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 5),
+      );
+      return _toFix(pos);
+    } catch (_) {
+      // Timeout or error on high accuracy — try low accuracy as fallback.
+      try {
+        final pos = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.low,
+          timeLimit: const Duration(seconds: 5),
+        );
+        return _toFix(pos);
+      } catch (_) {}
+    }
+    return null;
   }
 
   Stream<LocationFix> watch() {

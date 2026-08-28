@@ -16,6 +16,8 @@ import '../../core/services/device_stats_service.dart';
 import '../../core/services/location_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
+import '../../core/widgets/accessibility_disclosure.dart';
+import '../../core/widgets/background_location_disclosure.dart';
 
 class ChildPermissionsScreen extends StatefulWidget {
   const ChildPermissionsScreen({super.key});
@@ -129,6 +131,9 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
   }
 
   Future<void> _requestBackgroundLocation() async {
+    final agreed = await BackgroundLocationDisclosureDialog.show(context);
+    if (!agreed) return;
+
     try {
       final granted = await _locationService.requestBackgroundPermission();
       if (!granted && mounted) {
@@ -164,6 +169,9 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
   }
 
   Future<void> _openAccessibilitySettings() async {
+    final agreed = await AccessibilityDisclosureDialog.show(context);
+    if (!agreed) return;
+
     try {
       await _appBlocking.openAccessibilitySettings();
     } catch (_) {}

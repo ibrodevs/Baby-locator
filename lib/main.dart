@@ -5,12 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'app.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/providers/session_providers.dart';
 import 'core/services/background_command_service.dart';
 import 'core/services/fcm_service.dart';
 import 'core/subscriptions/subscription_service.dart';
+import 'features/auth/intro_onboarding_screen.dart';
 
 Future<void> _bootstrapApp(ProviderContainer container) async {
   try {
@@ -43,6 +46,14 @@ Future<void> _bootstrapApp(ProviderContainer container) async {
     debugPrintStack(stackTrace: stackTrace);
   }
 
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    container.read(introSeenProvider.notifier).state =
+        prefs.getBool(introSeenKey) ?? false;
+  } catch (error) {
+    debugPrint('Intro check failed: $error');
+  }
+
   unawaited(_initializeStartupServices());
 }
 
@@ -62,11 +73,14 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   final container = ProviderContainer();
+  try {
+    await _bootstrapApp(container);
+  } catch (e) {
+    debugPrint('Bootstrap error: $e');
+  }
 
   runApp(UncontrolledProviderScope(
     container: container,
     child: const KidSecurityApp(),
   ));
-
-  _bootstrapApp(container);
 }

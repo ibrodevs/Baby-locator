@@ -6,19 +6,19 @@
   <title>Политика конфиденциальности — Family Security</title>
   <meta
     name="description"
-    content="Политика конфиденциальности Family Security на русском и английском языках."
+    content="Официальная политика конфиденциальности Family Security (Quantum limited)."
   >
   <style>
     :root {
       --bg: #f6f5f2;
-      --surface: rgba(255, 255, 255, 0.86);
+      --surface: rgba(255, 255, 255, 0.92);
       --line: rgba(19, 34, 56, 0.12);
       --text: #132238;
-      --muted: #516173;
+      --muted: #475569;
       --brand: #1768ac;
       --brand-dark: #0f4c81;
       --accent: #f28f3b;
-      --shadow: 0 24px 70px rgba(15, 23, 42, 0.1);
+      --shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
       --radius: 24px;
       --max: 960px;
     }
@@ -29,17 +29,17 @@
 
     body {
       margin: 0;
-      font-family: "Segoe UI", "SF Pro Display", "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(23, 104, 172, 0.12), transparent 26%),
-        radial-gradient(circle at top right, rgba(242, 143, 59, 0.14), transparent 28%),
+        radial-gradient(circle at top left, rgba(23, 104, 172, 0.10), transparent 26%),
+        radial-gradient(circle at top right, rgba(242, 143, 59, 0.12), transparent 28%),
         linear-gradient(180deg, #faf8f3 0%, #eef3f7 100%);
     }
 
     a {
-      color: inherit;
-      text-decoration: none;
+      color: var(--brand);
+      text-decoration: underline;
     }
 
     .wrap {
@@ -60,42 +60,45 @@
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 16px;
+      padding: 12px 18px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.74);
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid var(--line);
       font-weight: 700;
+      text-decoration: none;
+      color: var(--text);
     }
 
     .lang-switch {
       display: inline-flex;
       padding: 4px;
       border-radius: 999px;
-      background: rgba(19, 34, 56, 0.06);
+      background: rgba(19, 34, 56, 0.08);
     }
 
     .lang-switch button {
       border: 0;
       background: transparent;
-      padding: 10px 14px;
+      padding: 10px 16px;
       border-radius: 999px;
       cursor: pointer;
       color: var(--muted);
       font-weight: 700;
+      font-size: 14px;
     }
 
     .lang-switch button.active {
       background: #fff;
       color: var(--text);
-      box-shadow: 0 8px 20px rgba(19, 34, 56, 0.12);
+      box-shadow: 0 4px 14px rgba(19, 34, 56, 0.12);
     }
 
     .card {
       background: var(--surface);
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      border-radius: calc(var(--radius) + 4px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 32px;
+      padding: 36px 32px;
       backdrop-filter: blur(16px);
     }
 
@@ -103,9 +106,9 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 14px;
+      padding: 8px 14px;
       border-radius: 999px;
-      background: rgba(242, 143, 59, 0.18);
+      background: rgba(242, 143, 59, 0.16);
       color: #8a4b18;
       font-size: 13px;
       font-weight: 700;
@@ -114,53 +117,61 @@
     }
 
     h1 {
-      margin: 18px 0 8px;
-      font-size: clamp(34px, 5vw, 54px);
-      line-height: 1.02;
-      letter-spacing: -0.04em;
+      margin: 18px 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.15;
+      letter-spacing: -0.02em;
     }
 
     h2 {
-      margin: 26px 0 12px;
-      font-size: 22px;
+      margin: 28px 0 12px;
+      font-size: 20px;
+      color: var(--text);
     }
 
     p,
     li {
       color: var(--muted);
-      line-height: 1.72;
-      margin: 0;
+      line-height: 1.7;
+      margin: 0 0 8px;
+      font-size: 15px;
     }
 
     .lead {
-      font-size: 17px;
-      margin-bottom: 16px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: var(--text);
+      font-weight: 500;
     }
 
     .meta {
-      margin-top: 10px;
-      padding: 16px 18px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.72);
+      margin-top: 14px;
+      margin-bottom: 24px;
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid var(--line);
     }
 
+    .meta p {
+      margin: 4px 0;
+    }
+
     .section {
-      margin-top: 18px;
-      padding-top: 6px;
+      margin-top: 22px;
     }
 
-    ul {
-      margin: 10px 0 0;
-      padding-left: 20px;
+    ul, ol {
+      margin: 8px 0 14px;
+      padding-left: 22px;
     }
 
-    .note {
-      margin-top: 24px;
-      padding: 18px;
-      border-radius: 18px;
-      background: rgba(23, 104, 172, 0.08);
-      border: 1px solid rgba(23, 104, 172, 0.12);
+    .highlight-box {
+      margin: 18px 0;
+      padding: 18px 20px;
+      border-radius: 16px;
+      background: rgba(23, 104, 172, 0.07);
+      border: 1px solid rgba(23, 104, 172, 0.15);
     }
 
     strong {
@@ -172,11 +183,12 @@
       background: rgba(19, 34, 56, 0.06);
       padding: 2px 6px;
       border-radius: 6px;
+      color: var(--text);
     }
 
     @media (max-width: 640px) {
       .card {
-        padding: 22px;
+        padding: 24px 18px;
       }
 
       .topbar {
@@ -189,7 +201,7 @@
 <body>
   <div class="wrap">
     <div class="topbar">
-      <a class="back-link" href="index.html" data-i18n="backLink">← Вернуться на сайт приложения</a>
+      <a class="back-link" href="index.html" data-i18n="backLink">← На главную</a>
       <div class="lang-switch" aria-label="Language switcher">
         <button class="active" type="button" data-lang-btn="ru">RU</button>
         <button type="button" data-lang-btn="en">EN</button>
@@ -200,208 +212,199 @@
       <div class="eyebrow" data-i18n="eyebrow">Официальный документ</div>
       <h1 data-i18n="title">Политика конфиденциальности Family Security</h1>
       <p class="lead" data-i18n="lead">
-        Эта политика описывает, какие данные могут обрабатываться приложением Family Security, для чего они используются и какие меры применяются для их защиты.
+        Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональной информации пользователей сервиса Family Security (родительский контроль и семейная безопасность).
       </p>
 
       <div class="meta">
-        <p><strong data-i18n="metaOperatorLabel">Оператор данных:</strong> <span data-i18n="metaOperatorValue">укажите юридическое имя компании или ФИО разработчика</span></p>
-        <p><strong data-i18n="metaEmailLabel">Контактный email:</strong> <span data-i18n="metaEmailValue">support@your-domain.com</span></p>
-        <p><strong data-i18n="metaUpdatedLabel">Дата последнего обновления:</strong> <span data-i18n="metaUpdatedValue">12 мая 2026</span></p>
+        <p><strong data-i18n="metaOperatorLabel">Разработчик / Оператор данных:</strong> <span data-i18n="metaOperatorValue">Quantum limited</span></p>
+        <p><strong data-i18n="metaEmailLabel">Контактный email:</strong> <span data-i18n="metaEmailValue">sattarzhanovdev@gmail.com</span></p>
+        <p><strong data-i18n="metaDeletionLabel">Удаление данных и аккаунта:</strong> <a href="delete-account.html" data-i18n="metaDeletionLink">Страница запроса на удаление данных</a></p>
+        <p><strong data-i18n="metaUpdatedLabel">Дата последнего обновления:</strong> <span data-i18n="metaUpdatedValue">28 августа 2026 года</span></p>
       </div>
 
       <section class="section">
-        <h2 data-i18n="s1Title">1. Общие положения</h2>
+        <h2 data-i18n="s1Title">1. Общие положения и назначение приложения</h2>
         <p data-i18n="s1Text">
-          Family Security предназначено для семейной безопасности и родительского контроля. Использование приложения допускается только при наличии законных оснований для обработки данных ребенка и устройства ребенка, включая согласие родителя или иного законного представителя, когда это требуется применимым законодательством.
+          Family Security — это специализированное приложение для родительского контроля и обеспечения детской безопасности. Приложение помогает родителям заботиться о детях, отслеживать их текущее местоположение на карте, получать уведомления о входе/выходе из безопасных зон и контролировать экранное время. Использование приложения осуществляется с явного согласия родителей или законных представителей.
         </p>
       </section>
 
       <section class="section">
-        <h2 data-i18n="s2Title">2. Какие данные могут собираться и обрабатываться</h2>
+        <h2 data-i18n="s2Title">2. Собираемые данные и цели их обработки</h2>
         <ul>
-          <li data-i18n="s2Item1">Данные учетной записи: логин, имя, отображаемое имя, роль пользователя, фото профиля, связка родитель-ребенок, коды приглашения.</li>
-          <li data-i18n="s2Item2">Данные геолокации: координаты, приблизительный адрес, история перемещений, безопасные зоны, события входа и выхода из зоны.</li>
-          <li data-i18n="s2Item3">Данные устройства ребенка: модель, производитель, платформа, версия ОС, часовой пояс, заряд батареи, факт зарядки, состояние разрешений.</li>
-          <li data-i18n="s2Item4">Технические данные коммуникации: push-токен уведомлений, служебные статусы команд и системные события.</li>
-          <li data-i18n="s2Item5">Данные общения: сообщения семейного чата, задания, прикрепленные файлы и связанные метаданные.</li>
-          <li data-i18n="s2Item6">Данные функций родительского контроля на Android: список выбранных заблокированных приложений, статистика использования приложений, ограничения экранного времени и связанные иконки приложений.</li>
-          <li data-i18n="s2Item7">Аудиоданные могут обрабатываться только если пользователь отдельно активирует функции, связанные с аудио вокруг устройства ребенка, и приложение получит соответствующее разрешение микрофона.</li>
-          <li data-i18n="s2Item8">Данные подписки и платежного статуса: наличие премиум-доступа, идентификаторы продукта и сроки действия подписки.</li>
+          <li data-i18n="s2Item1"><strong>Учетные данные:</strong> логин, имя, роль пользователя (родитель или ребёнок), код сопряжения устройств, фото профиля (по желанию). Используются для аутентификации и связывания родительского и детского аккаунтов.</li>
+          <li data-i18n="s2Item2"><strong>Данные геолокации и фоновое местоположение:</strong> точные GPS-координаты устройства ребёнка, история перемещений, статус безопасных зон. Собираются для отображения ребёнка на карте родителя в реальном времени, отправки экстренных SOS-сигналов и автоматических уведомлений о прибытии/уходе из безопасных зон.</li>
+          <li data-i18n="s2Item3"><strong>Информация об устройстве:</strong> уровень заряда батареи, состояние зарядки, модель и версия операционной системы, часовой пояс. Используются для уведомления родителя о разряженном телефоне ребёнка.</li>
+          <li data-i18n="s2Item4"><strong>Данные об использовании приложений и блокировка (Android):</strong> список установленных приложений для настройки разрешённых/запрещённых программ родителями и статистика времени работы программ.</li>
+          <li data-i18n="s2Item5"><strong>Аудио по запросу (микрофон):</strong> кратковременная звуковая трансляция окружающего звука активируется исключительно по прямому запросу родителя при наличии выданного разрешения микрофона. Запись не ведётся в постоянном фоновом режиме.</li>
+          <li data-i18n="s2Item6"><strong>Семейный чат и задачи:</strong> сообщения, задания с наградами и прикрепленные файлы между родителем и ребенком.</li>
         </ul>
       </section>
 
       <section class="section">
-        <h2 data-i18n="s3Title">3. Цели обработки данных</h2>
-        <ul>
-          <li data-i18n="s3Item1">Предоставление основных функций приложения: регистрация, создание профилей, привязка ребенка к родителю и вход по коду приглашения.</li>
-          <li data-i18n="s3Item2">Отображение местоположения ребенка, истории перемещений и безопасных зон.</li>
-          <li data-i18n="s3Item3">Отправка уведомлений о перемещении, низком заряде батареи, безопасных зонах, событиях SOS и других семейных событиях.</li>
-          <li data-i18n="s3Item4">Показ статуса устройства и разрешений, необходимых для стабильной работы геолокации, уведомлений и других функций.</li>
-          <li data-i18n="s3Item5">Предоставление функций общения, семейного чата, задач и вложений.</li>
-          <li data-i18n="s3Item6">Предоставление дополнительных инструментов родительского контроля, включая блокировку приложений и аналитику использования приложений на Android, если пользователь их включил.</li>
-          <li data-i18n="s3Item7">Администрирование подписок, безопасности аккаунтов, устранение ошибок и техническая поддержка.</li>
-        </ul>
+        <h2 data-i18n="s3Title">3. Использование данных о местоположении в фоновом режиме (Background Location)</h2>
+        <div class="highlight-box">
+          <p data-i18n="s3Disclosure">
+            <strong>Уведомление о фоновом доступе:</strong> Family Security собирает данные о местоположении устройства ребёнка даже тогда, когда приложение закрыто, находится в фоновом режиме или не используется. Это необходимо для того, чтобы:
+          </p>
+          <ul>
+            <li data-i18n="s3Item1">Родитель мог в любой момент увидеть актуальное местоположение ребёнка на карте для обеспечения его безопасности.</li>
+            <li data-i18n="s3Item2">Приложение могло отправить родителю автоматическое уведомление, если ребёнок вышел из безопасной зоны (например, из школы или дома).</li>
+            <li data-i18n="s3Item3">При нажатии ребёнком кнопки SOS родитель немедленно получил точные координаты экстренной помощи.</li>
+          </ul>
+          <p data-i18n="s3Privacy">
+            Координаты передаются по защищенному протоколу HTTPS и доступны исключительно привязанному аккаунту родителя. Данные о местоположении никогда не продаются и не используются для рекламных целей.
+          </p>
+        </div>
       </section>
 
       <section class="section">
-        <h2 data-i18n="s4Title">4. Разрешения устройства</h2>
-        <p data-i18n="s4Text">
-          Приложение может запрашивать разрешения на доступ к геолокации, уведомлениям, микрофону, фото и файлам, а на Android также доступ к статистике использования приложений и специальным возможностям Accessibility Service для функции блокировки приложений. Такие разрешения используются только для соответствующих функций, если они включены пользователем.
-        </p>
+        <h2 data-i18n="s4Title">4. Использование AccessibilityService API (Специальные возможности)</h2>
+        <div class="highlight-box">
+          <p data-i18n="s4Disclosure">
+            <strong>Назначение AccessibilityService:</strong> На устройствах под управлением Android приложение Family Security использует AccessibilityService API исключительно для реализации функции родительского контроля «Блокировка приложений» и контроля экранного времени.
+          </p>
+          <ul>
+            <li data-i18n="s4Item1">Сервис определяет имя пакета запущенного на переднем плане приложения.</li>
+            <li data-i18n="s4Item2">Если открытое приложение входит в список запрещённых родителем программ, Family Security отображает экран блокировки и закрывает доступ.</li>
+          </ul>
+          <p data-i18n="s4Privacy">
+            <strong>Гарантия конфиденциальности:</strong> AccessibilityService API НЕ используется для чтения текста на экране, записи нажатий клавиш (кейлоггинга), доступа к личным сообщениям, фотографиям, паролям или платежным реквизитам. Данные специальных возможностей не собираются, не сохраняются на сервере и не передаются третьим лицам. Приложение не позиционируется как средство доступности для лиц с ограниченными возможностями здоровья (isAccessibilityTool=false).
+          </p>
+        </div>
       </section>
 
       <section class="section">
-        <h2 data-i18n="s5Title">5. Передача данных третьим лицам</h2>
+        <h2 data-i18n="s5Title">5. Передача данных третьим лицам и сторонние сервисы</h2>
         <p data-i18n="s5Text">
-          Данные могут обрабатываться с использованием технических поставщиков, необходимых для работы приложения, например сервисов push-уведомлений, карт, подписок или облачного хостинга. Передача осуществляется только в объеме, необходимом для предоставления соответствующей функции. Перед публикацией рекомендуется дополнить этот раздел точными названиями используемых провайдеров и юрисдикций хранения данных.
+          Мы не продаем и не передаем персональные данные сторонним рекламным сетям. Для обеспечения стабильной технической работы приложения используются следующие проверенные поставщики услуг:
         </p>
-      </section>
-
-      <section class="section">
-        <h2 data-i18n="s6Title">6. Хранение и защита данных</h2>
-        <p data-i18n="s6Text">
-          Разработчик принимает разумные организационные и технические меры для защиты данных от несанкционированного доступа, изменения, раскрытия или уничтожения. Данные хранятся не дольше, чем это необходимо для целей обработки, исполнения обязательств перед пользователем, соблюдения требований закона и разрешения споров.
-        </p>
-      </section>
-
-      <section class="section">
-        <h2 data-i18n="s7Title">7. Права пользователя</h2>
         <ul>
-          <li data-i18n="s7Item1">Запрашивать доступ к своим данным и получать информацию об их обработке.</li>
-          <li data-i18n="s7Item2">Требовать исправления неточных или неполных данных.</li>
-          <li data-i18n="s7Item3">Требовать удаления данных, если отсутствуют законные основания для дальнейшей обработки.</li>
-          <li data-i18n="s7Item4">Отозвать ранее предоставленные разрешения на устройстве или прекратить использование отдельных функций.</li>
+          <li data-i18n="s5Item1"><strong>Google LLC (Google Play Services, Google Maps API):</strong> отображение карты и геокодирование адресов.</li>
+          <li data-i18n="s5Item2"><strong>Firebase Cloud Messaging (Google LLC):</strong> доставка служебных push-уведомлений о безопасности родителям и детям.</li>
+          <li data-i18n="s5Item3"><strong>RevenueCat Inc.:</strong> обработка и проверка статуса подписки Google Play Billing.</li>
         </ul>
       </section>
 
       <section class="section">
-        <h2 data-i18n="s8Title">8. Дети и родительский контроль</h2>
+        <h2 data-i18n="s6Title">6. Безопасность и шифрование данных</h2>
+        <p data-i18n="s6Text">
+          Все данные при передаче между приложением и нашими серверами шифруются с использованием стандартных криптографических протоколов HTTPS / TLS 1.3. Доступ к данным ребёнка строго разграничен и возможен исключительно с авторизованного родительского аккаунта, прошедшего сопряжение.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="s7Title">7. Удаление аккаунта и срок хранения данных</h2>
+        <p data-i18n="s7Text">
+          Пользователи могут в любой момент удалить свой аккаунт и все связанные данные непосредственно в приложении: <strong>Настройки &gt; Аккаунт &gt; Удалить аккаунт</strong> или через специальную веб-страницу: <a href="delete-account.html">https://baby-locator-web.vercel.app/delete-account.html</a>.
+        </p>
+        <p data-i18n="s7Text2">
+          При удалении аккаунта все персональные данные, профили детей, история местоположений, чаты и настройки безвозвратно удаляются из активной базы данных немедленно и полностью стираются из резервных копий в течение 30 дней.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2 data-i18n="s8Title">8. Контактная информация</h2>
         <p data-i18n="s8Text">
-          Приложение ориентировано на семейное использование под контролем родителя или иного законного представителя. Пользователь, подключающий устройство ребенка, подтверждает наличие полномочий и ответственности за законное использование функций мониторинга и родительского контроля.
+          Если у вас есть вопросы касательно настоящей Политики конфиденциальности или обработки персональных данных, свяжитесь с нашей службой поддержки по адресу электронной почты: <code>sattarzhanovdev@gmail.com</code>.
         </p>
       </section>
-
-      <section class="section">
-        <h2 data-i18n="s9Title">9. Изменения политики</h2>
-        <p data-i18n="s9Text">
-          Политика может периодически обновляться. Актуальная версия публикуется на этой странице. Если изменения существенно влияют на обработку персональных данных, пользователю может быть предоставлено дополнительное уведомление внутри приложения или иным разумным способом.
-        </p>
-      </section>
-
-      <section class="section">
-        <h2 data-i18n="s10Title">10. Контакты</h2>
-        <p data-i18n="s10Text">
-          По вопросам конфиденциальности, удаления данных, аккаунта или реализации прав пользователя обращайтесь по адресу <code>support@your-domain.com</code>. Перед публикацией замените этот адрес на реальный контакт поддержки и при необходимости добавьте ссылку на страницу удаления аккаунта.
-        </p>
-      </section>
-
-      <div class="note">
-        <p data-i18n="noteText">
-          Важно: эта политика уже адаптирована под текущие функции проекта, но перед загрузкой приложения в Google Play и App Store вам нужно заменить заполнители реальными реквизитами владельца приложения и при необходимости уточнить перечень внешних сервисов.
-        </p>
-      </div>
     </article>
   </div>
 
   <script>
     const translations = {
       ru: {
-        backLink: "← Вернуться на сайт приложения",
+        backLink: "← На главную",
         eyebrow: "Официальный документ",
         title: "Политика конфиденциальности Family Security",
-        lead: "Эта политика описывает, какие данные могут обрабатываться приложением Family Security, для чего они используются и какие меры применяются для их защиты.",
-        metaOperatorLabel: "Оператор данных:",
-        metaOperatorValue: "укажите юридическое имя компании или ФИО разработчика",
+        lead: "Настоящая Политика конфиденциальности определяет порядок обработки и защиты персональной информации пользователей сервиса Family Security (родительский контроль и семейная безопасность).",
+        metaOperatorLabel: "Разработчик / Оператор данных:",
+        metaOperatorValue: "Quantum limited",
         metaEmailLabel: "Контактный email:",
-        metaEmailValue: "support@your-domain.com",
+        metaEmailValue: "sattarzhanovdev@gmail.com",
+        metaDeletionLabel: "Удаление данных и аккаунта:",
+        metaDeletionLink: "Страница запроса на удаление данных",
         metaUpdatedLabel: "Дата последнего обновления:",
-        metaUpdatedValue: "12 мая 2026",
-        s1Title: "1. Общие положения",
-        s1Text: "Family Security предназначено для семейной безопасности и родительского контроля. Использование приложения допускается только при наличии законных оснований для обработки данных ребенка и устройства ребенка, включая согласие родителя или иного законного представителя, когда это требуется применимым законодательством.",
-        s2Title: "2. Какие данные могут собираться и обрабатываться",
-        s2Item1: "Данные учетной записи: логин, имя, отображаемое имя, роль пользователя, фото профиля, связка родитель-ребенок, коды приглашения.",
-        s2Item2: "Данные геолокации: координаты, приблизительный адрес, история перемещений, безопасные зоны, события входа и выхода из зоны.",
-        s2Item3: "Данные устройства ребенка: модель, производитель, платформа, версия ОС, часовой пояс, заряд батареи, факт зарядки, состояние разрешений.",
-        s2Item4: "Технические данные коммуникации: push-токен уведомлений, служебные статусы команд и системные события.",
-        s2Item5: "Данные общения: сообщения семейного чата, задания, прикрепленные файлы и связанные метаданные.",
-        s2Item6: "Данные функций родительского контроля на Android: список выбранных заблокированных приложений, статистика использования приложений, ограничения экранного времени и связанные иконки приложений.",
-        s2Item7: "Аудиоданные могут обрабатываться только если пользователь отдельно активирует функции, связанные с аудио вокруг устройства ребенка, и приложение получит соответствующее разрешение микрофона.",
-        s2Item8: "Данные подписки и платежного статуса: наличие премиум-доступа, идентификаторы продукта и сроки действия подписки.",
-        s3Title: "3. Цели обработки данных",
-        s3Item1: "Предоставление основных функций приложения: регистрация, создание профилей, привязка ребенка к родителю и вход по коду приглашения.",
-        s3Item2: "Отображение местоположения ребенка, истории перемещений и безопасных зон.",
-        s3Item3: "Отправка уведомлений о перемещении, низком заряде батареи, безопасных зонах, событиях SOS и других семейных событиях.",
-        s3Item4: "Показ статуса устройства и разрешений, необходимых для стабильной работы геолокации, уведомлений и других функций.",
-        s3Item5: "Предоставление функций общения, семейного чата, задач и вложений.",
-        s3Item6: "Предоставление дополнительных инструментов родительского контроля, включая блокировку приложений и аналитику использования приложений на Android, если пользователь их включил.",
-        s3Item7: "Администрирование подписок, безопасности аккаунтов, устранение ошибок и техническая поддержка.",
-        s4Title: "4. Разрешения устройства",
-        s4Text: "Приложение может запрашивать разрешения на доступ к геолокации, уведомлениям, микрофону, фото и файлам, а на Android также доступ к статистике использования приложений и специальным возможностям Accessibility Service для функции блокировки приложений. Такие разрешения используются только для соответствующих функций, если они включены пользователем.",
-        s5Title: "5. Передача данных третьим лицам",
-        s5Text: "Данные могут обрабатываться с использованием технических поставщиков, необходимых для работы приложения, например сервисов push-уведомлений, карт, подписок или облачного хостинга. Передача осуществляется только в объеме, необходимом для предоставления соответствующей функции. Перед публикацией рекомендуется дополнить этот раздел точными названиями используемых провайдеров и юрисдикций хранения данных.",
-        s6Title: "6. Хранение и защита данных",
-        s6Text: "Разработчик принимает разумные организационные и технические меры для защиты данных от несанкционированного доступа, изменения, раскрытия или уничтожения. Данные хранятся не дольше, чем это необходимо для целей обработки, исполнения обязательств перед пользователем, соблюдения требований закона и разрешения споров.",
-        s7Title: "7. Права пользователя",
-        s7Item1: "Запрашивать доступ к своим данным и получать информацию об их обработке.",
-        s7Item2: "Требовать исправления неточных или неполных данных.",
-        s7Item3: "Требовать удаления данных, если отсутствуют законные основания для дальнейшей обработки.",
-        s7Item4: "Отозвать ранее предоставленные разрешения на устройстве или прекратить использование отдельных функций.",
-        s8Title: "8. Дети и родительский контроль",
-        s8Text: "Приложение ориентировано на семейное использование под контролем родителя или иного законного представителя. Пользователь, подключающий устройство ребенка, подтверждает наличие полномочий и ответственности за законное использование функций мониторинга и родительского контроля.",
-        s9Title: "9. Изменения политики",
-        s9Text: "Политика может периодически обновляться. Актуальная версия публикуется на этой странице. Если изменения существенно влияют на обработку персональных данных, пользователю может быть предоставлено дополнительное уведомление внутри приложения или иным разумным способом.",
-        s10Title: "10. Контакты",
-        s10Text: "По вопросам конфиденциальности, удаления данных, аккаунта или реализации прав пользователя обращайтесь по адресу support@your-domain.com. Перед публикацией замените этот адрес на реальный контакт поддержки и при необходимости добавьте ссылку на страницу удаления аккаунта.",
-        noteText: "Важно: эта политика уже адаптирована под текущие функции проекта, но перед загрузкой приложения в Google Play и App Store вам нужно заменить заполнители реальными реквизитами владельца приложения и при необходимости уточнить перечень внешних сервисов."
+        metaUpdatedValue: "28 августа 2026 года",
+        s1Title: "1. Общие положения и назначение приложения",
+        s1Text: "Family Security — это специализированное приложение для родительского контроля и обеспечения детской безопасности. Приложение помогает родителям заботиться о детях, отслеживать их текущее местоположение на карте, получать уведомления о входе/выходе из безопасных зон и контролировать экранное время. Использование приложения осуществляется с явного согласия родителей или законных представителей.",
+        s2Title: "2. Собираемые данные и цели их обработки",
+        s2Item1: "Учетные данные: логин, имя, роль пользователя (родитель или ребёнок), код сопряжения устройств, фото профиля (по желанию). Используются для аутентификации и связывания родительского и детского аккаунтов.",
+        s2Item2: "Данные геолокации и фоновое местоположение: точные GPS-координаты устройства ребёнка, история перемещений, статус безопасных зон. Собираются для отображения ребёнка на карте родителя в реальном времени, отправки экстренных SOS-сигналов и автоматических уведомлений о прибытии/уходе из безопасных зон.",
+        s2Item3: "Информация об устройстве: уровень заряда батареи, состояние зарядки, модель и версия операционной системы, часовой пояс. Используются для уведомления родителя о разряженном телефоне ребёнка.",
+        s2Item4: "Данные об использовании приложений и блокировка (Android): список установленных приложений для настройки разрешённых/запрещённых программ родителями и статистика времени работы программ.",
+        s2Item5: "Аудио по запросу (микрофон): кратковременная звуковая трансляция окружающего звука активируется исключительно по прямому запросу родителя при наличии выданного разрешения микрофона. Запись не ведётся в постоянном фоновом режиме.",
+        s2Item6: "Семейный чат и задачи: сообщения, задания с наградами и прикрепленные файлы между родителем и ребенком.",
+        s3Title: "3. Использование данных о местоположении в фоновом режиме (Background Location)",
+        s3Disclosure: "Уведомление о фоновом доступе: Family Security собирает данные о местоположении устройства ребёнка даже тогда, когда приложение закрыто, находится в фоновом режиме или не используется. Это необходимо для того, чтобы:",
+        s3Item1: "Родитель мог в любой момент увидеть актуальное местоположение ребёнка на карте для обеспечения его безопасности.",
+        s3Item2: "Приложение могло отправить родителю автоматическое уведомление, если ребёнок вышел из безопасной зоны (например, из школы или дома).",
+        s3Item3: "При нажатии ребёнком кнопки SOS родитель немедленно получил точные координаты экстренной помощи.",
+        s3Privacy: "Координаты передаются по защищенному протоколу HTTPS и доступны исключительно привязанному аккаунту родителя. Данные о местоположении никогда не продаются и не используются для рекламных целей.",
+        s4Title: "4. Использование AccessibilityService API (Специальные возможности)",
+        s4Disclosure: "Назначение AccessibilityService: На устройствах под управлением Android приложение Family Security использует AccessibilityService API исключительно для реализации функции родительского контроля «Блокировка приложений» и контроля экранного времени.",
+        s4Item1: "Сервис определяет имя пакета запущенного на переднем плане приложения.",
+        s4Item2: "Если открытое приложение входит в список запрещённых родителем программ, Family Security отображает экран блокировки и закрывает доступ.",
+        s4Privacy: "Гарантия конфиденциальности: AccessibilityService API НЕ используется для чтения текста на экране, записи нажатий клавиш (кейлоггинга), доступа к личным сообщениям, фотографиям, паролям или платежным реквизитам. Данные специальных возможностей не собираются, не сохраняются на сервере и не передаются третьим лицам. Приложение не позиционируется как средство доступности для лиц с ограниченными возможностями здоровья (isAccessibilityTool=false).",
+        s5Title: "5. Передача данных третьим лицам и сторонние сервисы",
+        s5Text: "Мы не продаем и не передаем персональные данные сторонним рекламным сетям. Для обеспечения стабильной технической работы приложения используются следующие проверенные поставщики услуг:",
+        s5Item1: "Google LLC (Google Play Services, Google Maps API): отображение карты и геокодирование адресов.",
+        s5Item2: "Firebase Cloud Messaging (Google LLC): доставка служебных push-уведомлений о безопасности родителям и детям.",
+        s5Item3: "RevenueCat Inc.: обработка и проверка статуса подписки Google Play Billing.",
+        s6Title: "6. Безопасность и шифрование данных",
+        s6Text: "Все данные при передаче между приложением и нашими серверами шифруются с использованием стандартных криптографических протоколов HTTPS / TLS 1.3. Доступ к данным ребёнка строго разграничен и возможен исключительно с авторизованного родительского аккаунта, прошедшего сопряжение.",
+        s7Title: "7. Удаление аккаунта и срок хранения данных",
+        s7Text: "Пользователи могут в любой момент удалить свой аккаунт и все связанные данные непосредственно в приложении: Настройки > Аккаунт > Удалить аккаунт или через специальную веб-страницу: https://baby-locator-web.vercel.app/delete-account.html.",
+        s7Text2: "При удалении аккаунта все персональные данные, профили детей, история местоположений, чаты и настройки безвозвратно удаляются из активной базы данных немедленно и полностью стираются из резервных копий в течение 30 дней.",
+        s8Title: "8. Контактная информация",
+        s8Text: "Если у вас есть вопросы касательно настоящей Политики конфиденциальности или обработки персональных данных, свяжитесь с нашей службой поддержки по адресу электронной почты: sattarzhanovdev@gmail.com."
       },
       en: {
-        backLink: "← Back to the app website",
-        eyebrow: "Official document",
+        backLink: "← Back to Home",
+        eyebrow: "Official Document",
         title: "Family Security Privacy Policy",
-        lead: "This policy explains what data may be processed by Family Security, why it is used, and what measures are applied to protect it.",
-        metaOperatorLabel: "Data controller:",
-        metaOperatorValue: "insert the legal company name or developer full name",
-        metaEmailLabel: "Contact email:",
-        metaEmailValue: "support@your-domain.com",
-        metaUpdatedLabel: "Last updated:",
-        metaUpdatedValue: "May 12, 2026",
-        s1Title: "1. General provisions",
-        s1Text: "Family Security is intended for family safety and parental control. The app may be used only when there is a lawful basis for processing child and child-device data, including parental or legal guardian consent where required by applicable law.",
-        s2Title: "2. What data may be collected and processed",
-        s2Item1: "Account data: login, name, display name, user role, profile photo, parent-child relationship, invite codes.",
-        s2Item2: "Location data: coordinates, approximate address, movement history, safe zones, zone entry and exit events.",
-        s2Item3: "Child device data: model, manufacturer, platform, OS version, timezone, battery level, charging state, and permission status.",
-        s2Item4: "Technical communication data: push notification token, command statuses, and system events.",
-        s2Item5: "Communication data: family chat messages, tasks, attached files, and related metadata.",
-        s2Item6: "Android parental-control data: selected blocked apps, app usage statistics, screen-time limits, and related app icons.",
-        s2Item7: "Audio data may be processed only if the user separately activates features related to audio around the child's device and the app has the relevant microphone permission.",
-        s2Item8: "Subscription and payment-status data: premium access status, product identifiers, and subscription expiry dates.",
-        s3Title: "3. Purposes of processing",
-        s3Item1: "Providing core app functions: registration, profile creation, parent-child linking, and sign-in with an invite code.",
-        s3Item2: "Displaying the child's location, movement history, and safe zones.",
-        s3Item3: "Sending notifications about movement, low battery, safe zones, SOS events, and other family-related events.",
-        s3Item4: "Showing device and permission status needed for stable operation of location, notifications, and other features.",
-        s3Item5: "Providing communication features, family chat, tasks, and attachments.",
-        s3Item6: "Providing additional parental-control tools, including app blocking and Android app-usage analytics, if enabled by the user.",
-        s3Item7: "Managing subscriptions, account security, troubleshooting, and technical support.",
-        s4Title: "4. Device permissions",
-        s4Text: "The app may request access to location, notifications, microphone, photos, and files, and on Android may also request app-usage access and Accessibility Service permissions for app blocking. These permissions are used only for the corresponding features when they are enabled by the user.",
-        s5Title: "5. Sharing data with third parties",
-        s5Text: "Data may be processed using technical providers required for app functionality, such as push-notification services, maps, subscriptions, or cloud hosting. Such sharing is limited to what is necessary to provide the relevant feature. Before publishing, it is recommended to extend this section with the exact names of providers and data-storage jurisdictions.",
-        s6Title: "6. Data storage and protection",
-        s6Text: "The developer applies reasonable organizational and technical measures to protect data against unauthorized access, alteration, disclosure, or destruction. Data is stored no longer than necessary for processing purposes, contractual obligations, legal compliance, and dispute resolution.",
-        s7Title: "7. User rights",
-        s7Item1: "Request access to personal data and information about its processing.",
-        s7Item2: "Request correction of inaccurate or incomplete data.",
-        s7Item3: "Request deletion of data where there is no lawful basis for continued processing.",
-        s7Item4: "Withdraw previously granted device permissions or stop using specific features.",
-        s8Title: "8. Children and parental control",
-        s8Text: "The app is intended for family use under the supervision of a parent or other legal guardian. A user connecting a child's device confirms that they have the authority and responsibility to lawfully use monitoring and parental-control features.",
-        s9Title: "9. Policy changes",
-        s9Text: "This policy may be updated from time to time. The current version is published on this page. If changes materially affect personal-data processing, an additional notice may be provided inside the app or by another reasonable method.",
-        s10Title: "10. Contact",
-        s10Text: "For privacy, data deletion, account, or user-rights requests, contact support@your-domain.com. Before publishing, replace this address with the real support contact and add an account-deletion page link if needed.",
-        noteText: "Important: this policy is already adapted to the current project functions, but before submitting the app to Google Play and the App Store you still need to replace placeholders with real owner details and, if necessary, specify the external services used."
+        lead: "This Privacy Policy governs the processing and protection of personal information by the Family Security parental control and family safety service.",
+        metaOperatorLabel: "Developer / Data Controller:",
+        metaOperatorValue: "Quantum limited",
+        metaEmailLabel: "Contact Email:",
+        metaEmailValue: "sattarzhanovdev@gmail.com",
+        metaDeletionLabel: "Account & Data Deletion:",
+        metaDeletionLink: "Data Deletion Request Page",
+        metaUpdatedLabel: "Last Updated:",
+        metaUpdatedValue: "August 28, 2026",
+        s1Title: "1. General Overview & Purpose",
+        s1Text: "Family Security is a dedicated parental control and child security application designed to help parents stay connected with their children, view real-time location on the map, receive safe zone arrival/departure alerts, and manage screen time. Use of the application requires explicit parental or legal guardian consent.",
+        s2Title: "2. Collected Data & Purposes of Processing",
+        s2Item1: "Account information: username, display name, user role (parent/child), pairing invite codes, optional avatar photo. Used for authentication and linking family devices.",
+        s2Item2: "Location & background location data: precise GPS coordinates of the child device, movement history, and safe zone statuses. Collected to show the child's live location on the parent's map, deliver SOS alerts, and automate geofence notifications.",
+        s2Item3: "Device information: battery percentage, charging state, device model, operating system version, and timezone. Used to alert parents when the child's phone is low on battery.",
+        s2Item4: "App usage and blocking data (Android): list of installed applications and foreground usage duration to enable parental app blocking and screen time management.",
+        s2Item5: "On-demand ambient audio (microphone): short audio streaming is activated only upon direct parent request with microphone permission. No continuous background recording is conducted.",
+        s2Item6: "Family communication & tasks: chat messages, task assignments, and attachments between linked parent and child accounts.",
+        s3Title: "3. Background Location Access Disclosure",
+        s3Disclosure: "Prominent Disclosure on Background Location: Family Security collects location data even when the app is closed, running in the background, or not in use. This continuous background collection is required to:",
+        s3Item1: "Allow parents to view the child's current location on the live map at all times for child safety.",
+        s3Item2: "Trigger instant automated alerts when the child arrives at or departs from designated Safe Zones (e.g. School, Home).",
+        s3Item3: "Transmit immediate coordinates when the child taps the Emergency SOS button.",
+        s3Privacy: "Coordinates are encrypted in transit via HTTPS and accessible only to the authenticated paired parent account. Location data is never sold or used for advertising.",
+        s4Title: "4. AccessibilityService API Usage Disclosure",
+        s4Disclosure: "AccessibilityService API Purpose: On Android devices, Family Security uses the AccessibilityService API solely for the parental control App Blocking feature.",
+        s4Item1: "The service identifies the package name of the active foreground application.",
+        s4Item2: "If the launched app is restricted by parental controls, Family Security displays a blocking screen and restricts access.",
+        s4Privacy: "Privacy Guarantee: The AccessibilityService API is NEVER used to read screen text, capture keystrokes (keylogging), access private messages, photos, passwords, or payment credentials. No accessibility data is collected, stored on our servers, or shared with third parties. The app is not an assistive tool for people with disabilities (isAccessibilityTool=false).",
+        s5Title: "5. Third-Party Service Providers",
+        s5Text: "We do not sell personal data to third parties. We utilize the following trusted infrastructure service providers:",
+        s5Item1: "Google LLC (Google Play Services, Google Maps API): map visualization and geocoding.",
+        s5Item2: "Firebase Cloud Messaging (Google LLC): delivery of real-time safety notifications to parents and children.",
+        s5Item3: "RevenueCat Inc.: Google Play Billing subscription validation and status management.",
+        s6Title: "6. Security & Data Encryption",
+        s6Text: "All data transferred between the client application and our servers is encrypted in transit using industry-standard HTTPS / TLS 1.3 encryption. Child data is strictly restricted to the verified paired parent account.",
+        s7Title: "7. Account Deletion & Data Retention",
+        s7Text: "Users can delete their account and associated data at any time directly in the app: Settings > Account > Delete Account or via our web request page: https://baby-locator-web.vercel.app/delete-account.html.",
+        s7Text2: "Upon account deletion, all personal data, children profiles, location history, messages, and configurations are permanently erased from the active database immediately and purged from backups within 30 days.",
+        s8Title: "8. Contact & Support",
+        s8Text: "For privacy questions, data deletion requests, or support inquiries, contact us at: sattarzhanovdev@gmail.com."
       }
     };
 

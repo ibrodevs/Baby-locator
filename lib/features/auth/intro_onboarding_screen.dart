@@ -3,11 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/services/app_tracking_transparency_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations_extras.dart';
 
 const String introSeenKey = 'intro_onboarding_seen_v1';
+
+final introSeenProvider = StateProvider<bool>((ref) => false);
 
 class IntroOnboardingScreen extends StatefulWidget {
   const IntroOnboardingScreen({super.key, required this.onFinished});
@@ -47,8 +51,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     });
   }
 
+  Timer? _trackingTimer;
+
   @override
   void dispose() {
+    _trackingTimer?.cancel();
     _pulseController.dispose();
     _floatController.dispose();
     _pageController.dispose();
@@ -65,9 +72,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
   }
 
   Future<void> _maybeRequestTrackingAuthorization() async {
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (!mounted) return;
-    await AppTrackingTransparencyService.instance.requestIfNeeded();
+    _trackingTimer?.cancel();
+    _trackingTimer = Timer(const Duration(milliseconds: 700), () async {
+      if (!mounted) return;
+      await AppTrackingTransparencyService.instance.requestIfNeeded();
+    });
   }
 
   void _next() {
