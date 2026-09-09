@@ -115,6 +115,18 @@ class KidSecurityAroundRecorderBridge {
     final running = await _channel.invokeMethod<bool>('isRunning');
     return running ?? false;
   }
+
+  Future<void> startMicrophoneService() async {
+    try {
+      await _channel.invokeMethod<void>('startMicrophoneService');
+    } catch (_) {}
+  }
+
+  Future<void> stopMicrophoneService() async {
+    try {
+      await _channel.invokeMethod<void>('stopMicrophoneService');
+    } catch (_) {}
+  }
 }
 
 class KidSecurityLiveAudioBridge {
@@ -161,5 +173,17 @@ class KidSecurityFullScreenIntentBridge {
 
   Future<void> openFullScreenIntentSettings() async {
     await _channel.invokeMethod<void>('openFullScreenIntentSettings');
+  }
+
+  Future<void> launchSosAlert({
+    required String childName,
+    required String message,
+  }) async {
+    try {
+      await _channel.invokeMethod<void>('launchSosAlert', {
+        'childName': childName,
+        'message': message,
+      });
+    } catch (_) {}
   }
 }

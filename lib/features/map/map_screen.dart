@@ -1426,8 +1426,13 @@ class _ChildInfoCard extends StatelessWidget {
         .replaceAll(RegExp(r'\s{2,}'), ' ')
         .trim();
     final actionLabel = compactLabel.isNotEmpty ? compactLabel : t.navChat;
-    final addressLabel =
-        loc.address.trim().isNotEmpty ? loc.address : t.resolvingAddress;
+    final hasValidAddress = loc.address.trim().isNotEmpty &&
+        loc.address.trim() != t.resolvingAddress;
+    final addressLabel = hasValidAddress
+        ? loc.address.trim()
+        : (loc.lat != 0.0 || loc.lng != 0.0)
+            ? '${loc.lat.toStringAsFixed(5)}, ${loc.lng.toStringAsFixed(5)}'
+            : t.resolvingAddress;
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 14, 18, 20),
       decoration: const BoxDecoration(

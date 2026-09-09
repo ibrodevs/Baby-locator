@@ -241,6 +241,24 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
                     result.success(aroundRecorder?.isRunning() == true)
                 }
 
+                "startMicrophoneService" -> {
+                    try {
+                        MicrophoneForegroundService.start(applicationContext)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("mic_service_error", e.message, null)
+                    }
+                }
+
+                "stopMicrophoneService" -> {
+                    try {
+                        MicrophoneForegroundService.stop(applicationContext)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("mic_service_error", e.message, null)
+                    }
+                }
+
                 else -> result.notImplemented()
             }
         } catch (error: Exception) {
@@ -773,6 +791,24 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
                     }
                 } else {
                     result.success(true)
+                }
+            }
+            "launchSosAlert" -> {
+                val childName = call.argument<String>("childName") ?: "Child"
+                val message = call.argument<String>("message") ?: ""
+                try {
+                    val intent = Intent(
+                        applicationContext,
+                        Class.forName("com.example.kid_security.SosAlertActivity"),
+                    ).apply {
+                        putExtra("child_name", childName)
+                        putExtra("message", message)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    }
+                    applicationContext.startActivity(intent)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("launch_sos_error", e.message, null)
                 }
             }
             else -> result.notImplemented()

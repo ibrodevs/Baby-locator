@@ -19,6 +19,11 @@ class MainActivity : FlutterFragmentActivity() {
         maybeLaunchNativeSos(intent)
     }
 
+    override fun onResume() {
+        super.onResume()
+        maybeLaunchNativeSos(intent)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -26,24 +31,34 @@ class MainActivity : FlutterFragmentActivity() {
     }
 
     private fun maybeLaunchNativeSos(intent: Intent?) {
-        val launchIntent = intent ?: return
-        if (launchIntent.action == handledAction) return
+        val launchIntent = intent
+        if (launchIntent?.action == handledAction) return
 
-        val payload = launchIntent.getStringExtra(payloadExtra) ?: return
+        var payload = launchIntent?.getStringExtra(payloadExtra)
+        if (payload.isNullOrEmpty()) {
+            val prefs = getSharedPreferences(flutterPrefs, Context.MODE_PRIVATE)
+            payload = prefs.getString(pendingSosPayloadKey, null)
+        }
+        if (payload.isNullOrEmpty()) return
+
         val json = runCatching { JSONObject(payload) }.getOrNull() ?: return
         if (json.optString("notification_type") != "sos") return
 
-        launchIntent.removeExtra(payloadExtra)
-        launchIntent.action = handledAction
+        launchIntent?.removeExtra(payloadExtra)
+        launchIntent?.action = handledAction
         clearPendingSosPayload()
 
-        startActivity(
-            SosAlertActivity.createIntent(
-                context = this,
-                childName = json.optString("child_name", "Child"),
-                message = json.optString("body", ""),
-            ),
-        )
+        val childName = json.optString("child_name", "Child")
+        val message = json.optString("body", "")
+
+        val sosIntent = SosAlertActivity.createIntent(
+            context = this,
+            childName = childName,
+            message = message,
+        ).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        startActivity(sosIntent)
     }
 
     private fun clearPendingSosPayload() {

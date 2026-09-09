@@ -32,6 +32,8 @@ class BlockingAccessibilityService : AccessibilityService() {
     private val mainHandler = Handler(Looper.getMainLooper())
     @Volatile
     private var lastObservedPackage: String? = null
+    @Volatile
+    private var lastObservedAtMs: Long = 0L
     private var lastInterceptPackage: String? = null
     private var lastInterceptAtMs: Long = 0L
     private var lastBlockScreenAtMs: Long = 0L
@@ -73,6 +75,7 @@ class BlockingAccessibilityService : AccessibilityService() {
             val pkg = event.packageName?.toString()
             if (!pkg.isNullOrBlank()) {
                 lastObservedPackage = pkg
+                lastObservedAtMs = SystemClock.elapsedRealtime()
                 checkForeground(eventPackage = pkg)
             }
         }
@@ -137,17 +140,25 @@ class BlockingAccessibilityService : AccessibilityService() {
     /**
      * Resolves the foreground package identifier without traversing window content.
      * 1. Uses event package hint if provided.
-     * 2. Falls back to last observed package from TYPE_WINDOW_STATE_CHANGED.
-     * 3. Falls back to UsageStatsManager queryEvents if available.
+     * 2. Queries UsageStatsManager queryEvents if available (ground truth).
+     * 3. Falls back to last observed package from TYPE_WINDOW_STATE_CHANGED if recent (<3s).
      */
     private fun resolveForegroundPackage(hintFromEvent: String? = null): String? {
         val direct = hintFromEvent?.takeIf { it.isNotBlank() }
         if (direct != null) return direct
 
-        val cached = lastObservedPackage?.takeIf { it.isNotBlank() }
-        if (cached != null) return cached
+        val usagePkg = getForegroundPackageFromUsageStats()
+        if (!usagePkg.isNullOrBlank()) {
+            return usagePkg
+        }
 
-        return getForegroundPackageFromUsageStats()
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastObservedAtMs < 3000L) {
+            val cached = lastObservedPackage?.takeIf { it.isNotBlank() }
+            if (cached != null) return cached
+        }
+
+        return null
     }
 
     private fun getForegroundPackageFromUsageStats(): String? {

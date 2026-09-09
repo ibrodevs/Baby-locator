@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 import 'package:permission_handler/permission_handler.dart' as ph;
 
 import 'api_client.dart';
@@ -101,6 +103,14 @@ class ChildWebRTCService {
       //    - mono (channelCount=1): phones have a single mic capsule;
       //      asking for stereo gave fake-stereo phase artefacts that the
       //      parent heard as a swirly, unstable image.
+      // On Android 14+, ensure the dedicated microphone foreground service is active
+      // so background mic capture is permitted.
+      if (Platform.isAndroid) {
+        try {
+          await const KidSecurityAroundRecorderBridge().startMicrophoneService();
+        } catch (_) {}
+      }
+
       try {
         _localStream = await navigator.mediaDevices.getUserMedia({
           'audio': {
@@ -443,6 +453,13 @@ class ChildWebRTCService {
     _localStream = null;
     _sessionToken = null;
     _lastSignalId = 0;
+
+    if (Platform.isAndroid) {
+      try {
+        await const KidSecurityAroundRecorderBridge().stopMicrophoneService();
+      } catch (_) {}
+    }
+
     _stopping = false;
   }
 }

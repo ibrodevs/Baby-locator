@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 import 'package:record/record.dart';
@@ -541,13 +542,38 @@ class _BackgroundCommandHandler {
         final prefs = await SharedPreferences.getInstance();
         await prefs.remove('pending_webrtc_session_token');
         await prefs.remove('pending_webrtc_session_at_ms');
+        if (Platform.isAndroid) {
+          await _nativeAroundRecorder.stopMicrophoneService();
+        }
         _service.invoke('webrtc_monitor_stop_ui');
         _resetNotification();
         return;
       case 'sync_blocked_apps':
-        final packages =
-            (payload['blocked_packages'] as List<dynamic>?)?.cast<String>() ??
-                const [];
+        List<String> packages = [];
+        final raw = payload['blocked_packages'];
+        if (raw is List) {
+          packages = raw.cast<dynamic>().map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+        } else if (raw is String && raw.trim().isNotEmpty) {
+          try {
+            final decoded = jsonDecode(raw);
+            if (decoded is List) {
+              packages = decoded.map((e) => e.toString().trim()).where((e) => e.isNotEmpty).toList();
+            }
+          } catch (_) {}
+        }
+        if (packages.isEmpty) {
+          try {
+            final user = await ApiClient.instance.me();
+            final childId = user['id'] as int?;
+            if (childId != null) {
+              final remote = await ApiClient.instance.getBlockedApps(childId);
+              packages = remote
+                  .map((item) => (item as Map)['package_name'] as String? ?? '')
+                  .where((pkg) => pkg.trim().isNotEmpty)
+                  .toList();
+            }
+          } catch (_) {}
+        }
         await _syncBlockedApps(packages);
         return;
       default:
@@ -593,10 +619,45 @@ class _BackgroundCommandHandler {
   double? _lastGeocodedLat;
   double? _lastGeocodedLng;
 
+  Future<String?> _reverseGeocodeNative(double lat, double lng) async {
+    try {
+      if (_localeCode.isNotEmpty) {
+        await setLocaleIdentifier(_localeCode);
+      }
+      final places = await placemarkFromCoordinates(lat, lng);
+      if (places.isEmpty) return null;
+      final pl = places.first;
+      final thoroughfare = (pl.thoroughfare ?? '').trim();
+      final subThoroughfare = (pl.subThoroughfare ?? '').trim();
+      final subLocality = (pl.subLocality ?? '').trim();
+      final locality = (pl.locality ?? '').trim();
+
+      String streetPart = '';
+      if (thoroughfare.isNotEmpty && subThoroughfare.isNotEmpty) {
+        streetPart = '$thoroughfare $subThoroughfare';
+      } else if (thoroughfare.isNotEmpty) {
+        streetPart = thoroughfare;
+      } else if ((pl.street ?? '').trim().isNotEmpty) {
+        streetPart = pl.street!.trim();
+      }
+
+      final parts = [
+        if (streetPart.isNotEmpty) streetPart,
+        if (subLocality.isNotEmpty && subLocality != streetPart) subLocality,
+        if (locality.isNotEmpty) locality,
+      ];
+      return parts.isNotEmpty ? parts.join(', ') : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<String?> _reverseGeocode(double lat, double lng) async {
     // Skip if coordinates haven't changed significantly (< 10m).
     if (_lastGeocodedLat != null &&
         _lastGeocodedLng != null &&
+        _lastGeocodedAddress != null &&
+        _lastGeocodedAddress!.isNotEmpty &&
         Geolocator.distanceBetween(
               _lastGeocodedLat!,
               _lastGeocodedLng!,
@@ -607,43 +668,58 @@ class _BackgroundCommandHandler {
       return _lastGeocodedAddress;
     }
 
+    String? address;
+
+    // 1. Try native geocoder (works without Google Maps HTTP API key restriction).
     try {
-      final uri = Uri.parse(
-        'https://maps.googleapis.com/maps/api/geocode/json'
-        '?latlng=$lat,$lng'
-        '&key=$_googleApiKey'
-        '&language=$_localeCode',
-      );
-      final response = await http.get(uri).timeout(const Duration(seconds: 5));
-      if (response.statusCode != 200) return _lastGeocodedAddress;
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      final results = json['results'] as List<dynamic>?;
-      if (results == null || results.isEmpty) return _lastGeocodedAddress;
-
-      // Pick most precise: street_address > route > first.
-      Map<String, dynamic>? best;
-      for (final result in results) {
-        final r = result as Map<String, dynamic>;
-        final types = (r['types'] as List<dynamic>?)?.cast<String>() ?? [];
-        if (types.contains('street_address')) {
-          best = r;
-          break;
-        }
-        if (best == null && types.contains('route')) {
-          best = r;
-        }
-      }
-      best ??= results.first as Map<String, dynamic>;
-
-      final formatted = best['formatted_address'] as String?;
-      if (formatted != null && formatted.isNotEmpty) {
-        _lastGeocodedAddress = formatted;
-        _lastGeocodedLat = lat;
-        _lastGeocodedLng = lng;
-        return formatted;
-      }
+      address = await _reverseGeocodeNative(lat, lng);
     } catch (_) {}
-    return _lastGeocodedAddress;
+
+    // 2. Fallback to Google Maps Geocoding API if native fails.
+    if (address == null || address.isEmpty) {
+      try {
+        final uri = Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json'
+          '?latlng=$lat,$lng'
+          '&key=$_googleApiKey'
+          '&language=$_localeCode',
+        );
+        final response = await http.get(uri).timeout(const Duration(seconds: 5));
+        if (response.statusCode == 200) {
+          final json = jsonDecode(response.body) as Map<String, dynamic>;
+          final results = json['results'] as List<dynamic>?;
+          if (results != null && results.isNotEmpty) {
+            Map<String, dynamic>? best;
+            for (final result in results) {
+              final r = result as Map<String, dynamic>;
+              final types = (r['types'] as List<dynamic>?)?.cast<String>() ?? [];
+              if (types.contains('street_address')) {
+                best = r;
+                break;
+              }
+              if (best == null && types.contains('route')) {
+                best = r;
+              }
+            }
+            best ??= results.first as Map<String, dynamic>;
+            final formatted = best['formatted_address'] as String?;
+            if (formatted != null && formatted.isNotEmpty) {
+              address = formatted;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 3. Fallback to coordinate string so address is never null/empty.
+    if (address == null || address.isEmpty) {
+      address = '${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}';
+    }
+
+    _lastGeocodedAddress = address;
+    _lastGeocodedLat = lat;
+    _lastGeocodedLng = lng;
+    return address;
   }
 
   // ---- Loud alarm ----
@@ -731,6 +807,11 @@ class _BackgroundCommandHandler {
       'pending_webrtc_session_at_ms',
       DateTime.now().millisecondsSinceEpoch,
     );
+    if (Platform.isAndroid) {
+      try {
+        await _nativeAroundRecorder.startMicrophoneService();
+      } catch (_) {}
+    }
     _service.invoke('webrtc_monitor_start_ui', {
       'session_token': sessionToken,
     });

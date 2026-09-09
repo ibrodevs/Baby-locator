@@ -50,6 +50,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
   bool? _accessibilityBlockingEnabled;
   bool? _ignoringBatteryOptimizations;
   Timer? _statsTimer;
+  Timer? _blockedAppsTimer;
 
   @override
   void initState() {
@@ -68,6 +69,10 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
       _statsTimer = Timer.periodic(
         const Duration(minutes: 3),
         (_) => _syncDeviceStats(),
+      );
+      _blockedAppsTimer = Timer.periodic(
+        const Duration(seconds: 30),
+        (_) => _loadBlockedApps(),
       );
     });
   }
@@ -295,6 +300,7 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
     _sub?.cancel();
     _batterySub?.cancel();
     _statsTimer?.cancel();
+    _blockedAppsTimer?.cancel();
     // DO NOT stop the background service here — it must keep running
     // even when this screen is disposed or the app goes to background.
     _svc.stop();
@@ -464,10 +470,16 @@ class _ChildHomeScreenState extends ConsumerState<ChildHomeScreen>
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.textPrimaryLight)),
                               const SizedBox(height: 6),
-                              Text(loc?.address ?? t.waitingForGps,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.textSecondaryLight)),
+                              Text(
+                                (loc?.address.trim().isNotEmpty ?? false)
+                                    ? loc!.address
+                                    : (loc != null && (loc.lat != 0.0 || loc.lng != 0.0))
+                                        ? '${loc.lat.toStringAsFixed(5)}, ${loc.lng.toStringAsFixed(5)}'
+                                        : t.waitingForGps,
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textSecondaryLight),
+                              ),
                               const SizedBox(height: 8),
                               _ChargingBadge(isCharging: _isCharging),
                               const SizedBox(height: 8),

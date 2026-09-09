@@ -122,45 +122,64 @@ class LocationService {
     try {
       final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5),
+        timeLimit: const Duration(seconds: 12),
       );
       return await _toFix(pos);
     } catch (_) {
-      // Timeout or error on high accuracy — try low accuracy as fallback.
       try {
         final pos = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.low,
-          timeLimit: const Duration(seconds: 5),
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: const Duration(seconds: 7),
         );
         return await _toFix(pos);
-      } catch (_) {}
+      } catch (_) {
+        try {
+          final lastKnown = await Geolocator.getLastKnownPosition();
+          if (lastKnown != null) return await _toFix(lastKnown);
+        } catch (_) {}
+      }
     }
     return null;
   }
 
   Stream<LocationFix> watch() {
     _sub?.cancel();
-    final stream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.best,
-        distanceFilter: 5,
-      ),
-    );
+    LocationSettings settings;
+    if (!kIsWeb && Platform.isAndroid) {
+      settings = AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+        intervalDuration: const Duration(seconds: 10),
+      );
+    } else {
+      settings = const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 0,
+      );
+    }
+    final stream = Geolocator.getPositionStream(locationSettings: settings);
     return stream.asyncMap(_toFix);
   }
 
   Future<LocationFix> _toFix(Position p) async {
     String address = '';
+    // 1. Try device OS native geocoder (offline/direct on Android and iOS).
     try {
-      final isAndroid = !kIsWeb && Platform.isAndroid;
-      if (isAndroid) {
-        address =
-            await _reverseGeocodeGoogle(p.latitude, p.longitude) ?? address;
-      } else {
-        address =
-            await _reverseGeocodeNative(p.latitude, p.longitude) ?? address;
-      }
+      address = await _reverseGeocodeNative(p.latitude, p.longitude) ?? '';
     } catch (_) {}
+
+    // 2. Fallback to Google HTTP geocoder if native produced nothing.
+    if (address.trim().isEmpty) {
+      try {
+        address = await _reverseGeocodeGoogle(p.latitude, p.longitude) ?? '';
+      } catch (_) {}
+    }
+
+    // 3. Guarantee that address is NEVER empty string, preventing UI from hanging on "Resolving address...".
+    if (address.trim().isEmpty) {
+      address = '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}';
+    }
+
     return LocationFix(lat: p.latitude, lng: p.longitude, address: address);
   }
 

@@ -96,11 +96,19 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final token = (data['session_token'] ?? '').toString();
       if (token.isNotEmpty) {
         await _persistPendingWebrtcSession(token);
-        
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+          try {
+            await const KidSecurityAroundRecorderBridge().startMicrophoneService();
+          } catch (_) {}
+        }
       }
     } else if (commandType == 'webrtc_monitor_stop') {
       await _clearPendingWebrtcSession();
-      
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        try {
+          await const KidSecurityAroundRecorderBridge().stopMicrophoneService();
+        } catch (_) {}
+      }
     }
     await wakeChildBackgroundService(
       commandType: commandType,
@@ -112,6 +120,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (notificationType.isNotEmpty) {
     if (notificationType == 'sos') {
       await _persistPendingSosPayload(data);
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        try {
+          await const KidSecurityFullScreenIntentBridge().launchSosAlert(
+            childName: '${data['child_name'] ?? 'Child'}',
+            message: '${data['body'] ?? ''}'.trim(),
+          );
+        } catch (_) {}
+      }
     }
     await _recordNotificationAsShown(data);
     if (message.notification == null) {
@@ -350,21 +366,79 @@ class FcmService {
   Future<void> presentSosAlert(Map<String, dynamic> rawData) async {
     final data = Map<String, dynamic>.from(rawData);
     final body = '${data['body'] ?? ''}'.trim();
+    final childName = '${data['child_name'] ?? 'Child'}';
     final lifecycleState = WidgetsBinding.instance.lifecycleState;
-    final canShowNow = _onSosReceived != null &&
-        (lifecycleState == null ||
-            lifecycleState == AppLifecycleState.resumed ||
-            lifecycleState == AppLifecycleState.inactive);
+    final isForeground = lifecycleState == null ||
+        lifecycleState == AppLifecycleState.resumed ||
+        lifecycleState == AppLifecycleState.inactive;
 
-    if (!canShowNow) {
-      _pendingSosPayload = data;
+    // Always persist to SharedPreferences so native layer & resume hooks can access it.
+    await _persistPendingSosPayload(data);
+
+    if (isForeground && _onSosReceived != null) {
+      _pendingSosPayload = null;
+      _onSosReceived!.call(
+        childName,
+        body.isNotEmpty ? body : null,
+      );
       return;
     }
 
-    _pendingSosPayload = null;
-    _onSosReceived!.call(
-      '${data['child_name'] ?? 'Child'}',
-      body.isNotEmpty ? body : null,
+    _pendingSosPayload = data;
+
+    // When minimized / in background, trigger native full-screen SOS alert
+    // and show emergency full-screen notification.
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await const KidSecurityFullScreenIntentBridge().launchSosAlert(
+          childName: childName,
+          message: body,
+        );
+      } catch (_) {}
+    }
+
+    // Also display the high-priority alarm notification with fullScreenIntent.
+    await _showSosNotification(data);
+  }
+
+  Future<void> _showSosNotification(Map<String, dynamic> data) async {
+    await _ensureLocalNotificationsInitialized();
+    final childName = '${data['child_name'] ?? 'Child'}';
+    final title = data['title'] ?? '🚨 SOS от $childName!';
+    final body = data['body'] ?? '$childName нужна помощь!';
+    bool canFsi = true;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        canFsi = await const KidSecurityFullScreenIntentBridge().canUseFullScreenIntent();
+      } catch (_) {}
+    }
+
+    await _localNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _sosAlertsChannel.id,
+          _sosAlertsChannel.name,
+          importance: Importance.max,
+          priority: Priority.max,
+          category: AndroidNotificationCategory.alarm,
+          visibility: NotificationVisibility.public,
+          ongoing: true,
+          autoCancel: false,
+          additionalFlags: Int32List.fromList(const [4]),
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+          fullScreenIntent: canFsi,
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          interruptionLevel: InterruptionLevel.critical,
+        ),
+      ),
+      payload: jsonEncode(data),
     );
   }
 
