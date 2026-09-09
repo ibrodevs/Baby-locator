@@ -52,7 +52,7 @@ class BlockingAccessibilityService : AccessibilityService() {
         try {
             serviceInfo = serviceInfo?.apply {
                 eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
-                flags = AccessibilityServiceInfo.FLAG_DEFAULT
+                flags = AccessibilityServiceInfo.DEFAULT
                 notificationTimeout = 100L
             }
         } catch (_: Throwable) {

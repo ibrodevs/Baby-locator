@@ -1,7 +1,7 @@
-import android.app.NotificationManager
-import android.net.Uri
 package com.example.kid_security.bridge
 
+import android.app.NotificationManager
+import android.net.Uri
 import android.app.AppOpsManager
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager

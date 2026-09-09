@@ -964,8 +964,7 @@ class SFr extends S {
       'Aucun abonnement actif trouvé pour restaurer.';
 
   @override
-  String get subscriptionNowActive =>
-      'Baby Locator Pro est maintenant actif.';
+  String get subscriptionNowActive => 'Baby Locator Pro est maintenant actif.';
 
   @override
   String get purchaseEntitlementPending =>
