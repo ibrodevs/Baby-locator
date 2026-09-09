@@ -1,101 +1,75 @@
-# Google Play Console: Data Safety Form Guide
+# Baby Locator — Google Play Data Safety Declaration (2026)
 
-**Application:** Family Security (`com.company.familysecurity`)  
-**Developer:** Quantum limited  
-**Privacy Policy URL:** `https://baby-locator-web.vercel.app/privacy-policy.html`  
-**Account Deletion URL:** `https://baby-locator-web.vercel.app/delete-account.html`  
+This document provides the exact, code-audited answers for the Google Play Console **Data safety** questionnaire for **Baby Locator**.
 
 ---
 
-## 1. Overview Questions
+## 1. Overview & Data Practices Summary
 
-1. **Does your app collect or share any of the required user data types?**  
-   > **Yes**
-2. **Is all of the user data collected by your app encrypted in transit?**  
-   > **Yes** *(All network communications use HTTPS / TLS 1.3)*
-3. **Do you provide a way for users to request that their data be deleted?**  
-   > **Yes** *(In-app under Settings > Account > Delete Account and via web link)*
-4. **Does your app provide a link that users can follow to request account and data deletion?**  
-   > **Yes**  
-   > URL: `https://baby-locator-web.vercel.app/delete-account.html`
-
----
-
-## 2. Data Types Breakdown
-
-### A. Location Data
-
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **Approximate location**, **Precise location** |
-| **Is it collected?** | **Yes** |
-| **Is it shared with third parties?** | **No** (Shared only with the authenticated paired parent account) |
-| **Is it processed ephemerally?** | **No** (Stored to provide location history and safe zone event logs to parents) |
-| **Is collection required or optional?** | **Required for child tracking features / Optional for parent** |
-| **Purposes** | **App functionality** *(Real-time child location tracking, safe zone alerts, SOS emergency alerts)* |
+- **Does your app collect or share any of the required user data types?**  
+  **Yes**.
+- **Is all of the user data collected by your app encrypted in transit?**  
+  **Yes** (all network communications use TLS/HTTPS and secure WebSocket/WSS protocols).
+- **Do you provide a way for users to request that their data be deleted?**  
+  **Yes** (in-app via Settings → Delete Account, and publicly at `https://baby-locator.online/delete-account.html`).
+- **Does your app commit to following the Google Play Families Policy?**  
+  **Yes** (parental control app designed for parents to safeguard their children).
 
 ---
+
+## 2. Comprehensive Data Safety Questionnaire Responses
+
+### A. Location
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Approximate location** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (child location map, battery telemetry). |
+| **Precise location** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (real-time tracking, Safe Zones, movement history, emergency SOS). |
 
 ### B. Personal Info
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Name / Display name** | **Yes** | **No** | Stored on server, encrypted in transit. | Account management, App functionality (displaying child profile to parent). |
+| **User IDs** | **Yes** | **No** | Stored on server, encrypted in transit. | Account management, authentication. |
+| **Address** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (GPS coordinates converted to street address via reverse geocoding to display location history). |
+| **Phone number** | **NO (Not collected)** | **No** | **N/A** | **Not collected by application or backend.** |
+| **Email address** | **Optional** | **No** | Stored if provided during registration. | Account management. |
 
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **Name** *(Display Name)*, **User IDs** *(Account username/ID)* |
-| **Is it collected?** | **Yes** |
-| **Is it shared with third parties?** | **No** |
-| **Is collection required or optional?** | **Required for account creation and parent-child pairing** |
-| **Purposes** | **Account management**, **App functionality** |
+### C. Audio
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Voice / Sound recordings** | **Yes** | **No** | Ephemeral streaming via in-memory buffer to linked parent. Not persisted to disk during live streaming. | App functionality (parent-initiated Listen Around ambient safety audio). |
 
----
+### D. Messages
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **In-app messages** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (family chat between parent and linked child). |
 
-### C. Messages
+### E. Photos and Videos
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Photos** | **Optional** | **No** | Stored on server, encrypted in transit. | App functionality (user avatar profile pictures uploaded voluntarily). |
 
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **Other in-app messages** *(Family chat messages & task notes between parent and child)* |
-| **Is it collected?** | **Yes** |
-| **Is it shared with third parties?** | **No** |
-| **Purposes** | **App functionality** *(Family communication & task management)* |
+### F. App Activity
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Installed apps** | **Yes** | **No** | Transmitted to parent dashboard, encrypted in transit. | App functionality (enabling parent to configure App Blocking and screen time rules). |
+| **App interactions / Usage time** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (daily app usage snapshots and screen time tracking). |
 
----
-
-### D. Audio Files (Microphone)
-
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **Voice or sound recordings** *(On-demand ambient audio requested by parent)* |
-| **Is it collected?** | **Yes** *(Only when activated by parent on-demand)* |
-| **Is it shared with third parties?** | **No** |
-| **Is it processed ephemerally?** | **Yes** *(Streamed live to parent or stored ephemerally for playback, not used for profiling)* |
-| **Is collection required or optional?** | **Optional** |
-| **Purposes** | **App functionality** *(Parental safety monitoring around child)* |
-
----
-
-### E. App Activity & App Info
-
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **App interactions** *(App usage duration/stats on child device)*, **Installed apps** *(For parental app blocking configuration)* |
-| **Is it collected?** | **Yes** |
-| **Is it shared with third parties?** | **No** |
-| **Purposes** | **App functionality** *(Parental control app limits, screen time statistics, and app blocking)* |
+### G. Device or Other Identifiers
+| Data Type | Collected? | Shared? | Processing | Purpose |
+| :--- | :--- | :--- | :--- | :--- |
+| **Device or other IDs** | **Yes** | **No** | Stored on server, encrypted in transit. | App functionality (FCM push notification token, battery level, device OS version). |
 
 ---
 
-### F. Device or Other IDs
+## 3. Policy & Compliance Guarantees
 
-| Field | Value |
-| :--- | :--- |
-| **Data Types Collected** | **Device or other IDs** *(FCM push notification token, device model, battery level)* |
-| **Is it collected?** | **Yes** |
-| **Is it shared with third parties?** | **No** |
-| **Purposes** | **App functionality** *(Push notification delivery, battery level monitoring for parent)* |
-
----
-
-## 3. Security Practices
-
-- **Encryption in Transit:** All collected user and telemetry data is transmitted using encrypted HTTPS / TLS 1.3 protocols.
-- **Access Control:** Multi-tenant child data isolation ensures that only the authenticated parent account paired via invite code can view location and device telemetry.
-- **Account & Data Deletion:** Users can permanently delete their account and all associated child profiles, location records, and messages instantly via the in-app menu or through the web deletion portal at `https://baby-locator-web.vercel.app/delete-account.html`.
+1. **Third-Party Data Sharing:**  
+   **No user data is sold, rented, or shared with third parties or data brokers.** All data processing is strictly first-party between the parent and linked child accounts.
+2. **AccessibilityService Data Guarantee:**  
+   AccessibilityService on the child device is restricted to `canRetrieveWindowContent=false`. It operates solely using `AccessibilityEvent.packageName` to match open applications against the parental block list. It **never** accesses screen text, keystrokes, messages, phone numbers, or passwords.
+3. **Listen Around Transparency:**  
+   When the microphone is active, a persistent notification with the Baby Locator icon is displayed on the child device:  
+   `Baby Locator — Microphone is active. Live audio is being shared with your linked parent.`
+4. **Data Deletion:**  
+   When an account is deleted, all associated location records, messages, child profiles, and media files are permanently purged.
