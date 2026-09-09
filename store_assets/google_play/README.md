@@ -5,7 +5,7 @@
 - **Format:** 32-bit PNG (with alpha)
 - **Dimensions:** 512 × 512 px
 - **Max file size:** 1024 KB
-- **Source of Truth:** Generated directly from `assets/1212.png` (Baby Locator shield & child brand artwork).
+- **Source of Truth:** Generated directly from `assets/Logo.jpeg` (Official Baby Locator blue pin, magnifying glass & green shadow artwork).
 - **Installed App Match:** Identical artwork to `android/app/src/main/res/mipmap-*/ic_launcher.png`.
 
 ## 2. Feature Graphic

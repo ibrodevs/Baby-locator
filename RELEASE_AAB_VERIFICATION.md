@@ -9,8 +9,8 @@ This document provides the complete, authoritative verification record for the p
 | Parameter | Production Value | Verification Tool / Status |
 | :--- | :--- | :--- |
 | **Artifact File** | `app-release.aab` | `build/app/outputs/bundle/release/app-release.aab` |
-| **File Size** | `112,309,774 bytes` (~112.3 MB) | Verified via `ls -la` / `stat` |
-| **SHA-256 Checksum** | `9d28e230becb693c9f6ae118562f7fb1f33d726466487ea955a3bb770ec23ce4` | Verified via `shasum -a 256` |
+| **File Size** | `112,381,882 bytes` (~112.3 MB) | Verified via `ls -la` / `stat` |
+| **SHA-256 Checksum** | `ef674b36e98cbb5b7c6cfa902fd97811c7c6b9710115d99e46546e62a9582996` | Verified via `shasum -a 256` |
 | **Package / Application ID** | `com.company.familysecurity` | Matches Play Console registered app entity |
 | **Public App Label** | `Baby Locator` (via `@string/app_name`) | Verified across all languages & configurations |
 | **Version Name** | `1.0.5` | Verified via `bundletool` & `apkanalyzer` |
