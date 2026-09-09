@@ -9,12 +9,12 @@ This document provides the complete, authoritative verification record for the p
 | Parameter | Production Value | Verification Tool / Status |
 | :--- | :--- | :--- |
 | **Artifact File** | `app-release.aab` | `build/app/outputs/bundle/release/app-release.aab` |
-| **File Size** | `112,381,882 bytes` (~112.3 MB) | Verified via `ls -la` / `stat` |
-| **SHA-256 Checksum** | `ef674b36e98cbb5b7c6cfa902fd97811c7c6b9710115d99e46546e62a9582996` | Verified via `shasum -a 256` |
+| **File Size** | `112,381,875 bytes` (~112.3 MB) | Verified via `ls -la` / `stat` |
+| **SHA-256 Checksum** | `6379f8e0f85506622aadaca2f80fa37e88bffe899a956841246510145ef814b8` | Verified via `shasum -a 256` |
 | **Package / Application ID** | `com.company.familysecurity` | Matches Play Console registered app entity |
 | **Public App Label** | `Baby Locator` (via `@string/app_name`) | Verified across all languages & configurations |
 | **Version Name** | `1.0.5` | Verified via `bundletool` & `apkanalyzer` |
-| **Version Code** | `8` | Supersedes all rejected / prior builds (code 7) |
+| **Version Code** | `9` | Supersedes code 7 and code 8 |
 | **Target SDK** | `36` (Android 16 ready; min requirement 35) | Verified via `apkanalyzer manifest target-sdk` |
 | **Min SDK** | `24` (Android 7.0 Nougat+) | Verified via `apkanalyzer manifest min-sdk` |
 
