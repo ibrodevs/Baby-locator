@@ -18,6 +18,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/child_theme.dart';
 import '../../core/widgets/accessibility_disclosure.dart';
 import '../../core/widgets/background_location_disclosure.dart';
+import '../../core/widgets/microphone_disclosure.dart';
 
 class ChildPermissionsScreen extends StatefulWidget {
   const ChildPermissionsScreen({super.key});
@@ -116,6 +117,9 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
   }
 
   Future<void> _requestMicrophonePermission() async {
+    final agreed = await MicrophoneDisclosureDialog.show(context);
+    if (!agreed) return;
+
     try {
       final status = await ph.Permission.microphone.status;
       if (status.isPermanentlyDenied) {

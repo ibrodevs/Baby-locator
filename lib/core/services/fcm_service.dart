@@ -69,19 +69,6 @@ const _sosAlertsChannel = AndroidNotificationChannel(
   audioAttributesUsage: AudioAttributesUsage.alarm,
 );
 
-/// Silent, hidden channel used solely to fire a full-screen-intent that wakes
-/// the main activity over the lockscreen so `flutter_webrtc` can capture
-/// audio in the main Flutter isolate. Category=call lets Android grant
-/// USE_FULL_SCREEN_INTENT without the user-managed permission on Android 14+.
-const _listenWakeChannel = AndroidNotificationChannel(
-  _listenWakeChannelId,
-  _listenWakeChannelName,
-  description: 'Wakes the device when a parent starts listening.',
-  importance: Importance.max,
-  playSound: false,
-  enableVibration: false,
-  showBadge: false,
-);
 const _pendingSosPayloadKey = 'pending_sos_payload';
 
 /// Top-level handler — runs even when the app is killed.
@@ -110,11 +97,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final token = (data['session_token'] ?? '').toString();
       if (token.isNotEmpty) {
         await _persistPendingWebrtcSession(token);
-        await _postListenWakeNotification(token);
+        
       }
     } else if (commandType == 'webrtc_monitor_stop') {
       await _clearPendingWebrtcSession();
-      await _cancelListenWakeNotification();
+      
     }
     await wakeChildBackgroundService(
       commandType: commandType,
@@ -484,69 +471,8 @@ Future<void> _ensureAndroidNotificationChannels(
   await androidPlugin.createNotificationChannel(_activityAlertsChannel);
   await androidPlugin.createNotificationChannel(_childAlertsChannel);
   await androidPlugin.createNotificationChannel(_sosAlertsChannel);
-  await androidPlugin.createNotificationChannel(_listenWakeChannel);
 }
 
-const _listenWakeNotificationId = 909191;
-
-Future<void> _persistPendingWebrtcSession(String token) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString(_pendingWebrtcSessionKey, token);
-  await prefs.setInt(
-    _pendingWebrtcSessionAtKey,
-    DateTime.now().millisecondsSinceEpoch,
-  );
-}
-
-Future<void> _clearPendingWebrtcSession() async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove(_pendingWebrtcSessionKey);
-  await prefs.remove(_pendingWebrtcSessionAtKey);
-}
-
-/// Posts a high-priority full-screen-intent notification that launches
-/// MainActivity over the lockscreen. The activity has `showWhenLocked` and
-/// `turnScreenOn` set, so once the main isolate boots it can read the
-/// pending session token from SharedPreferences and start WebRTC capture.
-Future<void> _postListenWakeNotification(String sessionToken) async {
-  final plugin = FlutterLocalNotificationsPlugin();
-  const initSettings = InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-    iOS: DarwinInitializationSettings(),
-  );
-  await plugin.initialize(initSettings);
-  await _ensureAndroidNotificationChannels(plugin);
-
-  await plugin.show(
-    _listenWakeNotificationId,
-    'Baby Locator',
-    '',
-    NotificationDetails(
-      android: AndroidNotificationDetails(
-        _listenWakeChannel.id,
-        _listenWakeChannel.name,
-        importance: Importance.max,
-        priority: Priority.max,
-        category: AndroidNotificationCategory.call,
-        fullScreenIntent: true,
-        ongoing: false,
-        autoCancel: true,
-        playSound: false,
-        enableVibration: false,
-        silent: true,
-        visibility: NotificationVisibility.secret,
-      ),
-    ),
-    payload: jsonEncode({'listen_wake': true, 'session_token': sessionToken}),
-  );
-}
-
-Future<void> _cancelListenWakeNotification() async {
-  final plugin = FlutterLocalNotificationsPlugin();
-  try {
-    await plugin.cancel(_listenWakeNotificationId);
-  } catch (_) {}
-}
 
 Future<void> _recordNotificationAsShown(Map<String, dynamic> data) async {
   final alertId = int.tryParse('${data['alert_id'] ?? ''}');

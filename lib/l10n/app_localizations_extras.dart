@@ -4256,4 +4256,36 @@ class ExtraTranslations {
   String get accessibilityDisclosureCancel => _pick({
         'en': 'Not now',
         'ru': 'Не сейчас',
+      
+  String get microphoneDisclosureTitle => _pick({
+        'en': 'Microphone access for Listen Around',
+        'ru': 'Доступ к микрофону для функции «Звук вокруг»',
       });
+
+  String get microphoneDisclosureSubtitle => _pick({
+        'en': 'Prominent Disclosure: Microphone Access',
+        'ru': 'Уведомление об использовании микрофона',
+      });
+
+  String get microphoneDisclosureBody => _pick({
+        'en':
+            'Baby Locator uses the microphone on this child device for the Listen Around safety feature. When a linked parent starts Listen Around, audio from the device microphone is transmitted to that authenticated parent.\n\n'
+            'While the microphone is active, Baby Locator displays a persistent notification on this device.\n\n'
+            'Microphone access is not used through AccessibilityService.',
+        'ru':
+            'Baby Locator использует микрофон на этом детском устройстве для функции безопасности «Звук вокруг». Когда привязанный родитель запускает функцию прослушивания, звук с микрофона передаётся этому авторизованному родителю.\n\n'
+            'Пока микрофон активен, Baby Locator отображает постоянное уведомление на этом устройстве.\n\n'
+            'Доступ к микрофону НЕ осуществляется через AccessibilityService.',
+      });
+
+  String get microphoneDisclosureAgree => _pick({
+        'en': 'Allow microphone',
+        'ru': 'Разрешить микрофон',
+      });
+
+  String get microphoneDisclosureCancel => _pick({
+        'en': 'Not now',
+        'ru': 'Не сейчас',
+      });
+
+}

@@ -133,6 +133,7 @@ class AroundAudioRecorder(private val applicationContext: Context) {
             throw IllegalStateException("AudioRecord.startRecording failed", e)
         }
 
+        MicrophoneForegroundService.start(applicationContext)
         Log.i(TAG, "around capture started, session=$sessionToken")
 
         val capture = Thread({
@@ -200,6 +201,7 @@ class AroundAudioRecorder(private val applicationContext: Context) {
     }
 
     private fun stopInternal() {
+        MicrophoneForegroundService.stop(applicationContext)
         running.set(false)
         activeSessionToken = null
 
