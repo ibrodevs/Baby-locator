@@ -637,6 +637,45 @@ class ApiClient {
     }
   }
 
+  String? _cachedGoogleMapsApiKey;
+
+  /// Retrieves the Google Maps API key loaded from the backend .env
+  /// (with disk caching so offline/background uses still work).
+  Future<String?> getGoogleMapsApiKey() async {
+    if (_cachedGoogleMapsApiKey != null && _cachedGoogleMapsApiKey!.isNotEmpty) {
+      return _cachedGoogleMapsApiKey;
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getString('cached_google_maps_api_key');
+      if (stored != null && stored.isNotEmpty) {
+        _cachedGoogleMapsApiKey = stored;
+        return stored;
+      }
+    } catch (_) {}
+    await fetchAppConfig();
+    return _cachedGoogleMapsApiKey;
+  }
+
+  /// Fetches public app configuration from backend, including Google Maps key from .env.
+  Future<Map<String, dynamic>> fetchAppConfig() async {
+    try {
+      final data = await _get('/api/app-config/');
+      if (data is Map<String, dynamic>) {
+        final key = (data['google_maps_api_key'] ?? '').toString().trim();
+        if (key.isNotEmpty) {
+          _cachedGoogleMapsApiKey = key;
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('cached_google_maps_api_key', key);
+          } catch (_) {}
+        }
+        return data;
+      }
+    } catch (_) {}
+    return <String, dynamic>{};
+  }
+
   // === WebRTC Monitoring ===
   Future<Map<String, dynamic>> activateMonitoring(int childId) async {
     return await _post('/api/monitor/activate/', {

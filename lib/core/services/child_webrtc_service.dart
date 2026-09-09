@@ -23,6 +23,9 @@ class ChildWebRTCService {
   String? _sessionToken;
   int _lastSignalId = 0;
 
+  /// Optional callback invoked whenever monitoring session finishes or stops.
+  VoidCallback? onSessionEnded;
+
   String? get activeSessionToken => _isActive ? _sessionToken : null;
   bool get isActive => _isActive;
 
@@ -461,5 +464,8 @@ class ChildWebRTCService {
     }
 
     _stopping = false;
+    try {
+      onSessionEnded?.call();
+    } catch (_) {}
   }
 }

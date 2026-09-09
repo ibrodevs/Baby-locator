@@ -23,12 +23,51 @@ val keystoreProperties = Properties().apply {
     }
 }
 
+fun parseEnvFile(file: File, props: Properties) {
+    if (!file.exists() || !file.isFile) return
+    try {
+        file.forEachLine { rawLine ->
+            val line = rawLine.trim()
+            if (line.isNotEmpty() && !line.startsWith("#") && line.contains("=")) {
+                val idx = line.indexOf("=")
+                val key = line.substring(0, idx).trim()
+                var value = line.substring(idx + 1).trim()
+                if ((value.startsWith("\"") && value.endsWith("\"")) ||
+                    (value.startsWith("'") && value.endsWith("'"))) {
+                    value = value.substring(1, value.length - 1)
+                }
+                if (key.isNotEmpty()) {
+                    props.setProperty(key, value)
+                }
+            }
+        }
+    } catch (_: Exception) {}
+}
+
+val backendEnvProperties = Properties().apply {
+    val candidates = listOf(
+        rootProject.file("../../Baby-locator-backend/.env"),
+        rootProject.file("../Baby-locator-backend/.env"),
+        rootProject.file("../../backend/.env"),
+        rootProject.file("../backend/.env"),
+        File("/var/www/Baby-locator-backend/.env"),
+        rootProject.file("../.env"),
+        rootProject.file(".env"),
+    )
+    for (candidate in candidates) {
+        parseEnvFile(candidate, this)
+    }
+}
+
 fun propertyOrEnv(name: String, defaultValue: String = ""): String {
     val gradleValue = providers.gradleProperty(name).orNull?.trim().orEmpty()
     if (gradleValue.isNotEmpty()) return gradleValue
 
     val envValue = providers.environmentVariable(name).orNull?.trim().orEmpty()
     if (envValue.isNotEmpty()) return envValue
+
+    val backendEnvValue = backendEnvProperties.getProperty(name)?.trim().orEmpty()
+    if (backendEnvValue.isNotEmpty()) return backendEnvValue
 
     val localValue = localProperties.getProperty(name)?.trim().orEmpty()
     if (localValue.isNotEmpty()) return localValue
@@ -44,10 +83,11 @@ val appApplicationId = propertyOrEnv(
     name = "APP_APPLICATION_ID",
     defaultValue = appNamespace,
 )
-val googleMapsApiKey = propertyOrEnv(
-    name = "GOOGLE_MAPS_ANDROID_API_KEY",
-    defaultValue = "AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8",
-)
+val googleMapsApiKey = sequenceOf(
+    propertyOrEnv("GOOGLE_MAPS_ANDROID_API_KEY"),
+    propertyOrEnv("GOOGLE_MAPS_API_KEY"),
+    propertyOrEnv("MAPS_API_KEY"),
+).firstOrNull { it.isNotEmpty() } ?: "AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8"
 
 fun signingProperty(
     fileKey: String,

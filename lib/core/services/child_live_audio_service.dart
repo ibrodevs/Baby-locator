@@ -35,6 +35,11 @@ class ChildLiveAudioService {
     _started = true;
 
     _startSub = _service.on('webrtc_monitor_start_ui').listen((data) async {
+      final handled = data?['handled_by_background'] == true;
+      if (handled) {
+        // Handled directly in background foreground service with active microphone service.
+        return;
+      }
       final sessionToken = data?['session_token'] as String? ?? '';
       if (sessionToken.isEmpty) return;
       await _consumeSession(sessionToken);
@@ -48,11 +53,12 @@ class ChildLiveAudioService {
       }
     });
 
-    // Cold-boot recovery: if the main isolate was launched by the listen
-    // full-screen-intent while the screen was locked, the background isolate
-    // already handled the FCM and the `webrtc_monitor_start_ui` event fired
-    // before we subscribed. Recover the pending session from disk.
-    await _resumePendingSession();
+    // Cold-boot recovery: if the main isolate was launched while screen was locked,
+    // only resume if the background service is NOT already running.
+    final bgRunning = await _service.isRunning();
+    if (!bgRunning) {
+      await _resumePendingSession();
+    }
   }
 
   Future<void> _resumePendingSession() async {

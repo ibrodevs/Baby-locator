@@ -20,6 +20,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'api_client.dart';
 import 'app_blocking_service.dart';
+import 'child_webrtc_service.dart';
 
 bool _backgroundServiceConfigured = false;
 
@@ -150,6 +151,7 @@ class _BackgroundCommandHandler {
   final KidSecurityAroundRecorderBridge _nativeAroundRecorder =
       const KidSecurityAroundRecorderBridge();
   final Battery _battery = Battery();
+  final ChildWebRTCService _childWebRTC = ChildWebRTCService();
 
   Timer? _pollTimer;
   Timer? _telemetryTimer;
@@ -185,6 +187,7 @@ class _BackgroundCommandHandler {
     await _alarmPlayer.setReleaseMode(ReleaseMode.loop);
     await _ensureAlarmFile();
     _resetNotification();
+    _childWebRTC.onSessionEnded = _resetNotification;
     await _startTelemetry();
     if (Platform.isAndroid) {
       await _enforceBlockedApps();
@@ -246,7 +249,7 @@ class _BackgroundCommandHandler {
     await _batterySub?.cancel();
     await _alarmPlayer.stop();
     await _stopAroundSession();
-    _service.invoke('webrtc_monitor_stop_ui');
+    await _stopWebrtcSession();
   }
 
   Future<void> _startTelemetry() async {
@@ -539,14 +542,7 @@ class _BackgroundCommandHandler {
         await _startWebrtcSession(sessionToken);
         return;
       case 'webrtc_monitor_stop':
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('pending_webrtc_session_token');
-        await prefs.remove('pending_webrtc_session_at_ms');
-        if (Platform.isAndroid) {
-          await _nativeAroundRecorder.stopMicrophoneService();
-        }
-        _service.invoke('webrtc_monitor_stop_ui');
-        _resetNotification();
+        await _stopWebrtcSession();
         return;
       case 'sync_blocked_apps':
         List<String> packages = [];
@@ -763,10 +759,12 @@ class _BackgroundCommandHandler {
     // 3. Fallback to Google Maps Geocoding API if still empty.
     if (address == null || address.isEmpty) {
       try {
+        final dynamicKey = await ApiClient.instance.getGoogleMapsApiKey();
+        final key = (dynamicKey != null && dynamicKey.isNotEmpty) ? dynamicKey : _googleApiKey;
         final uri = Uri.parse(
           'https://maps.googleapis.com/maps/api/geocode/json'
           '?latlng=$lat,$lng'
-          '&key=$_googleApiKey'
+          '&key=$key'
           '&language=$_localeCode',
         );
         final response = await http.get(uri).timeout(const Duration(seconds: 5));
@@ -868,13 +866,6 @@ class _BackgroundCommandHandler {
   }
 
   // ---- WebRTC live audio ----
-  //
-  // Note: `flutter_webrtc` cannot run from this background isolate — its
-  // native side calls `Context.registerReceiver(...)` on a null Context and
-  // crashes inside `getUserMedia`. The start command is therefore relayed
-  // to the UI isolate, which only works while the child's app is in the
-  // foreground. Real-time audio when the screen is locked is handled by the
-  // `_startAroundSession` clip pipeline below instead.
 
   Future<void> _startWebrtcSession(String sessionToken) async {
     if (_service case final AndroidServiceInstance androidService) {
@@ -883,9 +874,6 @@ class _BackgroundCommandHandler {
         content: _t.liveAudioStreamingToParent,
       );
     }
-    // Persist for the main isolate. If the UI is still cold-booting (FCM
-    // arrived while screen was locked), the main isolate will read this on
-    // start and pick up the session without losing the event.
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('pending_webrtc_session_token', sessionToken);
     await prefs.setInt(
@@ -897,9 +885,33 @@ class _BackgroundCommandHandler {
         await _nativeAroundRecorder.startMicrophoneService();
       } catch (_) {}
     }
+
+    try {
+      await _childWebRTC.startMonitoring(sessionToken);
+    } catch (e) {
+      debugPrint('[BackgroundCommand] _childWebRTC.startMonitoring failed: $e');
+    }
+
     _service.invoke('webrtc_monitor_start_ui', {
       'session_token': sessionToken,
+      'handled_by_background': true,
     });
+  }
+
+  Future<void> _stopWebrtcSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pending_webrtc_session_token');
+    await prefs.remove('pending_webrtc_session_at_ms');
+    try {
+      await _childWebRTC.stopMonitoring();
+    } catch (_) {}
+    if (Platform.isAndroid) {
+      try {
+        await _nativeAroundRecorder.stopMicrophoneService();
+      } catch (_) {}
+    }
+    _service.invoke('webrtc_monitor_stop_ui');
+    _resetNotification();
   }
 
   // ---- Around (microphone) ----

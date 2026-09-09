@@ -9,7 +9,7 @@ import 'package:kid_security/l10n/app_localizations_extras.dart';
 
 import '../../core/services/api_client.dart';
 import '../../core/services/local_avatar_store.dart';
-import '../../core/services/parent_around_audio_service.dart';
+import '../../core/services/parent_webrtc_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/widgets/app_feedback.dart';
 import '../../core/widgets/brand_header.dart';
@@ -33,11 +33,9 @@ class MenuAroundSoundScreen extends StatefulWidget {
 }
 
 class _MenuAroundSoundScreenState extends State<MenuAroundSoundScreen> {
-  // "Звук вокруг" streams real-time audio via the native Android
-  // foreground service + chunked HTTP upload pipeline (AroundAudioRecorder).
-  // This native background pipeline captures microphone audio reliably even
-  // when the child device is locked or the app is minimized.
-  final ParentAroundAudioService _liveAudio = ParentAroundAudioService();
+  // "Звук вокруг" runs over WebRTC (Opus + jitter buffer + congestion
+  // control) for real-time low-latency audio transmission.
+  final ParentWebRTCService _liveAudio = ParentWebRTCService();
 
   Map<String, dynamic>? _stats;
   bool _starting = false;

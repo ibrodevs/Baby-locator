@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart' as ph;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'api_client.dart';
 
 const _preferredLocaleKey = 'preferred_locale';
 
@@ -313,10 +314,12 @@ class LocationService {
   /// Uses the Google Maps Geocoding HTTP API (reliable on Android).
   Future<String?> _reverseGeocodeGoogle(double lat, double lng) async {
     final languageCode = await _preferredLanguageCode();
+    final dynamicKey = await ApiClient.instance.getGoogleMapsApiKey();
+    final key = (dynamicKey != null && dynamicKey.isNotEmpty) ? dynamicKey : _googleApiKey;
     final uri = Uri.parse(
       'https://maps.googleapis.com/maps/api/geocode/json'
       '?latlng=$lat,$lng'
-      '&key=$_googleApiKey'
+      '&key=$key'
       '&language=$languageCode',
     );
     final response = await http.get(uri).timeout(const Duration(seconds: 5));
