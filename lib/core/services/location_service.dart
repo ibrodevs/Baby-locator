@@ -168,14 +168,24 @@ class LocationService {
       address = await _reverseGeocodeNative(p.latitude, p.longitude) ?? '';
     } catch (_) {}
 
-    // 2. Fallback to Google HTTP geocoder if native produced nothing.
+    // 2. Fallback to OpenStreetMap Nominatim if native produced no address or only street without house number.
+    if (address.trim().isEmpty || !_hasHouseNumber(address)) {
+      try {
+        final osmAddress = await _reverseGeocodeNominatim(p.latitude, p.longitude);
+        if (osmAddress != null && osmAddress.trim().isNotEmpty) {
+          address = osmAddress.trim();
+        }
+      } catch (_) {}
+    }
+
+    // 3. Fallback to Google HTTP geocoder if still empty.
     if (address.trim().isEmpty) {
       try {
         address = await _reverseGeocodeGoogle(p.latitude, p.longitude) ?? '';
       } catch (_) {}
     }
 
-    // 3. Guarantee that address is NEVER empty string, preventing UI from hanging on "Resolving address...".
+    // 4. Guarantee that address is NEVER empty string, preventing UI from hanging on "Resolving address...".
     if (address.trim().isEmpty) {
       address = '${p.latitude.toStringAsFixed(5)}, ${p.longitude.toStringAsFixed(5)}';
     }
@@ -183,36 +193,121 @@ class LocationService {
     return LocationFix(lat: p.latitude, lng: p.longitude, address: address);
   }
 
-  /// Uses the native Geocoder (reliable on iOS).
+  static bool _hasHouseNumber(String address) {
+    return RegExp(r'\d').hasMatch(address);
+  }
+
+  /// Uses the native Geocoder (reliable on iOS and Android).
   Future<String?> _reverseGeocodeNative(double lat, double lng) async {
     await setLocaleIdentifier(await _preferredLocaleTag());
     final places = await placemarkFromCoordinates(lat, lng);
     if (places.isEmpty) return null;
-    final pl = places.first;
+    return _formatPlacemark(places.first);
+  }
 
-    // Build a precise address: street + house number, district, city.
+  /// Formats a Placemark prioritizing exact house number and street name.
+  static String? _formatPlacemark(Placemark pl) {
     final thoroughfare = (pl.thoroughfare ?? '').trim();
     final subThoroughfare = (pl.subThoroughfare ?? '').trim();
+    final street = (pl.street ?? '').trim();
+    final name = (pl.name ?? '').trim();
     final subLocality = (pl.subLocality ?? '').trim();
     final locality = (pl.locality ?? '').trim();
 
-    // Combine street name and house number.
     String streetPart = '';
+
+    // 1. If both thoroughfare (street) and subThoroughfare (house number) exist:
     if (thoroughfare.isNotEmpty && subThoroughfare.isNotEmpty) {
-      streetPart = '$thoroughfare $subThoroughfare';
-    } else if (thoroughfare.isNotEmpty) {
-      streetPart = thoroughfare;
-    } else if ((pl.street ?? '').trim().isNotEmpty) {
-      // Fallback: some platforms put the full address in `street`.
-      streetPart = pl.street!.trim();
+      streetPart = '$thoroughfare, $subThoroughfare';
+    }
+    // 2. If street already contains digits (house number included):
+    else if (street.isNotEmpty && RegExp(r'\d').hasMatch(street)) {
+      streetPart = street;
+    }
+    // 3. If name contains digits and differs from thoroughfare (e.g. name="158", thoroughfare="ул. Киевская"):
+    else if (thoroughfare.isNotEmpty &&
+        name.isNotEmpty &&
+        name != thoroughfare &&
+        RegExp(r'\d').hasMatch(name)) {
+      streetPart = '$thoroughfare, $name';
+    }
+    // 4. If street is provided and non-empty:
+    else if (street.isNotEmpty) {
+      if (name.isNotEmpty && name != street && RegExp(r'\d').hasMatch(name)) {
+        streetPart = '$street, $name';
+      } else {
+        streetPart = street;
+      }
+    }
+    // 5. Fall back to thoroughfare with name:
+    else if (thoroughfare.isNotEmpty) {
+      if (name.isNotEmpty && name != thoroughfare) {
+        streetPart = '$thoroughfare, $name';
+      } else {
+        streetPart = thoroughfare;
+      }
+    } else if (name.isNotEmpty) {
+      streetPart = name;
     }
 
     final parts = [
       if (streetPart.isNotEmpty) streetPart,
-      if (subLocality.isNotEmpty && subLocality != streetPart) subLocality,
+      if (subLocality.isNotEmpty && subLocality != streetPart && subLocality != locality) subLocality,
       if (locality.isNotEmpty) locality,
     ];
     return parts.isNotEmpty ? parts.join(', ') : null;
+  }
+
+  /// OpenStreetMap Nominatim reverse geocoding fallback for exact street and house number.
+  Future<String?> _reverseGeocodeNominatim(double lat, double lng) async {
+    final languageCode = await _preferredLanguageCode();
+    final uri = Uri.parse(
+      'https://nominatim.openstreetmap.org/reverse'
+      '?lat=$lat&lon=$lng'
+      '&format=json'
+      '&accept-language=$languageCode',
+    );
+    final response = await http.get(
+      uri,
+      headers: const {
+        'User-Agent': 'BabyLocatorApp/1.0 (support@baby-locator.online)',
+      },
+    ).timeout(const Duration(seconds: 4));
+
+    if (response.statusCode != 200) return null;
+    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    final address = json['address'] as Map<String, dynamic>?;
+    if (address == null) {
+      final displayName = json['display_name'] as String?;
+      return (displayName != null && displayName.isNotEmpty) ? displayName : null;
+    }
+
+    final road = (address['road'] ?? address['pedestrian'] ?? address['street'] ?? '').toString().trim();
+    final houseNumber = (address['house_number'] ?? '').toString().trim();
+    final district = (address['city_district'] ?? address['suburb'] ?? address['neighbourhood'] ?? '').toString().trim();
+    final city = (address['city'] ?? address['town'] ?? address['village'] ?? address['county'] ?? '').toString().trim();
+
+    String streetPart = '';
+    if (road.isNotEmpty && houseNumber.isNotEmpty) {
+      streetPart = '$road, $houseNumber';
+    } else if (road.isNotEmpty) {
+      streetPart = road;
+    } else if (houseNumber.isNotEmpty) {
+      streetPart = houseNumber;
+    }
+
+    final parts = [
+      if (streetPart.isNotEmpty) streetPart,
+      if (district.isNotEmpty && district != streetPart && district != city) district,
+      if (city.isNotEmpty) city,
+    ];
+
+    if (parts.isNotEmpty) {
+      return parts.join(', ');
+    }
+
+    final displayName = json['display_name'] as String?;
+    return (displayName != null && displayName.isNotEmpty) ? displayName : null;
   }
 
   /// Uses the Google Maps Geocoding HTTP API (reliable on Android).

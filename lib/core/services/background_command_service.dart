@@ -629,24 +629,99 @@ class _BackgroundCommandHandler {
       final pl = places.first;
       final thoroughfare = (pl.thoroughfare ?? '').trim();
       final subThoroughfare = (pl.subThoroughfare ?? '').trim();
+      final street = (pl.street ?? '').trim();
+      final name = (pl.name ?? '').trim();
       final subLocality = (pl.subLocality ?? '').trim();
       final locality = (pl.locality ?? '').trim();
 
       String streetPart = '';
       if (thoroughfare.isNotEmpty && subThoroughfare.isNotEmpty) {
-        streetPart = '$thoroughfare $subThoroughfare';
+        streetPart = '$thoroughfare, $subThoroughfare';
+      } else if (street.isNotEmpty && RegExp(r'\d').hasMatch(street)) {
+        streetPart = street;
+      } else if (thoroughfare.isNotEmpty &&
+          name.isNotEmpty &&
+          name != thoroughfare &&
+          RegExp(r'\d').hasMatch(name)) {
+        streetPart = '$thoroughfare, $name';
+      } else if (street.isNotEmpty) {
+        if (name.isNotEmpty && name != street && RegExp(r'\d').hasMatch(name)) {
+          streetPart = '$street, $name';
+        } else {
+          streetPart = street;
+        }
       } else if (thoroughfare.isNotEmpty) {
-        streetPart = thoroughfare;
-      } else if ((pl.street ?? '').trim().isNotEmpty) {
-        streetPart = pl.street!.trim();
+        if (name.isNotEmpty && name != thoroughfare) {
+          streetPart = '$thoroughfare, $name';
+        } else {
+          streetPart = thoroughfare;
+        }
+      } else if (name.isNotEmpty) {
+        streetPart = name;
       }
 
       final parts = [
         if (streetPart.isNotEmpty) streetPart,
-        if (subLocality.isNotEmpty && subLocality != streetPart) subLocality,
+        if (subLocality.isNotEmpty && subLocality != streetPart && subLocality != locality) subLocality,
         if (locality.isNotEmpty) locality,
       ];
       return parts.isNotEmpty ? parts.join(', ') : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// OpenStreetMap Nominatim reverse geocoding fallback for exact street and house number.
+  Future<String?> _reverseGeocodeNominatim(double lat, double lng) async {
+    try {
+      final lang = _localeCode.isNotEmpty ? _localeCode : 'ru';
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse'
+        '?lat=$lat&lon=$lng'
+        '&format=json'
+        '&accept-language=$lang',
+      );
+      final response = await http.get(
+        uri,
+        headers: const {
+          'User-Agent': 'BabyLocatorApp/1.0 (support@baby-locator.online)',
+        },
+      ).timeout(const Duration(seconds: 4));
+
+      if (response.statusCode != 200) return null;
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      final address = json['address'] as Map<String, dynamic>?;
+      if (address == null) {
+        final displayName = json['display_name'] as String?;
+        return (displayName != null && displayName.isNotEmpty) ? displayName : null;
+      }
+
+      final road = (address['road'] ?? address['pedestrian'] ?? address['street'] ?? '').toString().trim();
+      final houseNumber = (address['house_number'] ?? '').toString().trim();
+      final district = (address['city_district'] ?? address['suburb'] ?? address['neighbourhood'] ?? '').toString().trim();
+      final city = (address['city'] ?? address['town'] ?? address['village'] ?? address['county'] ?? '').toString().trim();
+
+      String streetPart = '';
+      if (road.isNotEmpty && houseNumber.isNotEmpty) {
+        streetPart = '$road, $houseNumber';
+      } else if (road.isNotEmpty) {
+        streetPart = road;
+      } else if (houseNumber.isNotEmpty) {
+        streetPart = houseNumber;
+      }
+
+      final parts = [
+        if (streetPart.isNotEmpty) streetPart,
+        if (district.isNotEmpty && district != streetPart && district != city) district,
+        if (city.isNotEmpty) city,
+      ];
+
+      if (parts.isNotEmpty) {
+        return parts.join(', ');
+      }
+
+      final displayName = json['display_name'] as String?;
+      return (displayName != null && displayName.isNotEmpty) ? displayName : null;
     } catch (_) {
       return null;
     }
@@ -675,7 +750,17 @@ class _BackgroundCommandHandler {
       address = await _reverseGeocodeNative(lat, lng);
     } catch (_) {}
 
-    // 2. Fallback to Google Maps Geocoding API if native fails.
+    // 2. Fallback to OpenStreetMap Nominatim if native produced no address or only street without house number.
+    if (address == null || address.isEmpty || !RegExp(r'\d').hasMatch(address)) {
+      try {
+        final osmAddress = await _reverseGeocodeNominatim(lat, lng);
+        if (osmAddress != null && osmAddress.trim().isNotEmpty) {
+          address = osmAddress.trim();
+        }
+      } catch (_) {}
+    }
+
+    // 3. Fallback to Google Maps Geocoding API if still empty.
     if (address == null || address.isEmpty) {
       try {
         final uri = Uri.parse(
@@ -711,7 +796,7 @@ class _BackgroundCommandHandler {
       } catch (_) {}
     }
 
-    // 3. Fallback to coordinate string so address is never null/empty.
+    // 4. Fallback to coordinate string so address is never null/empty.
     if (address == null || address.isEmpty) {
       address = '${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)}';
     }

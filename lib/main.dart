@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
@@ -62,6 +64,20 @@ Future<void> _initializeStartupServices() async {
     await Firebase.initializeApp().timeout(const Duration(seconds: 5));
     await FcmService.instance.initialize().timeout(const Duration(seconds: 8));
     await initBackgroundCommandService().timeout(const Duration(seconds: 5));
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        final GoogleMapsFlutterPlatform mapsImplementation =
+            GoogleMapsFlutterPlatform.instance;
+        if (mapsImplementation is GoogleMapsFlutterAndroid) {
+          mapsImplementation.useAndroidViewSurface = true;
+          await mapsImplementation
+              .initializeWithRenderer(AndroidMapRenderer.latest)
+              .timeout(const Duration(seconds: 3));
+        }
+      } catch (e) {
+        debugPrint('Google Maps renderer initialization: $e');
+      }
+    }
   } catch (error, stackTrace) {
     debugPrint('Startup service initialization failed: $error');
     debugPrintStack(stackTrace: stackTrace);

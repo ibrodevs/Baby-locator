@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:kid_security/l10n/app_localizations_extras.dart';
 import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 
 import 'api_client.dart';
 
 /// Parent-side live audio built on a single continuous PCM stream.
 class ParentAroundAudioService {
+  String _tr(Map<String, String> values) => pickLocalizedExtra(
+      ui.PlatformDispatcher.instance.locale.toLanguageTag(), values);
+
   final KidSecurityLiveAudioBridge _playerBridge =
       const KidSecurityLiveAudioBridge();
 
@@ -36,7 +41,10 @@ class ParentAroundAudioService {
     _childId = childId;
 
     try {
-      onStatus?.call('Подключаемся к телефону ребёнка...');
+      onStatus?.call(_tr({
+        'en': 'Connecting to child\'s phone...',
+        'ru': 'Подключаемся к телефону ребёнка...',
+      }));
       final response = await ApiClient.instance.startAround(childId);
       final sessionToken = _extractSessionToken(response);
       if (sessionToken == null || sessionToken.isEmpty) {
@@ -44,7 +52,10 @@ class ParentAroundAudioService {
       }
 
       _sessionToken = sessionToken;
-      onStatus?.call('Открываем непрерывный аудиоканал...');
+      onStatus?.call(_tr({
+        'en': 'Opening continuous audio stream...',
+        'ru': 'Открываем непрерывный аудиоканал...',
+      }));
 
       final liveResponse = await ApiClient.instance.openLiveAroundAudioStream(
         childId,
@@ -74,7 +85,10 @@ class ParentAroundAudioService {
         channels: channels,
       );
       await _playerBridge.start();
-      onStatus?.call('Ждём первый звук...');
+      onStatus?.call(_tr({
+        'en': 'Waiting for first audio...',
+        'ru': 'Ждём первый звук...',
+      }));
 
       _streamTask = _consumeLiveStream(liveResponse);
       // No auto-stop watchdog. FCM delivery, Android Doze release, and a
@@ -85,21 +99,28 @@ class ParentAroundAudioService {
       // listening manually if they decide it's taking too long.
       _connectWatchdog = Timer(const Duration(seconds: 15), () {
         if (!_isListening || _audioStartedNotified) return;
-        onStatus?.call(
-          'Будим телефон ребёнка и открываем микрофон. '
-          'На заблокированном экране это может занять до минуты.',
-        );
+        onStatus?.call(_tr({
+          'en':
+              'Waking child\'s phone and opening microphone. This may take up to a minute on a locked screen.',
+          'ru':
+              'Будим телефон ребёнка и открываем микрофон. На заблокированном экране это может занять до минуты.',
+        }));
         _connectWatchdog = Timer(const Duration(seconds: 45), () {
           if (!_isListening || _audioStartedNotified) return;
-          onStatus?.call(
-            'Всё ещё ждём первый звук — телефон ребёнка пока не отвечает. '
-            'Можете нажать «Стоп», если не хотите больше ждать.',
-          );
+          onStatus?.call(_tr({
+            'en':
+                'Still waiting for audio from child\'s phone. You can tap "Stop" if you do not want to wait longer.',
+            'ru':
+                'Всё ещё ждём первый звук — телефон ребёнка пока не отвечает. Можете нажать «Стоп», если не хотите больше ждать.',
+          }));
         });
       });
     } catch (e) {
       debugPrint('[ParentAroundAudio] startListening error: $e');
-      onError?.call('Сбой запуска прослушивания: $e');
+      onError?.call(_tr({
+        'en': 'Failed to start listening: $e',
+        'ru': 'Сбой запуска прослушивания: $e',
+      }));
       await stopListening();
     }
   }
@@ -121,7 +142,10 @@ class ParentAroundAudioService {
           _connectWatchdog?.cancel();
           _connectWatchdog = null;
           onAudioStarted?.call();
-          onStatus?.call('Слушаем окружение рядом с ребёнком...');
+          onStatus?.call(_tr({
+            'en': 'Listening to surroundings near child...',
+            'ru': 'Слушаем окружение рядом с ребёнком...',
+          }));
         }
 
         await _playerBridge.appendPcm(Uint8List.fromList(chunk));
@@ -129,13 +153,19 @@ class ParentAroundAudioService {
 
       if (_isListening && !_stopping) {
         onAudioStopped?.call();
-        onStatus?.call('Аудиоканал завершён.');
+        onStatus?.call(_tr({
+          'en': 'Audio stream ended.',
+          'ru': 'Аудиоканал завершён.',
+        }));
         await stopListening();
       }
     } catch (e) {
       debugPrint('[ParentAroundAudio] live stream error: $e');
       if (_isListening && !_stopping) {
-        onError?.call('Поток аудио оборвался: $e');
+        onError?.call(_tr({
+          'en': 'Audio stream interrupted: $e',
+          'ru': 'Поток аудио оборвался: $e',
+        }));
         await stopListening();
       }
     } finally {
