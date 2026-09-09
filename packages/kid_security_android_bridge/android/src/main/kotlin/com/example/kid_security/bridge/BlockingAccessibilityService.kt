@@ -2,30 +2,46 @@ package com.example.kid_security.bridge
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.app.AppOpsManager
+import android.app.usage.UsageEvents
+import android.app.usage.UsageStatsManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.Process
 import android.os.SystemClock
 import android.provider.Settings
 import android.text.TextUtils
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
-import android.view.accessibility.AccessibilityWindowInfo
 
+/**
+ * Privacy-hardened AccessibilityService for parental app blocking.
+ *
+ * Scope minimization:
+ * - canRetrieveWindowContent is set to false in XML configuration.
+ * - FLAG_DEFAULT is used; interactive window inspection and view ID reporting are omitted.
+ * - Detection relies strictly on AccessibilityEvent.packageName from TYPE_WINDOW_STATE_CHANGED.
+ * - Safe fallback to UsageStatsManager queryEvents when event delivery is delayed.
+ * - No screen text, node hierarchy, messages, passwords, addresses, or keystrokes are accessed.
+ */
 class BlockingAccessibilityService : AccessibilityService() {
     private val homePackages by lazy { resolveHomePackages(applicationContext) }
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile
+    private var lastObservedPackage: String? = null
     private var lastInterceptPackage: String? = null
     private var lastInterceptAtMs: Long = 0L
     private var lastBlockScreenAtMs: Long = 0L
+
     private val pollRunnable = object : Runnable {
         override fun run() {
             try {
                 checkForeground()
             } catch (_: Throwable) {
-                // ignore — accessibility service must never crash
+                // Best effort — accessibility service must never crash
             }
             mainHandler.postDelayed(this, POLL_INTERVAL_MS)
         }
@@ -33,15 +49,10 @@ class BlockingAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        // Make sure flags survive runtime — older Android versions sometimes
-        // ignore manifest flags when the service is rebound.
         try {
             serviceInfo = serviceInfo?.apply {
-                eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                    AccessibilityEvent.TYPE_WINDOWS_CHANGED
-                flags = (flags or
-                    AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS or
-                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS)
+                eventTypes = AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                flags = AccessibilityServiceInfo.FLAG_DEFAULT
                 notificationTimeout = 100L
             }
         } catch (_: Throwable) {
@@ -51,17 +62,18 @@ class BlockingAccessibilityService : AccessibilityService() {
         mainHandler.postDelayed(pollRunnable, POLL_INTERVAL_MS)
     }
 
-    override fun onUnbind(intent: android.content.Intent?): Boolean {
+    override fun onUnbind(intent: Intent?): Boolean {
         mainHandler.removeCallbacks(pollRunnable)
         return super.onUnbind(intent)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
-        when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED,
-            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-                checkForeground(eventPackage = event.packageName?.toString())
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            val pkg = event.packageName?.toString()
+            if (!pkg.isNullOrBlank()) {
+                lastObservedPackage = pkg
+                checkForeground(eventPackage = pkg)
             }
         }
     }
@@ -73,8 +85,7 @@ class BlockingAccessibilityService : AccessibilityService() {
     private fun checkForeground(eventPackage: String? = null) {
         val pkg = resolveForegroundPackage(eventPackage) ?: return
         if (pkg == packageName) {
-            // Our own UI (e.g. AppBlockedActivity) is on top — clear the
-            // last-intercept latch so the very next attempt re-fires fast.
+            // Our own UI (e.g. AppBlockedActivity) is on top — clear intercept latch
             lastInterceptPackage = null
             return
         }
@@ -88,17 +99,12 @@ class BlockingAccessibilityService : AccessibilityService() {
         }
 
         val now = SystemClock.elapsedRealtime()
-        // Tiny dedupe window — only suppress duplicate triggers that fire in
-        // the same hundred-millisecond burst from multiple events. Long
-        // cooldowns let users keep using a blocked app if back/home failed.
         if (lastInterceptPackage == pkg && now - lastInterceptAtMs < INTERCEPT_DEDUPE_MS) {
             return
         }
         lastInterceptPackage = pkg
         lastInterceptAtMs = now
 
-        // Try several escape routes in order — back first (cheapest, less
-        // disruptive); if it doesn't take us out within a tick, force home.
         val movedBack = performGlobalAction(GLOBAL_ACTION_BACK)
         mainHandler.postDelayed({
             val current = resolveForegroundPackage()
@@ -129,45 +135,73 @@ class BlockingAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * Picks the most reliable "what is the user actually looking at" answer.
-     * `event.packageName` lies when an in-app dialog/popup/toast is showing,
-     * so we prefer the active window from the live `windows` list and fall
-     * back to event-derived data only when nothing else is available.
+     * Resolves the foreground package identifier without traversing window content.
+     * 1. Uses event package hint if provided.
+     * 2. Falls back to last observed package from TYPE_WINDOW_STATE_CHANGED.
+     * 3. Falls back to UsageStatsManager queryEvents if available.
      */
     private fun resolveForegroundPackage(hintFromEvent: String? = null): String? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                val windowList: List<AccessibilityWindowInfo> = windows ?: emptyList()
-                // Prefer the active+focused application window.
-                val candidates = windowList
-                    .filter { it.type == AccessibilityWindowInfo.TYPE_APPLICATION }
-                    .sortedWith(
-                        compareByDescending<AccessibilityWindowInfo> { it.isActive }
-                            .thenByDescending { it.isFocused },
-                    )
-                for (window in candidates) {
-                    val root: AccessibilityNodeInfo? = try {
-                        window.root
-                    } catch (_: Throwable) {
-                        null
+        val direct = hintFromEvent?.takeIf { it.isNotBlank() }
+        if (direct != null) return direct
+
+        val cached = lastObservedPackage?.takeIf { it.isNotBlank() }
+        if (cached != null) return cached
+
+        return getForegroundPackageFromUsageStats()
+    }
+
+    private fun getForegroundPackageFromUsageStats(): String? {
+        if (!hasUsageStatsPermission()) return null
+        return try {
+            val usageStatsManager =
+                applicationContext.getSystemService(Context.USAGE_STATS_SERVICE) as? UsageStatsManager
+                    ?: return null
+            val now = System.currentTimeMillis()
+            val events = usageStatsManager.queryEvents(now - 15_000, now)
+            val event = UsageEvents.Event()
+            var currentPackage: String? = null
+
+            while (events.hasNextEvent()) {
+                events.getNextEvent(event)
+                val pkg = event.packageName ?: continue
+                when (event.eventType) {
+                    UsageEvents.Event.ACTIVITY_RESUMED,
+                    UsageEvents.Event.MOVE_TO_FOREGROUND -> {
+                        currentPackage = pkg
                     }
-                    val pkg = root?.packageName?.toString()
-                    if (!pkg.isNullOrBlank()) return pkg
+                    UsageEvents.Event.ACTIVITY_PAUSED,
+                    UsageEvents.Event.ACTIVITY_STOPPED,
+                    UsageEvents.Event.MOVE_TO_BACKGROUND -> {
+                        if (pkg == currentPackage) {
+                            currentPackage = null
+                        }
+                    }
                 }
-            } catch (_: Throwable) {
-                // ignore — fall through to other strategies
             }
-        }
-
-        try {
-            val rootNode: AccessibilityNodeInfo? = rootInActiveWindow
-            val rootPkg = rootNode?.packageName?.toString()
-            if (!rootPkg.isNullOrBlank()) return rootPkg
+            currentPackage
         } catch (_: Throwable) {
-            // ignore
+            null
         }
+    }
 
-        return hintFromEvent?.takeIf { it.isNotBlank() }
+    private fun hasUsageStatsPermission(): Boolean {
+        val appOps = applicationContext.getSystemService(Context.APP_OPS_SERVICE) as? AppOpsManager
+            ?: return false
+        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            appOps.unsafeCheckOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                applicationContext.packageName,
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            appOps.checkOpNoThrow(
+                AppOpsManager.OPSTR_GET_USAGE_STATS,
+                Process.myUid(),
+                applicationContext.packageName,
+            )
+        }
+        return mode == AppOpsManager.MODE_ALLOWED
     }
 
     private fun appLabelFor(packageName: String): String {
@@ -243,8 +277,8 @@ class BlockingAccessibilityService : AccessibilityService() {
         }
 
         private fun resolveHomePackages(context: Context): Set<String> {
-            val intent = android.content.Intent(android.content.Intent.ACTION_MAIN).apply {
-                addCategory(android.content.Intent.CATEGORY_HOME)
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
             }
             return context.packageManager
                 .queryIntentActivities(intent, 0)

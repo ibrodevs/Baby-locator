@@ -2720,8 +2720,8 @@ extension SExtras on S {
       });
 
   String get accessibilityDisclosureTitle => _pick({
-        'en': 'Parental App Blocking',
-        'ru': 'Родительский контроль: Блокировка приложений',
+        'en': 'Accessibility access for App Blocking',
+        'ru': 'Специальные возможности для блокировки приложений',
       });
 
   String get accessibilityDisclosureSubtitle => _pick({
@@ -2731,37 +2731,26 @@ extension SExtras on S {
 
   String get accessibilityDisclosureBody => _pick({
         'en':
-            'Baby Locator uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
-            'How it works:\n'
-            '• Detects the package name of the currently active foreground app.\n'
-            '• If the opened app has been restricted by a parent, Baby Locator automatically displays a blocking screen and restricts access.\n'
-            '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
-            'Privacy & Safety Guarantee:\n'
-            '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
-            '• It only determines which application is active on screen for parental blocking.\n'
-            '• No data from AccessibilityService is ever sold or shared with third parties.',
+            'Baby Locator uses Android AccessibilityService on this child device to detect which app is currently open. The service uses the foreground app\'s package identifier to enforce App Blocking and Screen Time rules configured by the linked parent.\n\n'
+            'Baby Locator does not use AccessibilityService to collect screen text, messages, passwords, phone numbers, addresses, payment information, photos, or keystrokes.\n\n'
+            'When a blocked app is opened, Baby Locator closes it and displays the blocking screen.\n\n'
+            'Accessibility access is optional until the parent/child enables App Blocking.',
         'ru':
-            'Baby Locator использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
-            'Как это работает:\n'
-            '• Сервис определяет имя открытого приложения на переднем плане.\n'
-            '• Если открытое приложение входит в список ограниченных родителем, Baby Locator автоматически закрывает его и показывает экран блокировки.\n'
-            '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
-            'Гарантия безопасности и конфиденциальности:\n'
-            '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'
-            '• Сервис считывает только имя пакета запущенного приложения для функции блокировки.\n'
-            '• Данные специальных возможностей никогда не продаются и не передаются третьим лицам.',
+            'Baby Locator использует Android AccessibilityService на этом детском устройстве для определения открытого приложения на переднем плане. Сервис использует только идентификатор пакета (package name) для соблюдения правил блокировки приложений и экранного времени, установленных родителем.\n\n'
+            'Baby Locator НЕ использует AccessibilityService для чтения текста с экрана, сообщений, паролей, номеров телефонов, адресов, платежной информации, фотографий или нажатий клавиш.\n\n'
+            'Когда открывается заблокированное приложение, Baby Locator закрывает его и показывает экран блокировки.\n\n'
+            'Предоставление доступа опционально до включения родителем или ребёнком блокировки приложений.',
       });
 
   String get accessibilityDisclosureAgree => _pick({
-        'en': 'Continue to Settings',
-        'ru': 'Перейти в настройки',
+        'en': 'Continue',
+        'ru': 'Продолжить',
       });
 
   String get accessibilityDisclosureCancel => _pick({
-        'en': 'Cancel',
-        'ru': 'Отмена',
+        'en': 'Not now',
+        'ru': 'Не сейчас',
       });
-}
 
 class ExtraTranslations {
   const ExtraTranslations(this.localeName);
@@ -4237,8 +4226,8 @@ class ExtraTranslations {
       });
 
   String get accessibilityDisclosureTitle => _pick({
-        'en': 'Parental App Blocking',
-        'ru': 'Родительский контроль: Блокировка приложений',
+        'en': 'Accessibility access for App Blocking',
+        'ru': 'Специальные возможности для блокировки приложений',
       });
 
   String get accessibilityDisclosureSubtitle => _pick({
@@ -4248,34 +4237,23 @@ class ExtraTranslations {
 
   String get accessibilityDisclosureBody => _pick({
         'en':
-            'Baby Locator uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
-            'How it works:\n'
-            '• Detects the package name of the currently active foreground app.\n'
-            '• If the opened app has been restricted by a parent, Baby Locator automatically displays a blocking screen and restricts access.\n'
-            '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
-            'Privacy & Safety Guarantee:\n'
-            '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
-            '• It only determines which application is active on screen for parental blocking.\n'
-            '• No data from AccessibilityService is ever sold or shared with third parties.',
+            'Baby Locator uses Android AccessibilityService on this child device to detect which app is currently open. The service uses the foreground app\'s package identifier to enforce App Blocking and Screen Time rules configured by the linked parent.\n\n'
+            'Baby Locator does not use AccessibilityService to collect screen text, messages, passwords, phone numbers, addresses, payment information, photos, or keystrokes.\n\n'
+            'When a blocked app is opened, Baby Locator closes it and displays the blocking screen.\n\n'
+            'Accessibility access is optional until the parent/child enables App Blocking.',
         'ru':
-            'Baby Locator использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
-            'Как это работает:\n'
-            '• Сервис определяет имя открытого приложения на переднем плане.\n'
-            '• Если открытое приложение входит в список ограниченных родителем, Baby Locator автоматически закрывает его и показывает экран блокировки.\n'
-            '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
-            'Гарантия безопасности и конфиденциальности:\n'
-            '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'
-            '• Сервис считывает только имя пакета запущенного приложения для функции блокировки.\n'
-            '• Данные специальных возможностей никогда не продаются и не передаются третьим лицам.',
+            'Baby Locator использует Android AccessibilityService на этом детском устройстве для определения открытого приложения на переднем плане. Сервис использует только идентификатор пакета (package name) для соблюдения правил блокировки приложений и экранного времени, установленных родителем.\n\n'
+            'Baby Locator НЕ использует AccessibilityService для чтения текста с экрана, сообщений, паролей, номеров телефонов, адресов, платежной информации, фотографий или нажатий клавиш.\n\n'
+            'Когда открывается заблокированное приложение, Baby Locator закрывает его и показывает экран блокировки.\n\n'
+            'Предоставление доступа опционально до включения родителем или ребёнком блокировки приложений.',
       });
 
   String get accessibilityDisclosureAgree => _pick({
-        'en': 'Continue to Settings',
-        'ru': 'Перейти в настройки',
+        'en': 'Continue',
+        'ru': 'Продолжить',
       });
 
   String get accessibilityDisclosureCancel => _pick({
-        'en': 'Cancel',
-        'ru': 'Отмена',
+        'en': 'Not now',
+        'ru': 'Не сейчас',
       });
-}
