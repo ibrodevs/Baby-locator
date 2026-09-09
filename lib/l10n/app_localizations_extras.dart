@@ -2692,6 +2692,7 @@ extension SExtras on S {
         'en':
             'Baby Locator collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
             '• Real-time child location tracking visible to parents on the live map\n'
+            '• Automatic conversion of coordinates into street addresses for location history\n'
             '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
             '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
             'Data Protection & Privacy:\n'
@@ -2701,6 +2702,7 @@ extension SExtras on S {
         'ru':
             'Baby Locator собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
             '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
+            '• Автоматическое преобразование координат в физические адреса для истории перемещений\n'
             '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
             '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
             'Защита данных и конфиденциальность:\n'
@@ -4198,6 +4200,7 @@ class ExtraTranslations {
         'en':
             'Baby Locator collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
             '• Real-time child location tracking visible to parents on the live map\n'
+            '• Automatic conversion of coordinates into street addresses for location history\n'
             '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
             '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
             'Data Protection & Privacy:\n'
@@ -4207,6 +4210,7 @@ class ExtraTranslations {
         'ru':
             'Baby Locator собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
             '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
+            '• Автоматическое преобразование координат в физические адреса для истории перемещений\n'
             '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
             '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
             'Защита данных и конфиденциальность:\n'

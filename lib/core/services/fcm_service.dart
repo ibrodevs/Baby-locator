@@ -14,6 +14,7 @@ import 'api_client.dart';
 import 'background_command_service.dart';
 import 'chat_visibility_service.dart';
 import 'notification_dedupe_store.dart';
+import 'package:kid_security_android_bridge/kid_security_android_bridge.dart';
 
 /// Global navigator key used by the app to push SOS screen from FCM handler.
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -139,9 +140,15 @@ Future<void> _showBackgroundNotification(RemoteMessage message) async {
   var channel = _activityAlertsChannel;
   Importance importance = Importance.high;
 
+  bool canFsi = true;
   if (notificationType == 'sos') {
     channel = _sosAlertsChannel;
     importance = Importance.max;
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        canFsi = await const KidSecurityFullScreenIntentBridge().canUseFullScreenIntent();
+      } catch (_) {}
+    }
   }
 
   await plugin.show(
@@ -166,7 +173,7 @@ Future<void> _showBackgroundNotification(RemoteMessage message) async {
         audioAttributesUsage: notificationType == 'sos'
             ? AudioAttributesUsage.alarm
             : AudioAttributesUsage.notification,
-        fullScreenIntent: notificationType == 'sos',
+        fullScreenIntent: notificationType == 'sos' && canFsi,
       ),
       iOS: DarwinNotificationDetails(
         presentAlert: true,

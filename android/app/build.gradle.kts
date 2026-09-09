@@ -74,9 +74,9 @@ val isReleaseTaskRequested = gradle.startParameter.taskNames.any {
 }
 
 if (isReleaseTaskRequested && !hasReleaseSigning) {
-    logger.warn(
-        "Release signing is not configured. Falling back to debug signing for this build. " +
-            "For production release, create android/key.properties from android/key.properties.example.",
+    throw GradleException(
+        "Release signing is not configured. upload-keystore.jks or signing credentials missing. " +
+            "Silent fallback to debug signing has been disabled for production compliance.",
     )
 }
 
@@ -121,6 +121,8 @@ android {
             isShrinkResources = false
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
+            } else if (isReleaseTaskRequested) {
+                throw GradleException("Release build cannot be signed with debug key.")
             } else {
                 signingConfig = signingConfigs.getByName("debug")
             }

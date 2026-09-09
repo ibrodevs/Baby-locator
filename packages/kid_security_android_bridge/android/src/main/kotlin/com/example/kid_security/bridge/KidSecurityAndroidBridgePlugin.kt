@@ -1,3 +1,5 @@
+import android.app.NotificationManager
+import android.net.Uri
 package com.example.kid_security.bridge
 
 import android.app.AppOpsManager
@@ -34,6 +36,7 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
         private const val VOLUME_CHANNEL = "kid_security/volume"
         private const val LIVE_AUDIO_PLAYER_CHANNEL = "kid_security/live_audio_player"
         private const val AROUND_RECORDER_CHANNEL = "kid_security/around_recorder"
+        private const val FULL_SCREEN_INTENT_CHANNEL = "kid_security/full_screen_intent"
         private var savedVolume: Int = -1
     }
 
@@ -43,6 +46,7 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
     private lateinit var volumeChannel: MethodChannel
     private lateinit var liveAudioPlayerChannel: MethodChannel
     private lateinit var aroundRecorderChannel: MethodChannel
+    private lateinit var fullScreenIntentChannel: MethodChannel
     private val liveAudioPlayer = LiveAudioPlayer()
     private var aroundRecorder: AroundAudioRecorder? = null
     private val homePackages by lazy { resolveHomePackages() }
@@ -70,6 +74,11 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
             binding.binaryMessenger,
             AROUND_RECORDER_CHANNEL,
         )
+        fullScreenIntentChannel = MethodChannel(
+            binding.binaryMessenger,
+            FULL_SCREEN_INTENT_CHANNEL,
+        )
+        fullScreenIntentChannel.setMethodCallHandler(::handleFullScreenIntentMethod)
 
         deviceStatsChannel.setMethodCallHandler(::handleDeviceStatsMethod)
         appBlockingChannel.setMethodCallHandler(::handleAppBlockingMethod)
@@ -84,6 +93,7 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
         volumeChannel.setMethodCallHandler(null)
         liveAudioPlayerChannel.setMethodCallHandler(null)
         aroundRecorderChannel.setMethodCallHandler(null)
+        fullScreenIntentChannel.setMethodCallHandler(null)
         try {
             aroundRecorder?.stop()
         } catch (_: Exception) {
@@ -738,4 +748,35 @@ class KidSecurityAndroidBridgePlugin : FlutterPlugin {
         val totalForegroundMs: Long,
         val lastUsedAt: Long?,
     )
+
+    private fun handleFullScreenIntentMethod(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "canUseFullScreenIntent" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                    result.success(nm?.canUseFullScreenIntent() ?: false)
+                } else {
+                    result.success(true)
+                }
+            }
+            "openFullScreenIntentSettings" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                        data = Uri.parse("package:${applicationContext.packageName}")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        applicationContext.startActivity(intent)
+                        result.success(true)
+                    } catch (e: Exception) {
+                        result.error("settings_error", e.message, null)
+                    }
+                } else {
+                    result.success(true)
+                }
+            }
+            else -> result.notImplemented()
+        }
+    }
+
 }

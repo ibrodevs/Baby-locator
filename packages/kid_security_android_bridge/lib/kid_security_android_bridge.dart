@@ -147,3 +147,19 @@ class KidSecurityLiveAudioBridge {
     await _channel.invokeMethod<void>('stop');
   }
 }
+
+class KidSecurityFullScreenIntentBridge {
+  const KidSecurityFullScreenIntentBridge();
+
+  static const MethodChannel _channel =
+      MethodChannel('kid_security/full_screen_intent');
+
+  Future<bool> canUseFullScreenIntent() async {
+    final result = await _channel.invokeMethod<bool>('canUseFullScreenIntent');
+    return result ?? true;
+  }
+
+  Future<void> openFullScreenIntentSettings() async {
+    await _channel.invokeMethod<void>('openFullScreenIntentSettings');
+  }
+}
