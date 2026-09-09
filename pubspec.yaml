@@ -1,7 +1,7 @@
 name: kid_security
-description: Family security - Parental GPS tracking app with platform-adaptive maps.
+description: Baby Locator - Parental GPS tracking app with platform-adaptive maps.
 publish_to: "none"
-version: 1.0.1+4
+version: 1.0.5+8
 
 environment:
   sdk: ">=3.3.0 <4.0.0"

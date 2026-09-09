@@ -9,7 +9,7 @@ class SAr extends S {
   SAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'سجّل الدخول أو أنشئ حساب والد';
@@ -505,7 +505,7 @@ class SAr extends S {
   String get signOut => 'تسجيل الخروج';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'تعديل الملف الشخصي';
@@ -760,7 +760,7 @@ class SAr extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'انضم إلى دائرة عائلتي في Family security! استخدم رمز الدعوة: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'انضم إلى دائرة عائلتي في Baby Locator! استخدم رمز الدعوة: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -875,7 +875,7 @@ class SAr extends S {
   String get perYearSave58 => 'سنويًا · وفّر 58%';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'ترقية';
@@ -927,7 +927,7 @@ class SAr extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'اختر خطة Family Security Pro الشهرية أو السنوية التي تناسب عائلتك.';
+      'اختر خطة Baby Locator Pro الشهرية أو السنوية التي تناسب عائلتك.';
 
   @override
   String get paywallLoadingPlans => 'جارٍ تحميل خطط الاشتراك...';
@@ -946,7 +946,7 @@ class SAr extends S {
   String get noSubscriptionFound => 'لم يتم العثور على اشتراك نشط لاستعادته.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro نشط الآن.';
+  String get subscriptionNowActive => 'Baby Locator Pro نشط الآن.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -980,7 +980,7 @@ class SAr extends S {
   String get premiumTitleFullMenu => 'فتح قائمة الوالدين الكاملة';
 
   @override
-  String get premiumTitleGeneric => 'فتح Family Security Pro';
+  String get premiumTitleGeneric => 'فتح Baby Locator Pro';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1020,7 +1020,7 @@ class SAr extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'قم بالترقية إلى Family Security Pro لفتح أدوات الرقابة الأبوية المتقدمة.';
+      'قم بالترقية إلى Baby Locator Pro لفتح أدوات الرقابة الأبوية المتقدمة.';
 
   @override
   String get seePlans => 'عرض الخطط';

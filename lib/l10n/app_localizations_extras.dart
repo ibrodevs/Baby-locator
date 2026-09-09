@@ -176,9 +176,9 @@ class ExtraL10n {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Family Security on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
+              'Install Baby Locator on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
           'ru':
-              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
+              'Установите Baby Locator на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
         }),
         {'code': code},
       );
@@ -1206,9 +1206,9 @@ extension SExtras on S {
 
   String get appBlockingDescription => _pick({
         'en':
-            'When a blocked app opens, Family Security immediately closes it and shows a blocking screen through Android Accessibility Service.',
+            'When a blocked app opens, Baby Locator immediately closes it and shows a blocking screen through Android Accessibility Service.',
         'ru':
-            'Когда заблокированное приложение открывается, Family Security сразу закрывает его и показывает экран блокировки через службу специальных возможностей Android.',
+            'Когда заблокированное приложение открывается, Baby Locator сразу закрывает его и показывает экран блокировки через службу специальных возможностей Android.',
       });
 
   String get appBlockingUnsupported => _pick({
@@ -1659,39 +1659,39 @@ extension SExtras on S {
 
   String get accessibilityServiceDescription => _pick({
         'ar':
-            'بدون هذا الإذن ستظل التطبيقات التي حظرها الوالد تُفتح. ابحث عن "Family Security — App Blocking" في القائمة وفعّله.',
+            'بدون هذا الإذن ستظل التطبيقات التي حظرها الوالد تُفتح. ابحث عن "Baby Locator — App Blocking" في القائمة وفعّله.',
         'az':
-            'Bu icazə olmadan valideynin blokladığı tətbiqlər yenə də açılacaq. Siyahıda "Family Security — App Blocking" xidmətini tapın və aktiv edin.',
+            'Bu icazə olmadan valideynin blokladığı tətbiqlər yenə də açılacaq. Siyahıda "Baby Locator — App Blocking" xidmətini tapın və aktiv edin.',
         'de':
-            'Ohne diese Berechtigung lassen sich von den Eltern blockierte Apps weiterhin öffnen. Suche in der Liste nach „Family Security — App Blocking“ und aktiviere es.',
+            'Ohne diese Berechtigung lassen sich von den Eltern blockierte Apps weiterhin öffnen. Suche in der Liste nach „Baby Locator — App Blocking“ und aktiviere es.',
         'en':
-            'Without this permission, apps blocked by the parent will still open. Find "Family Security — App Blocking" in the list and enable it.',
+            'Without this permission, apps blocked by the parent will still open. Find "Baby Locator — App Blocking" in the list and enable it.',
         'es':
-            'Sin este permiso, las apps bloqueadas por el padre seguirán abriéndose. Busca "Family Security — App Blocking" en la lista y actívalo.',
+            'Sin este permiso, las apps bloqueadas por el padre seguirán abriéndose. Busca "Baby Locator — App Blocking" en la lista y actívalo.',
         'fr':
-            'Sans cette autorisation, les applications bloquées par le parent pourront toujours être ouvertes. Trouvez "Family Security — App Blocking" dans la liste et activez-le.',
+            'Sans cette autorisation, les applications bloquées par le parent pourront toujours être ouvertes. Trouvez "Baby Locator — App Blocking" dans la liste et activez-le.',
         'hy':
-            'Առանց այս թույլտվության ծնողի կողմից արգելափակված հավելվածները կբացվեն։ Ցանկում գտեք «Family Security — App Blocking»-ը և միացրեք այն։',
+            'Առանց այս թույլտվության ծնողի կողմից արգելափակված հավելվածները կբացվեն։ Ցանկում գտեք «Baby Locator — App Blocking»-ը և միացրեք այն։',
         'it':
-            'Senza questa autorizzazione, le app bloccate dal genitore continueranno ad aprirsi. Trova "Family Security — App Blocking" nell’elenco e abilitalo.',
+            'Senza questa autorizzazione, le app bloccate dal genitore continueranno ad aprirsi. Trova "Baby Locator — App Blocking" nell’elenco e abilitalo.',
         'ka':
-            'ამ ნებართვის გარეშე მშობლის მიერ დაბლოკილი აპები მაინც გაიხსნება. სიაში იპოვეთ "Family Security — App Blocking" და ჩართეთ.',
+            'ამ ნებართვის გარეშე მშობლის მიერ დაბლოკილი აპები მაინც გაიხსნება. სიაში იპოვეთ "Baby Locator — App Blocking" და ჩართეთ.',
         'kk':
-            'Бұл рұқсатсыз ата-ана бұғаттаған қолданбалар бәрібір ашылады. Тізімнен "Family Security — App Blocking" қызметін тауып, қосыңыз.',
+            'Бұл рұқсатсыз ата-ана бұғаттаған қолданбалар бәрібір ашылады. Тізімнен "Baby Locator — App Blocking" қызметін тауып, қосыңыз.',
         'ky':
-            'Бул уруксат болбосо, ата-эне бөгөттөгөн колдонмолор баары бир ачылат. Тизмеден "Family Security — App Blocking" кызматын таап, күйгүзүңүз.',
+            'Бул уруксат болбосо, ата-эне бөгөттөгөн колдонмолор баары бир ачылат. Тизмеден "Baby Locator — App Blocking" кызматын таап, күйгүзүңүз.',
         'pl':
-            'Bez tego uprawnienia aplikacje zablokowane przez rodzica nadal będą się otwierać. Znajdź na liście „Family Security — App Blocking” i włącz tę usługę.',
+            'Bez tego uprawnienia aplikacje zablokowane przez rodzica nadal będą się otwierać. Znajdź na liście „Baby Locator — App Blocking” i włącz tę usługę.',
         'pt':
-            'Sem esta permissão, os apps bloqueados pelo responsável ainda serão abertos. Encontre "Family Security — App Blocking" na lista e ative-o.',
+            'Sem esta permissão, os apps bloqueados pelo responsável ainda serão abertos. Encontre "Baby Locator — App Blocking" na lista e ative-o.',
         'ru':
-            'Без этого разрешения заблокированные родителем приложения будут открываться. Найдите «Family Security — блокировка приложений» в списке и включите её.',
+            'Без этого разрешения заблокированные родителем приложения будут открываться. Найдите «Baby Locator — блокировка приложений» в списке и включите её.',
         'tg':
-            'Бе ин иҷозат барномаҳое, ки аз ҷониби волид баста шудаанд, ҳамоно кушода мешаванд. Дар рӯйхат "Family Security — App Blocking"-ро ёфта, фаъол кунед.',
+            'Бе ин иҷозат барномаҳое, ки аз ҷониби волид баста шудаанд, ҳамоно кушода мешаванд. Дар рӯйхат "Baby Locator — App Blocking"-ро ёфта, фаъол кунед.',
         'tk':
-            'Bu rugsat bolmasa, ene-atanyň bloklan programmalary şonda-da açylar. Sanawdan "Family Security — App Blocking" hyzmatyny tapyp işlediň.',
+            'Bu rugsat bolmasa, ene-atanyň bloklan programmalary şonda-da açylar. Sanawdan "Baby Locator — App Blocking" hyzmatyny tapyp işlediň.',
         'uz':
-            'Bu ruxsatsiz ota-ona bloklagan ilovalar baribir ochiladi. Ro‘yxatdan "Family Security — App Blocking" xizmatini topib yoqing.',
+            'Bu ruxsatsiz ota-ona bloklagan ilovalar baribir ochiladi. Ro‘yxatdan "Baby Locator — App Blocking" xizmatini topib yoqing.',
       });
 
   String get allowLocationAllTheTime => _pick({
@@ -2690,7 +2690,7 @@ extension SExtras on S {
 
   String get backgroundLocationDisclosureBody => _pick({
         'en':
-            'Family Security collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
+            'Baby Locator collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
             '• Real-time child location tracking visible to parents on the live map\n'
             '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
             '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
@@ -2699,7 +2699,7 @@ extension SExtras on S {
             '• Location is accessible only to the paired parent account.\n'
             '• Location data is never used for advertising and is never sold to third parties.',
         'ru':
-            'Family Security собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
+            'Baby Locator собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
             '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
             '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
             '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
@@ -2731,20 +2731,20 @@ extension SExtras on S {
 
   String get accessibilityDisclosureBody => _pick({
         'en':
-            'Family Security uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
+            'Baby Locator uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
             'How it works:\n'
             '• Detects the package name of the currently active foreground app.\n'
-            '• If the opened app has been restricted by a parent, Family Security automatically displays a blocking screen and restricts access.\n'
+            '• If the opened app has been restricted by a parent, Baby Locator automatically displays a blocking screen and restricts access.\n'
             '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
             'Privacy & Safety Guarantee:\n'
             '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
             '• It only determines which application is active on screen for parental blocking.\n'
             '• No data from AccessibilityService is ever sold or shared with third parties.',
         'ru':
-            'Family Security использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
+            'Baby Locator использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
             'Как это работает:\n'
             '• Сервис определяет имя открытого приложения на переднем плане.\n'
-            '• Если открытое приложение входит в список ограниченных родителем, Family Security автоматически закрывает его и показывает экран блокировки.\n'
+            '• Если открытое приложение входит в список ограниченных родителем, Baby Locator автоматически закрывает его и показывает экран блокировки.\n'
             '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
             'Гарантия безопасности и конфиденциальности:\n'
             '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'
@@ -3804,9 +3804,9 @@ class ExtraTranslations {
   String inviteShareTextShort(String code) => _fill(
         _pick({
           'en':
-              'Install Family Security on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
+              'Install Baby Locator on the child phone and enter this code: {code}\n\nhttps://baby-locator.online/invite/{code}',
           'ru':
-              'Установите Family Security на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
+              'Установите Baby Locator на телефон ребёнка и введите код: {code}\n\nhttps://baby-locator.online/invite/{code}',
         }),
         {'code': code},
       );
@@ -4207,7 +4207,7 @@ class ExtraTranslations {
 
   String get backgroundLocationDisclosureBody => _pick({
         'en':
-            'Family Security collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
+            'Baby Locator collects location data even when the app is closed, in the background, or not in use, to enable the following core parental safety features:\n\n'
             '• Real-time child location tracking visible to parents on the live map\n'
             '• Automatic arrival and departure notifications for Safe Zones (Home, School)\n'
             '• Instant emergency coordinates dispatch when SOS button is activated\n\n'
@@ -4216,7 +4216,7 @@ class ExtraTranslations {
             '• Location is accessible only to the paired parent account.\n'
             '• Location data is never used for advertising and is never sold to third parties.',
         'ru':
-            'Family Security собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
+            'Baby Locator собирает данные о местоположении даже тогда, когда приложение закрыто, работает в фоновом режиме или не используется, для обеспечения следующих функций родительского контроля:\n\n'
             '• Отображение точного местоположения ребёнка на карте родителя в реальном времени\n'
             '• Автоматические уведомления о входе и выходе из безопасных зон (дом, школа)\n'
             '• Мгновенная передача координат родителю при нажатии кнопки SOS\n\n'
@@ -4248,20 +4248,20 @@ class ExtraTranslations {
 
   String get accessibilityDisclosureBody => _pick({
         'en':
-            'Family Security uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
+            'Baby Locator uses the Android AccessibilityService API solely for the parental control App Blocking and Screen Time feature on this child device.\n\n'
             'How it works:\n'
             '• Detects the package name of the currently active foreground app.\n'
-            '• If the opened app has been restricted by a parent, Family Security automatically displays a blocking screen and restricts access.\n'
+            '• If the opened app has been restricted by a parent, Baby Locator automatically displays a blocking screen and restricts access.\n'
             '• Helps parents protect their children from restricted apps and manage healthy screen time.\n\n'
             'Privacy & Safety Guarantee:\n'
             '• AccessibilityService NEVER reads, collects, stores, or transmits keystrokes, personal chats, messages, photos, passwords, or payment info.\n'
             '• It only determines which application is active on screen for parental blocking.\n'
             '• No data from AccessibilityService is ever sold or shared with third parties.',
         'ru':
-            'Family Security использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
+            'Baby Locator использует AccessibilityService API исключительно для обеспечения функции родительского контроля «Блокировка приложений» на телефоне ребёнка.\n\n'
             'Как это работает:\n'
             '• Сервис определяет имя открытого приложения на переднем плане.\n'
-            '• Если открытое приложение входит в список ограниченных родителем, Family Security автоматически закрывает его и показывает экран блокировки.\n'
+            '• Если открытое приложение входит в список ограниченных родителем, Baby Locator автоматически закрывает его и показывает экран блокировки.\n'
             '• Помогает родителям защитить ребёнка от нежелательных приложений и контролировать экранное время.\n\n'
             'Гарантия безопасности и конфиденциальности:\n'
             '• AccessibilityService НЕ читает, НЕ собирает, НЕ сохраняет и НЕ передаёт текст на экране, пароли, переписки, фото или финансовые данные.\n'

@@ -9,7 +9,7 @@ class SDe extends S {
   SDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Anmelden oder Elternkonto erstellen';
@@ -515,7 +515,7 @@ class SDe extends S {
   String get signOut => 'Abmelden';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Profil bearbeiten';
@@ -772,7 +772,7 @@ class SDe extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Tritt meinem Familienkreis in Family security bei! Verwende den Einladungscode: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Tritt meinem Familienkreis in Baby Locator bei! Verwende den Einladungscode: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -888,7 +888,7 @@ class SDe extends S {
   String get perYearSave58 => 'pro Jahr · 58% sparen';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Upgraden';
@@ -941,7 +941,7 @@ class SDe extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Wähle den monatlichen oder jährlichen Family Security Pro Plan, der am besten zu deiner Familie passt.';
+      'Wähle den monatlichen oder jährlichen Baby Locator Pro Plan, der am besten zu deiner Familie passt.';
 
   @override
   String get paywallLoadingPlans => 'Abonnementpläne werden geladen...';
@@ -961,7 +961,7 @@ class SDe extends S {
       'Kein aktives Abonnement zum Wiederherstellen gefunden.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro ist jetzt aktiv.';
+  String get subscriptionNowActive => 'Baby Locator Pro ist jetzt aktiv.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -998,7 +998,7 @@ class SDe extends S {
   String get premiumTitleFullMenu => 'Das vollständige Elternmenü freischalten';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro freischalten';
+  String get premiumTitleGeneric => 'Baby Locator Pro freischalten';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1038,7 +1038,7 @@ class SDe extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Upgrade auf Family Security Pro, um erweiterte Kindersicherungs- und Überwachungstools freizuschalten.';
+      'Upgrade auf Baby Locator Pro, um erweiterte Kindersicherungs- und Überwachungstools freizuschalten.';
 
   @override
   String get seePlans => 'Pläne ansehen';

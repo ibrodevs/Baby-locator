@@ -9,7 +9,7 @@ class SIt extends S {
   SIt([String locale = 'it']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Accedi o crea un account genitore';
@@ -513,7 +513,7 @@ class SIt extends S {
   String get signOut => 'Esci';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Modifica profilo';
@@ -771,7 +771,7 @@ class SIt extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Unisciti al mio circolo familiare in Family security! Usa il codice invito: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Unisciti al mio circolo familiare in Baby Locator! Usa il codice invito: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -887,7 +887,7 @@ class SIt extends S {
   String get perYearSave58 => 'all\'anno · Risparmia 58%';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Aggiorna';
@@ -940,7 +940,7 @@ class SIt extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Scegli il piano mensile o annuale di Family Security Pro più adatto alla tua famiglia.';
+      'Scegli il piano mensile o annuale di Baby Locator Pro più adatto alla tua famiglia.';
 
   @override
   String get paywallLoadingPlans => 'Caricamento dei piani di abbonamento...';
@@ -960,7 +960,7 @@ class SIt extends S {
       'Nessun abbonamento attivo trovato da ripristinare.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro è ora attivo.';
+  String get subscriptionNowActive => 'Baby Locator Pro è ora attivo.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -998,7 +998,7 @@ class SIt extends S {
   String get premiumTitleFullMenu => 'Sblocca il menu genitore completo';
 
   @override
-  String get premiumTitleGeneric => 'Sblocca Family Security Pro';
+  String get premiumTitleGeneric => 'Sblocca Baby Locator Pro';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1038,7 +1038,7 @@ class SIt extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Aggiorna a Family Security Pro per sbloccare strumenti avanzati di controllo genitoriale e monitoraggio.';
+      'Aggiorna a Baby Locator Pro per sbloccare strumenti avanzati di controllo genitoriale e monitoraggio.';
 
   @override
   String get seePlans => 'Vedi piani';

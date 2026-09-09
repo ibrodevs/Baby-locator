@@ -110,7 +110,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 28),
                     const Text(
-                      'Family security',
+                      'Baby Locator',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 34,

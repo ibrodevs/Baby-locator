@@ -36,7 +36,7 @@ Future<void> initBackgroundCommandService() async {
       isForegroundMode: true,
       autoStartOnBoot: true,
       foregroundServiceNotificationId: 8888,
-      initialNotificationTitle: 'Family Security',
+      initialNotificationTitle: 'Baby Locator',
       initialNotificationContent: t.trackingNotification,
       foregroundServiceTypes: [
         AndroidForegroundType.location,
@@ -359,7 +359,7 @@ class _BackgroundCommandHandler {
         distanceFilter: 15,
         intervalDuration: const Duration(seconds: 30),
         foregroundNotificationConfig: ForegroundNotificationConfig(
-          notificationTitle: 'Family Security',
+          notificationTitle: 'Baby Locator',
           notificationText: _t.childLocationSharedToParent,
           enableWakeLock: true,
           setOngoing: true,
@@ -460,7 +460,7 @@ class _BackgroundCommandHandler {
   void _updateTrackingNotification(String content) {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
-        title: 'Family Security',
+        title: 'Baby Locator',
         content: content,
       );
     }
@@ -652,7 +652,7 @@ class _BackgroundCommandHandler {
     // Update notification to show alarm is playing.
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
-        title: 'Family Security',
+        title: 'Baby Locator',
         content: '🔊 ${_t.playingLoudSignal}',
       );
     }
@@ -718,7 +718,7 @@ class _BackgroundCommandHandler {
   Future<void> _startWebrtcSession(String sessionToken) async {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
-        title: 'Family Security',
+        title: 'Baby Locator',
         content: _t.liveAudioStreamingToParent,
       );
     }
@@ -746,7 +746,7 @@ class _BackgroundCommandHandler {
 
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
-        title: 'Family Security',
+        title: 'Baby Locator',
         content: _t.listeningToSurroundings,
       );
     }
@@ -935,7 +935,7 @@ class _BackgroundCommandHandler {
   void _resetNotification() {
     if (_service case final AndroidServiceInstance androidService) {
       androidService.setForegroundNotificationInfo(
-        title: 'Family Security',
+        title: 'Baby Locator',
         content: _t.trackingNotification,
       );
     }

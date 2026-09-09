@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppCompliance {
-  static const String appName = 'Family Security';
+  static const String appName = 'Baby Locator';
   static const String companyName = 'Quantum limited';
   static const String supportEmail = 'sattarzhanovdev@gmail.com';
   static const String privacyPolicyUrl =
@@ -72,7 +72,7 @@ class AppCompliance {
       builder: (context) => AlertDialog(
         title: const Text(appName),
         content: const Text(
-          'Family Security helps families stay connected with live location, safe zones, alerts, child device status, and parental safety tools.\n\n'
+          'Baby Locator helps families stay connected with live location, safe zones, alerts, child device status, and parental safety tools.\n\n'
           'Developer: Quantum limited\n'
           'Privacy policy and account deletion options are available in Settings.',
         ),

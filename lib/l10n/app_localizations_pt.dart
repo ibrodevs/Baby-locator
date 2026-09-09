@@ -9,7 +9,7 @@ class SPt extends S {
   SPt([String locale = 'pt']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Entrar ou criar uma conta de responsável';
@@ -512,7 +512,7 @@ class SPt extends S {
   String get signOut => 'Sair';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Editar perfil';
@@ -772,7 +772,7 @@ class SPt extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Junte-se ao meu círculo familiar no Family security! Use o código de convite: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Junte-se ao meu círculo familiar no Baby Locator! Use o código de convite: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -888,7 +888,7 @@ class SPt extends S {
   String get perYearSave58 => 'por ano · Economize 58%';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Fazer upgrade';
@@ -941,7 +941,7 @@ class SPt extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Escolha o plano mensal ou anual Family Security Pro que melhor se adapta à sua família.';
+      'Escolha o plano mensal ou anual Baby Locator Pro que melhor se adapta à sua família.';
 
   @override
   String get paywallLoadingPlans => 'Carregando planos de assinatura...';
@@ -961,7 +961,7 @@ class SPt extends S {
       'Nenhuma assinatura ativa foi encontrada para restaurar.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro está agora ativo.';
+  String get subscriptionNowActive => 'Baby Locator Pro está agora ativo.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -997,7 +997,7 @@ class SPt extends S {
   String get premiumTitleFullMenu => 'Desbloquear o menu completo dos pais';
 
   @override
-  String get premiumTitleGeneric => 'Desbloquear Family Security Pro';
+  String get premiumTitleGeneric => 'Desbloquear Baby Locator Pro';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1037,7 +1037,7 @@ class SPt extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Atualize para Family Security Pro para desbloquear ferramentas avançadas de controle parental.';
+      'Atualize para Baby Locator Pro para desbloquear ferramentas avançadas de controle parental.';
 
   @override
   String get seePlans => 'Ver planos';

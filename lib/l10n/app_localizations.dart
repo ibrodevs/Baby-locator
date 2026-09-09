@@ -130,7 +130,7 @@ abstract class S {
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'Family security'**
+  /// **'Baby Locator'**
   String get appName;
 
   /// No description provided for @signInOrCreate.
@@ -1024,7 +1024,7 @@ abstract class S {
   /// No description provided for @appVersion.
   ///
   /// In en, this message translates to:
-  /// **'Family security v1.0.0'**
+  /// **'Baby Locator v1.0.0'**
   String get appVersion;
 
   /// No description provided for @editProfileTitle.
@@ -1462,7 +1462,7 @@ abstract class S {
   /// No description provided for @inviteShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my family circle in Family security! Use invite code: {code}\n\nhttps://baby-locator.online/invite/{code}'**
+  /// **'Join my family circle in Baby Locator! Use invite code: {code}\n\nhttps://baby-locator.online/invite/{code}'**
   String inviteShareText(String code);
 
   /// No description provided for @failedToGenerateCode.
@@ -1672,7 +1672,7 @@ abstract class S {
   /// No description provided for @paywallProductName.
   ///
   /// In en, this message translates to:
-  /// **'Family Security Pro'**
+  /// **'Baby Locator Pro'**
   String get paywallProductName;
 
   /// No description provided for @paywallUpgrade.
@@ -1756,7 +1756,7 @@ abstract class S {
   /// No description provided for @paywallChoosePlanDescription.
   ///
   /// In en, this message translates to:
-  /// **'Choose the monthly or yearly Family Security Pro plan that fits your family best.'**
+  /// **'Choose the monthly or yearly Baby Locator Pro plan that fits your family best.'**
   String get paywallChoosePlanDescription;
 
   /// No description provided for @paywallLoadingPlans.
@@ -1792,7 +1792,7 @@ abstract class S {
   /// No description provided for @subscriptionNowActive.
   ///
   /// In en, this message translates to:
-  /// **'Family Security Pro is now active.'**
+  /// **'Baby Locator Pro is now active.'**
   String get subscriptionNowActive;
 
   /// No description provided for @purchaseEntitlementPending.
@@ -1858,7 +1858,7 @@ abstract class S {
   /// No description provided for @premiumTitleGeneric.
   ///
   /// In en, this message translates to:
-  /// **'Unlock Family Security Pro'**
+  /// **'Unlock Baby Locator Pro'**
   String get premiumTitleGeneric;
 
   /// No description provided for @premiumSubtitleAdditionalChildren.
@@ -1918,7 +1918,7 @@ abstract class S {
   /// No description provided for @premiumSubtitleGeneric.
   ///
   /// In en, this message translates to:
-  /// **'Upgrade to Family Security Pro to unlock advanced parental control and monitoring tools.'**
+  /// **'Upgrade to Baby Locator Pro to unlock advanced parental control and monitoring tools.'**
   String get premiumSubtitleGeneric;
 
   /// No description provided for @seePlans.

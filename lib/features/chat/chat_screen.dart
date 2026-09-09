@@ -1010,7 +1010,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
                     children: [
                       const Expanded(
                         child: Text(
-                          'Tasks, stars, and rewards are part of Family Security Pro.',
+                          'Tasks, stars, and rewards are part of Baby Locator Pro.',
                           style: TextStyle(
                             color: AppColors.textSecondaryLight,
                             fontWeight: FontWeight.w600,

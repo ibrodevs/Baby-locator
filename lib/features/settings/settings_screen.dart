@@ -171,14 +171,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       if (info != null && isPremiumUser(info)) {
         showAppSnackBar(
           context,
-          'Your Family Security Pro access has been restored.',
+          'Your Baby Locator Pro access has been restored.',
           type: AppFeedbackType.success,
         );
         return;
       }
       showAppSnackBar(
         context,
-        'No active Family Security Pro entitlement was found.',
+        'No active Baby Locator Pro entitlement was found.',
         type: AppFeedbackType.warning,
       );
     } catch (error) {

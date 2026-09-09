@@ -9,7 +9,7 @@ class STg extends S {
   STg([String locale = 'tg']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Ворид шавед ё ҳисоби волидайн созед';
@@ -513,7 +513,7 @@ class STg extends S {
   String get signOut => 'Баромадан';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Таҳрири профил';
@@ -772,7 +772,7 @@ class STg extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Ба доираи оилаи ман дар Family security ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Ба доираи оилаи ман дар Baby Locator ҳамроҳ шавед! Аз рамзи даъватнома истифода баред: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -889,7 +889,7 @@ class STg extends S {
   String get perYearSave58 => 'дар як сол · 58% сарфа';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Навсозӣ';
@@ -942,7 +942,7 @@ class STg extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Нақшаи моҳона ё солонаи Family Security Pro-ро интихоб кунед, ки барои оилаи шумо мувофиқтарин аст.';
+      'Нақшаи моҳона ё солонаи Baby Locator Pro-ро интихоб кунед, ки барои оилаи шумо мувофиқтарин аст.';
 
   @override
   String get paywallLoadingPlans => 'Нақшаҳои обуна бор мешаванд...';
@@ -962,7 +962,7 @@ class STg extends S {
       'Барои барқарор кардан ягон обунаи фаъол ёфт нашуд.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro ҳоло фаъол аст.';
+  String get subscriptionNowActive => 'Baby Locator Pro ҳоло фаъол аст.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -997,7 +997,7 @@ class STg extends S {
   String get premiumTitleFullMenu => 'Кушодани менюи пурраи волидайн';
 
   @override
-  String get premiumTitleGeneric => 'Кушодани Family Security Pro';
+  String get premiumTitleGeneric => 'Кушодани Baby Locator Pro';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1037,7 +1037,7 @@ class STg extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Барои кушодани абзорҳои пешрафтаи назорати волидайн ба Family Security Pro навсозӣ кунед.';
+      'Барои кушодани абзорҳои пешрафтаи назорати волидайн ба Baby Locator Pro навсозӣ кунед.';
 
   @override
   String get seePlans => 'Дидани нақшаҳо';

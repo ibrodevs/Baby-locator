@@ -2133,7 +2133,7 @@ class _LockedStatsState extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Usage analytics are part of Family Security Pro.',
+                'Usage analytics are part of Baby Locator Pro.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,

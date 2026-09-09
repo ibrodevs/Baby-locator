@@ -9,7 +9,7 @@ class SUz extends S {
   SUz([String locale = 'uz']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Ota-ona akkauntiga kiring yoki yarating';
@@ -511,7 +511,7 @@ class SUz extends S {
   String get signOut => 'Chiqish';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Profilni tahrirlash';
@@ -771,7 +771,7 @@ class SUz extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security da oilaviy davramga qo\'shiling! Taklif kodidan foydalaning: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Baby Locator da oilaviy davramga qo\'shiling! Taklif kodidan foydalaning: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -888,7 +888,7 @@ class SUz extends S {
   String get perYearSave58 => 'yilda · 58% tejash';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Yangilash';
@@ -941,7 +941,7 @@ class SUz extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Oilangizga eng mos keladigan oylik yoki yillik Family Security Pro rejasini tanlang.';
+      'Oilangizga eng mos keladigan oylik yoki yillik Baby Locator Pro rejasini tanlang.';
 
   @override
   String get paywallLoadingPlans => 'Obuna rejalari yuklanmoqda...';
@@ -960,7 +960,7 @@ class SUz extends S {
   String get noSubscriptionFound => 'Tiklash uchun faol obuna topilmadi.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro endi faol.';
+  String get subscriptionNowActive => 'Baby Locator Pro endi faol.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -995,7 +995,7 @@ class SUz extends S {
   String get premiumTitleFullMenu => 'Ota-ona to\'liq menyusini ochish';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro-ni ochish';
+  String get premiumTitleGeneric => 'Baby Locator Pro-ni ochish';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1035,7 +1035,7 @@ class SUz extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Kengaytirilgan ota-ona nazorati va monitoring vositalarini ochish uchun Family Security Pro-ga yangilang.';
+      'Kengaytirilgan ota-ona nazorati va monitoring vositalarini ochish uchun Baby Locator Pro-ga yangilang.';
 
   @override
   String get seePlans => 'Rejalarni ko\'rish';

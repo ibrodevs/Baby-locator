@@ -9,7 +9,7 @@ class SHy extends S {
   SHy([String locale = 'hy']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Մուտք գործեք կամ ստեղծեք ծնողի հաշիվ';
@@ -514,7 +514,7 @@ class SHy extends S {
   String get signOut => 'Դուրս գալ';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Խմբագրել պրոֆիլը';
@@ -773,7 +773,7 @@ class SHy extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Միացե՛ք իմ ընտանեկան շրջանին Family security-ում: Օգտագործե՛ք հրավերի կոդը: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Միացե՛ք իմ ընտանեկան շրջանին Baby Locator-ում: Օգտագործե՛ք հրավերի կոդը: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -888,7 +888,7 @@ class SHy extends S {
   String get perYearSave58 => 'տարեկան · Խնայողություն 58%';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Թարմացնել';
@@ -940,7 +940,7 @@ class SHy extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Ընտրեք ամսական կամ տարեկան Family Security Pro պլանը, որն ամենահամապատասխանն է ձեր ընտանիքի համար:';
+      'Ընտրեք ամսական կամ տարեկան Baby Locator Pro պլանը, որն ամենահամապատասխանն է ձեր ընտանիքի համար:';
 
   @override
   String get paywallLoadingPlans => 'Բաժանորդագրության պլանները բեռնվում են...';
@@ -960,7 +960,7 @@ class SHy extends S {
       'Վերականգնելու համար ակտիվ բաժանորդագրություն չի գտնվել:';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro-ն այժմ ակտիվ է:';
+  String get subscriptionNowActive => 'Baby Locator Pro-ն այժմ ակտիվ է:';
 
   @override
   String get purchaseEntitlementPending =>
@@ -998,7 +998,7 @@ class SHy extends S {
   String get premiumTitleFullMenu => 'Ապակողպել ծնողի ամբողջական ընտրացանկը';
 
   @override
-  String get premiumTitleGeneric => 'Ապակողպել Family Security Pro-ն';
+  String get premiumTitleGeneric => 'Ապակողպել Baby Locator Pro-ն';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1038,7 +1038,7 @@ class SHy extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Բարձրացրեք Family Security Pro-ին՝ ծնողական ընդլայնված վերահսկողության գործիքների ապակողպման համար:';
+      'Բարձրացրեք Baby Locator Pro-ին՝ ծնողական ընդլայնված վերահսկողության գործիքների ապակողպման համար:';
 
   @override
   String get seePlans => 'Տեսնել պլանները';

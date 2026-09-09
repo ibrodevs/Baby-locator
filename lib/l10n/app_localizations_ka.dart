@@ -9,7 +9,7 @@ class SKa extends S {
   SKa([String locale = 'ka']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'შედით ან შექმენით მშობლის ანგარიში';
@@ -510,7 +510,7 @@ class SKa extends S {
   String get signOut => 'გასვლა';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'პროფილის რედაქტირება';
@@ -768,7 +768,7 @@ class SKa extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'შემოუერთდი ჩემს ოჯახურ წრეს Family security-ში! გამოიყენე მოწვევის კოდი: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'შემოუერთდი ჩემს ოჯახურ წრეს Baby Locator-ში! გამოიყენე მოწვევის კოდი: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -883,7 +883,7 @@ class SKa extends S {
   String get perYearSave58 => 'წელიწადში · 58% დაზოგვა';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'განახლება';
@@ -935,7 +935,7 @@ class SKa extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'აირჩიეთ Family Security Pro-ს ყოველთვიური ან წლიური გეგმა, რომელიც საუკეთესოდ შეეფერება თქვენს ოჯახს.';
+      'აირჩიეთ Baby Locator Pro-ს ყოველთვიური ან წლიური გეგმა, რომელიც საუკეთესოდ შეეფერება თქვენს ოჯახს.';
 
   @override
   String get paywallLoadingPlans => 'გამოწერის გეგმები იტვირთება...';
@@ -954,7 +954,7 @@ class SKa extends S {
   String get noSubscriptionFound => 'აქტიური გამოწერა ვერ მოიძებნა.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro ახლა აქტიურია.';
+  String get subscriptionNowActive => 'Baby Locator Pro ახლა აქტიურია.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -991,7 +991,7 @@ class SKa extends S {
   String get premiumTitleFullMenu => 'სრული მშობლის მენიუს განბლოკვა';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro-ს განბლოკვა';
+  String get premiumTitleGeneric => 'Baby Locator Pro-ს განბლოკვა';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1031,7 +1031,7 @@ class SKa extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'განაახლეთ Family Security Pro-ზე, რომ განბლოკოთ გაფართოებული მშობლის კონტროლისა და მონიტორინგის ხელსაწყოები.';
+      'განაახლეთ Baby Locator Pro-ზე, რომ განბლოკოთ გაფართოებული მშობლის კონტროლისა და მონიტორინგის ხელსაწყოები.';
 
   @override
   String get seePlans => 'გეგმების ნახვა';

@@ -768,7 +768,7 @@ class SAz extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Baby Locator-də ailə dairəmə qoşulun! Dəvət kodundan istifadə edin: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -883,7 +883,7 @@ class SAz extends S {
   String get perYearSave58 => 'illik · 58% qənaət';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Yüksəlt';
@@ -936,7 +936,7 @@ class SAz extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Ailənizdə ən uyğun aylıq və ya illik Family Security Pro planını seçin.';
+      'Ailənizdə ən uyğun aylıq və ya illik Baby Locator Pro planını seçin.';
 
   @override
   String get paywallLoadingPlans => 'Abunəlik planları yüklənir...';
@@ -956,7 +956,7 @@ class SAz extends S {
       'Bərpa etmək üçün aktiv abunəlik tapılmadı.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro artıq aktivdir.';
+  String get subscriptionNowActive => 'Baby Locator Pro artıq aktivdir.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -990,7 +990,7 @@ class SAz extends S {
   String get premiumTitleFullMenu => 'Tam valideyn menyusunu açın';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro-nu açın';
+  String get premiumTitleGeneric => 'Baby Locator Pro-nu açın';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1030,7 +1030,7 @@ class SAz extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Qabaqcıl valideyn nəzarəti və izləmə alətlərini açmaq üçün Family Security Pro-ya yüksəlin.';
+      'Qabaqcıl valideyn nəzarəti və izləmə alətlərini açmaq üçün Baby Locator Pro-ya yüksəlin.';
 
   @override
   String get seePlans => 'Planlara bax';

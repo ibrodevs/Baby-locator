@@ -763,7 +763,7 @@ class _PremiumMapOverlay extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               const Text(
-                'One child stays free on the main map. Multi-child live map is part of Family Security Pro.',
+                'One child stays free on the main map. Multi-child live map is part of Baby Locator Pro.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,

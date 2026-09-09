@@ -765,7 +765,7 @@ class STk extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Baby Locator-de maşgala gubbegime goşulyň! Çakylyk kodyny ulanyň: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -880,7 +880,7 @@ class STk extends S {
   String get perYearSave58 => 'ýylda · 58% tygşytla';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Täzele';
@@ -933,7 +933,7 @@ class STk extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Maşgalaňyza iň laýyk aýlyk ýa-da ýyllyk Family Security Pro meýilnamasyny saýlaň.';
+      'Maşgalaňyza iň laýyk aýlyk ýa-da ýyllyk Baby Locator Pro meýilnamasyny saýlaň.';
 
   @override
   String get paywallLoadingPlans => 'Ýazylma meýilnamalary ýüklenýär...';
@@ -952,7 +952,7 @@ class STk extends S {
   String get noSubscriptionFound => 'Dikeltmek üçin işjeň ýazylma tapylmady.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro indi işjeň.';
+  String get subscriptionNowActive => 'Baby Locator Pro indi işjeň.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -986,7 +986,7 @@ class STk extends S {
   String get premiumTitleFullMenu => 'Doly ene-ata menýusyny açyň';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro-ny açyň';
+  String get premiumTitleGeneric => 'Baby Locator Pro-ny açyň';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1026,7 +1026,7 @@ class STk extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Öňdebaryjy ene-ata gözegçilik we gözegçilik gurallaryny açmak üçin Family Security Pro-a täzele.';
+      'Öňdebaryjy ene-ata gözegçilik we gözegçilik gurallaryny açmak üçin Baby Locator Pro-a täzele.';
 
   @override
   String get seePlans => 'Meýilnamalary gör';

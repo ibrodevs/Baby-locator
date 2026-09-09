@@ -9,7 +9,7 @@ class SRu extends S {
   SRu([String locale = 'ru']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Войдите или создайте родительский аккаунт';
@@ -511,7 +511,7 @@ class SRu extends S {
   String get signOut => 'Выйти';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Редактировать профиль';
@@ -768,7 +768,7 @@ class SRu extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Присоединяйся к моему семейному кругу в Family security! Используй код приглашения: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Присоединяйся к моему семейному кругу в Baby Locator! Используй код приглашения: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -883,7 +883,7 @@ class SRu extends S {
   String get perYearSave58 => 'в год · Экономия 58%';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Улучшить';
@@ -936,7 +936,7 @@ class SRu extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Выберите ежемесячный или ежегодный план Family Security Pro, подходящий для вашей семьи.';
+      'Выберите ежемесячный или ежегодный план Baby Locator Pro, подходящий для вашей семьи.';
 
   @override
   String get paywallLoadingPlans => 'Загрузка планов подписки...';
@@ -956,7 +956,7 @@ class SRu extends S {
       'Активная подписка для восстановления не найдена.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro теперь активен.';
+  String get subscriptionNowActive => 'Baby Locator Pro теперь активен.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -991,7 +991,7 @@ class SRu extends S {
   String get premiumTitleFullMenu => 'Разблокировать полное меню родителя';
 
   @override
-  String get premiumTitleGeneric => 'Разблокировать Family Security Pro';
+  String get premiumTitleGeneric => 'Разблокировать Baby Locator Pro';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1031,7 +1031,7 @@ class SRu extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Обновитесь до Family Security Pro, чтобы разблокировать расширенный родительский контроль.';
+      'Обновитесь до Baby Locator Pro, чтобы разблокировать расширенный родительский контроль.';
 
   @override
   String get seePlans => 'Смотреть планы';

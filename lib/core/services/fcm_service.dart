@@ -19,13 +19,13 @@ import 'notification_dedupe_store.dart';
 final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 const _activityAlertsChannelId = 'kid_security_activity_alerts';
-const _activityAlertsChannelName = 'Family security Alerts';
+const _activityAlertsChannelName = 'Baby Locator Alerts';
 const _childAlertsChannelId = 'kid_security_child_alerts';
-const _childAlertsChannelName = 'Family security — Уведомления';
+const _childAlertsChannelName = 'Baby Locator — Уведомления';
 const _sosAlertsChannelId = 'kid_security_sos';
 const _sosAlertsChannelName = 'SOS Alerts';
 const _listenWakeChannelId = 'kid_security_listen_wake';
-const _listenWakeChannelName = 'Family security — Listen';
+const _listenWakeChannelName = 'Baby Locator — Listen';
 const _pendingWebrtcSessionKey = 'pending_webrtc_session_token';
 const _pendingWebrtcSessionAtKey = 'pending_webrtc_session_at_ms';
 
@@ -145,7 +145,7 @@ Future<void> _showBackgroundNotification(RemoteMessage message) async {
 
   final notification = message.notification;
   final title =
-      notification?.title ?? message.data['title'] ?? 'Family security';
+      notification?.title ?? message.data['title'] ?? 'Baby Locator';
   final body = notification?.body ?? message.data['body'] ?? '';
   final notificationType = message.data['notification_type'] ?? '';
 
@@ -519,7 +519,7 @@ Future<void> _postListenWakeNotification(String sessionToken) async {
 
   await plugin.show(
     _listenWakeNotificationId,
-    'Family security',
+    'Baby Locator',
     '',
     NotificationDetails(
       android: AndroidNotificationDetails(

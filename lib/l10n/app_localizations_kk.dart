@@ -9,7 +9,7 @@ class SKk extends S {
   SKk([String locale = 'kk']) : super(locale);
 
   @override
-  String get appName => 'Family security';
+  String get appName => 'Baby Locator';
 
   @override
   String get signInOrCreate => 'Кіріңіз немесе ата-ана аккаунтын жасаңыз';
@@ -510,7 +510,7 @@ class SKk extends S {
   String get signOut => 'Шығу';
 
   @override
-  String get appVersion => 'Family security v1.0.0';
+  String get appVersion => 'Baby Locator v1.0.0';
 
   @override
   String get editProfileTitle => 'Профильді өңдеу';
@@ -767,7 +767,7 @@ class SKk extends S {
 
   @override
   String inviteShareText(String code) {
-    return 'Family security-де менің отбасы шеңберіме қосылыңыз! Шақыру кодын пайдаланыңыз: $code\n\nhttps://baby-locator.online/invite/$code';
+    return 'Baby Locator-де менің отбасы шеңберіме қосылыңыз! Шақыру кодын пайдаланыңыз: $code\n\nhttps://baby-locator.online/invite/$code';
   }
 
   @override
@@ -883,7 +883,7 @@ class SKk extends S {
   String get perYearSave58 => 'жылына · 58% үнемдеу';
 
   @override
-  String get paywallProductName => 'Family Security Pro';
+  String get paywallProductName => 'Baby Locator Pro';
 
   @override
   String get paywallUpgrade => 'Жаңарту';
@@ -936,7 +936,7 @@ class SKk extends S {
 
   @override
   String get paywallChoosePlanDescription =>
-      'Отбасыңызға сәйкес ай сайынғы немесе жылдық Family Security Pro жоспарын таңдаңыз.';
+      'Отбасыңызға сәйкес ай сайынғы немесе жылдық Baby Locator Pro жоспарын таңдаңыз.';
 
   @override
   String get paywallLoadingPlans => 'Жазылым жоспарлары жүктелуде...';
@@ -956,7 +956,7 @@ class SKk extends S {
       'Қалпына келтіру үшін белсенді жазылым табылмады.';
 
   @override
-  String get subscriptionNowActive => 'Family Security Pro енді белсенді.';
+  String get subscriptionNowActive => 'Baby Locator Pro енді белсенді.';
 
   @override
   String get purchaseEntitlementPending =>
@@ -990,7 +990,7 @@ class SKk extends S {
   String get premiumTitleFullMenu => 'Ата-ананың толық мәзірін ашу';
 
   @override
-  String get premiumTitleGeneric => 'Family Security Pro ашу';
+  String get premiumTitleGeneric => 'Baby Locator Pro ашу';
 
   @override
   String get premiumSubtitleAdditionalChildren =>
@@ -1030,7 +1030,7 @@ class SKk extends S {
 
   @override
   String get premiumSubtitleGeneric =>
-      'Кеңейтілген ата-ана бақылауы мен бақылау құралдарын ашу үшін Family Security Pro-ға жаңартыңыз.';
+      'Кеңейтілген ата-ана бақылауы мен бақылау құралдарын ашу үшін Baby Locator Pro-ға жаңартыңыз.';
 
   @override
   String get seePlans => 'Жоспарларды көру';
