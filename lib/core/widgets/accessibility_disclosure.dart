@@ -32,10 +32,11 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
         24,
         MediaQuery.of(context).padding.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           Center(
             child: Container(
               width: 44,
@@ -146,6 +147,7 @@ class AccessibilityDisclosureDialog extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }

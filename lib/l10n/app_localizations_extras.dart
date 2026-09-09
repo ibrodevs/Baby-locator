@@ -2753,6 +2753,7 @@ extension SExtras on S {
         'en': 'Not now',
         'ru': 'Не сейчас',
       });
+}
 
 class ExtraTranslations {
   const ExtraTranslations(this.localeName);
@@ -4260,7 +4261,8 @@ class ExtraTranslations {
   String get accessibilityDisclosureCancel => _pick({
         'en': 'Not now',
         'ru': 'Не сейчас',
-      
+      });
+
   String get microphoneDisclosureTitle => _pick({
         'en': 'Microphone access for Listen Around',
         'ru': 'Доступ к микрофону для функции «Звук вокруг»',

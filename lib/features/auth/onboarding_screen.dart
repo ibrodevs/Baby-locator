@@ -80,9 +80,26 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
+  Future<void> _loginAsPremiumTest() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+
+    try {
+      await ref.read(sessionProvider.notifier).loginAsPremiumTest();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'Ошибка входа в тестовый режим: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = S.of(context);
+    final isTestMode = ref.watch(testModeProvider).valueOrNull ?? false;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -274,6 +291,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                                 ),
                               ),
                             ),
+                            if (isTestMode) ...[
+                              const SizedBox(height: 14),
+                              Container(
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF9800),
+                                      Color(0xFFFF5722),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFF9800)
+                                          .withValues(alpha: 0.35),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      _busy ? null : _loginAsPremiumTest,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.star_rounded,
+                                      size: 24),
+                                  label: Text(
+                                    t.localeName.startsWith('en')
+                                        ? 'Log in as Premium User'
+                                        : 'Войти как премиум пользователь',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 16),
                           ],
                         ),

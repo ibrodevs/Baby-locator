@@ -111,7 +111,7 @@ class LocationService {
   Future<LocationFix?> getLastKnown() async {
     try {
       final pos = await Geolocator.getLastKnownPosition();
-      if (pos != null) return _toFix(pos);
+      if (pos != null) return await _toFix(pos);
     } catch (_) {}
     return null;
   }
@@ -124,7 +124,7 @@ class LocationService {
         desiredAccuracy: LocationAccuracy.high,
         timeLimit: const Duration(seconds: 5),
       );
-      return _toFix(pos);
+      return await _toFix(pos);
     } catch (_) {
       // Timeout or error on high accuracy — try low accuracy as fallback.
       try {
@@ -132,7 +132,7 @@ class LocationService {
           desiredAccuracy: LocationAccuracy.low,
           timeLimit: const Duration(seconds: 5),
         );
-        return _toFix(pos);
+        return await _toFix(pos);
       } catch (_) {}
     }
     return null;

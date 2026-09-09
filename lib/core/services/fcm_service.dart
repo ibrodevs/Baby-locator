@@ -25,8 +25,6 @@ const _childAlertsChannelId = 'kid_security_child_alerts';
 const _childAlertsChannelName = 'Baby Locator — Уведомления';
 const _sosAlertsChannelId = 'kid_security_sos';
 const _sosAlertsChannelName = 'SOS Alerts';
-const _listenWakeChannelId = 'kid_security_listen_wake';
-const _listenWakeChannelName = 'Baby Locator — Listen';
 const _pendingWebrtcSessionKey = 'pending_webrtc_session_token';
 const _pendingWebrtcSessionAtKey = 'pending_webrtc_session_at_ms';
 
@@ -478,6 +476,21 @@ Future<void> _ensureAndroidNotificationChannels(
   await androidPlugin.createNotificationChannel(_activityAlertsChannel);
   await androidPlugin.createNotificationChannel(_childAlertsChannel);
   await androidPlugin.createNotificationChannel(_sosAlertsChannel);
+}
+
+Future<void> _persistPendingWebrtcSession(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_pendingWebrtcSessionKey, token);
+  await prefs.setInt(
+    _pendingWebrtcSessionAtKey,
+    DateTime.now().millisecondsSinceEpoch,
+  );
+}
+
+Future<void> _clearPendingWebrtcSession() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(_pendingWebrtcSessionKey);
+  await prefs.remove(_pendingWebrtcSessionAtKey);
 }
 
 

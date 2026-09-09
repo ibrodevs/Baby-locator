@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/providers/session_providers.dart';
 import '../../core/services/app_tracking_transparency_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations_extras.dart';
@@ -13,16 +14,18 @@ const String introSeenKey = 'intro_onboarding_seen_v1';
 
 final introSeenProvider = StateProvider<bool>((ref) => false);
 
-class IntroOnboardingScreen extends StatefulWidget {
+class IntroOnboardingScreen extends ConsumerStatefulWidget {
   const IntroOnboardingScreen({super.key, required this.onFinished});
 
   final VoidCallback onFinished;
 
   @override
-  State<IntroOnboardingScreen> createState() => _IntroOnboardingScreenState();
+  ConsumerState<IntroOnboardingScreen> createState() =>
+      _IntroOnboardingScreenState();
 }
 
-class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
+class _IntroOnboardingScreenState
+    extends ConsumerState<IntroOnboardingScreen>
     with TickerProviderStateMixin {
   final PageController _controller = PageController();
   int _index = 0;
@@ -140,6 +143,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
   Widget build(BuildContext context) {
     final pages = _pages(context);
     final code = Localizations.localeOf(context).languageCode;
+    final isTestMode = ref.watch(testModeProvider).valueOrNull ?? false;
     final continueLabel = _t(code, {
       'ru': 'Продолжить',
       'en': 'Continue',
@@ -150,6 +154,31 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
       body: SafeArea(
         child: Column(
           children: [
+            if (isTestMode)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16, top: 4),
+                  child: TextButton.icon(
+                    onPressed: () async {
+                      await _markSeenAndFinish();
+                      await ref
+                          .read(sessionProvider.notifier)
+                          .loginAsPremiumTest();
+                    },
+                    icon: const Icon(Icons.star_rounded,
+                        color: Color(0xFFFF9800), size: 20),
+                    label: const Text(
+                      'Войти как премиум',
+                      style: TextStyle(
+                        color: Color(0xFFFF9800),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             Expanded(
               child: PageView.builder(
                 controller: _controller,

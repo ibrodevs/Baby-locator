@@ -103,8 +103,30 @@ class _ParentAuthScreenState extends ConsumerState<ParentAuthScreen> {
     }
   }
 
+  Future<void> _loginAsPremiumTest() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      await ref.read(sessionProvider.notifier).loginAsPremiumTest();
+      if (!mounted) return;
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isTestMode = ref.watch(testModeProvider).valueOrNull ?? false;
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
@@ -254,6 +276,43 @@ class _ParentAuthScreenState extends ConsumerState<ParentAuthScreen> {
                   style: TextStyle(fontSize: 13),
                 ),
               ),
+
+              if (isTestMode) ...[
+                const SizedBox(height: 12),
+                Container(
+                  height: 52,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF9800).withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: _loading ? null : _loginAsPremiumTest,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    icon: const Icon(Icons.star_rounded, size: 22),
+                    label: const Text(
+                      'Войти как премиум пользователь',
+                      style:
+                          TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

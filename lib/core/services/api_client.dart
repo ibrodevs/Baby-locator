@@ -197,6 +197,27 @@ class ApiClient {
     return data;
   }
 
+  Future<bool> getTestMode() async {
+    try {
+      final res = await _get('/api/auth/test-mode/');
+      if (res is Map && res['is_test'] == true) {
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> loginAsPremiumTest() async {
+    final data = await _post('/api/auth/login-as-premium/', {});
+    await _saveSession(
+      data['token'] as String,
+      user: data['user'] as Map<String, dynamic>?,
+    );
+    return data;
+  }
+
   Future<Map<String, dynamic>> me() async {
     return (await _get('/api/auth/me/')) as Map<String, dynamic>;
   }

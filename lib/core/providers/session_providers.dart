@@ -253,11 +253,33 @@ class SessionNotifier extends StateNotifier<SessionState> {
       rethrow;
     }
   }
+
+  Future<void> loginAsPremiumTest() async {
+    state = state.copyWith(loading: true, error: null);
+    try {
+      final data = await ApiClient.instance.loginAsPremiumTest();
+      state = SessionState(
+        user: SessionUser.fromJson(data['user'] as Map<String, dynamic>),
+        initialized: true,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        initialized: true,
+      );
+      rethrow;
+    }
+  }
 }
 
 final sessionProvider = StateNotifierProvider<SessionNotifier, SessionState>(
   (ref) => SessionNotifier(),
 );
+
+final testModeProvider = FutureProvider<bool>((ref) async {
+  return ApiClient.instance.getTestMode();
+});
 
 // ===== Child location (local, for the Child screen + parent's map) =====
 
