@@ -38,15 +38,18 @@ class LocationService {
   /// Google Maps API key (same one used in AndroidManifest.xml).
   static const _googleApiKey = 'AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8';
 
+  /// Checks the current location permission WITHOUT ever triggering a system
+  /// permission dialog. A request must only ever happen through
+  /// [requestForegroundPermission] / [requestBackgroundPermission], both of
+  /// which are called from UI that shows the prominent disclosure first. This
+  /// guarantees no screen can surface the Android location prompt before the
+  /// user has seen the disclosure (Google Play prominent-disclosure policy).
   Future<LocationPermissionStatus> ensurePermission({
     bool requireBackground = false,
   }) async {
     final enabled = await Geolocator.isLocationServiceEnabled();
     if (!enabled) return LocationPermissionStatus.serviceOff;
-    var p = await Geolocator.checkPermission();
-    if (p == LocationPermission.denied) {
-      p = await Geolocator.requestPermission();
-    }
+    final p = await Geolocator.checkPermission();
 
     if (p == LocationPermission.deniedForever) {
       return LocationPermissionStatus.deniedForever;
@@ -67,6 +70,19 @@ class LocationService {
     }
 
     return LocationPermissionStatus.granted;
+  }
+
+  /// Requests the foreground (while-in-use) location permission.
+  ///
+  /// MUST only be called AFTER the prominent disclosure has been shown and
+  /// accepted by the user. This is the single entry point that surfaces the
+  /// Android foreground-location prompt — [ensurePermission] never does.
+  Future<bool> requestForegroundPermission() async {
+    if (kIsWeb) return true;
+    if (!Platform.isAndroid && !Platform.isIOS) return true;
+    final result = await Geolocator.requestPermission();
+    return result == LocationPermission.always ||
+        result == LocationPermission.whileInUse;
   }
 
   /// Request Android's ACCESS_BACKGROUND_LOCATION directly only after disclosure has been accepted.

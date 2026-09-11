@@ -110,8 +110,13 @@ class _ChildPermissionsScreenState extends State<ChildPermissionsScreen>
       _notificationStatus == AuthorizationStatus.provisional;
 
   Future<void> _requestLocationPermission() async {
+    // Prominent disclosure MUST be shown and accepted BEFORE the Android
+    // location permission prompt appears (Google Play policy). We never call
+    // Geolocator.requestPermission() directly here.
+    final agreed = await BackgroundLocationDisclosureDialog.show(context);
+    if (!agreed) return;
     try {
-      await Geolocator.requestPermission();
+      await _locationService.requestForegroundPermission();
       await _loadStatuses(showLoader: false);
     } catch (_) {}
   }
