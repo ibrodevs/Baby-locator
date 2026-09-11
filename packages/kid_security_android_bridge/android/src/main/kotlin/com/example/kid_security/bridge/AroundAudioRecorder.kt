@@ -120,6 +120,23 @@ class AroundAudioRecorder(private val applicationContext: Context) {
         activeSessionToken = sessionToken
         audioRecord = record
 
+        // Android 14+ (API 34) only lets an app capture the microphone from
+        // the background while a foreground service of type `microphone` is
+        // already RUNNING. If we called startRecording() first (as before),
+        // the OS silently delivered pure-silence samples whenever the child's
+        // screen was locked / the app was backgrounded — which is exactly the
+        // "listen around returns nothing / stops" regression. So we start the
+        // mic foreground service FIRST and give it a moment to reach the
+        // foreground state, and only then open the mic.
+        MicrophoneForegroundService.start(applicationContext)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            try {
+                Thread.sleep(350)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+        }
+
         try {
             record.startRecording()
         } catch (e: Exception) {
@@ -130,10 +147,10 @@ class AroundAudioRecorder(private val applicationContext: Context) {
             } catch (_: Exception) {
             }
             audioRecord = null
+            MicrophoneForegroundService.stop(applicationContext)
             throw IllegalStateException("AudioRecord.startRecording failed", e)
         }
 
-        MicrophoneForegroundService.start(applicationContext)
         Log.i(TAG, "around capture started, session=$sessionToken")
 
         val capture = Thread({
