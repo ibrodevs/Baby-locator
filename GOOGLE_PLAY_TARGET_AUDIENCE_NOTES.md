@@ -16,7 +16,7 @@
     - Third-party SDKs must comply with Families Self-Certified Ads SDK requirements (Baby Locator uses only core Firebase, RevenueCat, and Google Maps).
 
 ## 3. Play Console Submission Checklist
-- [x] All active tracks (Internal, Closed, Open, Production) must be updated to new versionCode with `isMonitoringTool="child_monitoring"`.
-- [x] Superseded violating releases must be deactivated or replaced.
+- [ ] Verify in Play Console: all active tracks (Internal, every Closed track, Open, Production) use a version with application metadata `isMonitoringTool="child_monitoring"`. Local builds do not verify Console state.
+- [ ] Deactivate or replace all violating releases, including retained older artifacts. Confirm completion in Play Console.
 - [x] Privacy Policy URL must be directly accessible: `https://baby-locator.online/privacy-policy.html`.
 - [x] Account Deletion URL must be directly accessible: `https://baby-locator.online/delete-account.html`.

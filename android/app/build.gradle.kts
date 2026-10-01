@@ -1,5 +1,8 @@
+import com.android.build.api.artifact.SingleArtifact
 import java.io.FileInputStream
 import java.util.Properties
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.Element
 
 plugins {
     id("com.android.application")
@@ -7,6 +10,62 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+}
+
+// Validate the artifact consumed by the packager, after manifest merging.
+// Searching the source text also accepted the broken root-level flag in v18/v19.
+abstract class VerifyMonitoringManifest : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val mergedManifest: RegularFileProperty
+
+    @get:OutputFile
+    abstract val verifiedManifest: RegularFileProperty
+
+    @TaskAction
+    fun verify() {
+        val input = mergedManifest.get().asFile
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = true
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        }
+        val document = factory.newDocumentBuilder().parse(input)
+        val androidNamespace = "http://schemas.android.com/apk/res/android"
+        val metadata = document.getElementsByTagName("meta-data")
+        val flags = (0 until metadata.length)
+            .map { metadata.item(it) as Element }
+            .filter { it.getAttributeNS(androidNamespace, "name") == "isMonitoringTool" }
+        val flag = flags.singleOrNull()
+        if (flag == null ||
+            flag.parentNode.nodeName != "application" ||
+            flag.parentNode.parentNode != document.documentElement ||
+            flag.getAttributeNS(androidNamespace, "value") != "child_monitoring" ||
+            flag.hasAttributeNS(androidNamespace, "resource")
+        ) {
+            throw GradleException(
+                "Google Play monitoring declaration is invalid in $input. " +
+                    "Declare exactly one <meta-data android:name=\"isMonitoringTool\" " +
+                    "android:value=\"child_monitoring\" /> directly inside <application>. " +
+                    "A root-level flag, resource reference or boolean does not satisfy this check.",
+            )
+        }
+        input.copyTo(verifiedManifest.get().asFile.apply { parentFile.mkdirs() }, overwrite = true)
+        logger.lifecycle("Verified isMonitoringTool=child_monitoring in ${name}")
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        val verification = tasks.register<VerifyMonitoringManifest>(
+            "verify${variant.name.replaceFirstChar { it.uppercase() }}MonitoringManifest",
+        )
+        variant.artifacts.use(verification)
+            .wiredWithFiles(
+                VerifyMonitoringManifest::mergedManifest,
+                VerifyMonitoringManifest::verifiedManifest,
+            )
+            .toTransform(SingleArtifact.MERGED_MANIFEST)
+    }
 }
 
 val localProperties = Properties().apply {
@@ -87,7 +146,7 @@ val googleMapsApiKey = sequenceOf(
     propertyOrEnv("GOOGLE_MAPS_ANDROID_API_KEY"),
     propertyOrEnv("GOOGLE_MAPS_API_KEY"),
     propertyOrEnv("MAPS_API_KEY"),
-).firstOrNull { it.isNotEmpty() } ?: "AIzaSyD4gQlVQKoVsbDJGuYJ7GVtLQYw9N9WWW8"
+).firstOrNull { it.isNotEmpty() } ?: "AIzaSyBxQDgcuDNy_c1ASU8Gm2DtobzBXENOZIw"
 
 fun signingProperty(
     fileKey: String,

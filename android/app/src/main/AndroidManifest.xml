@@ -23,6 +23,10 @@
         android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Application metadata must be inside <application>, not <manifest>.
+             Keep the literal Play policy value in every build variant.
+             https://support.google.com/googleplay/android-developer/answer/12955211
+             https://developer.android.com/guide/topics/manifest/meta-data-element -->
         <meta-data
             android:name="isMonitoringTool"
             android:value="child_monitoring" />

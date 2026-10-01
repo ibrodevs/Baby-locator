@@ -9,6 +9,13 @@ set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
+if [ "$#" -ne 1 ]; then
+  echo "Usage: bash scripts/google_play_preflight.sh /path/to/exact-upload.aab"
+  echo "Set BUNDLETOOL_JAR if bundletool is not in build/tools/bundletool-all-1.18.3.jar."
+  exit 2
+fi
+AAB_PATH="$1"
+
 echo "================================================================="
 echo "   BABY LOCATOR — GOOGLE PLAY RELEASE PREFLIGHT COMPLIANCE CHECK"
 echo "================================================================="
@@ -60,10 +67,16 @@ echo "--- 2. MONITORING POLICY & METADATA ---"
 
 MAIN_MANIFEST="android/app/src/main/AndroidManifest.xml"
 
-if grep -q 'android:name="isMonitoringTool"' "$MAIN_MANIFEST" && grep -q 'android:value="child_monitoring"' "$MAIN_MANIFEST"; then
-  check_pass "isMonitoringTool=child_monitoring meta-data tag is present in AndroidManifest.xml"
+if python3 scripts/verify_monitoring_manifest.py --manifest "$MAIN_MANIFEST"; then
+  check_pass "Source manifest has valid application monitoring metadata"
 else
-  check_fail "isMonitoringTool meta-data tag missing in $MAIN_MANIFEST"
+  check_fail "Source monitoring metadata is missing, misplaced or invalid"
+fi
+
+if python3 scripts/verify_monitoring_manifest.py --bundle "$AAB_PATH"; then
+  check_pass "Exact upload AAB has valid monitoring metadata, current version and signature"
+else
+  check_fail "Upload AAB validation failed; do not submit this artifact"
 fi
 
 if grep -q 'isAccessibilityTool' "$MAIN_MANIFEST"; then
@@ -180,6 +193,7 @@ if [ "$FAILED" -gt 0 ]; then
   echo "Preflight check FAILED! Fix the reported issues above."
   exit 1
 else
-  echo "All preflight checks PASSED! Codebase is ready for Google Play release submission."
+  echo "Local preflight checks PASSED. This is not a Google Play approval or a runtime policy audit."
+  echo "Replace/deactivate violating versions in ALL active Play tracks before resubmission."
   exit 0
 fi
