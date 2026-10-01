@@ -1,6 +1,9 @@
 # Baby Locator — Release AAB Verification & Compliance Report (2026)
 
-This document provides the complete, authoritative verification record for the production Google Play release artifact of **Baby Locator**.
+Historical report for versionCode 9 only. It does not verify later artifacts or
+the current Play Console tracks. For the October 1 rejection, verified versionCode
+20/21 and remaining submission steps, see
+[the current monitoring fix report](GOOGLE_PLAY_MONITORING_FIX_2026-10-01.md).
 
 ---
 
